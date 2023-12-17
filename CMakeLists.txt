@@ -88,6 +88,7 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
 option(UEFIDOOM OFF)
 
 if(NOT UEFIDOOM)
+    add_compile_options(-g)
     add_library(dlibc STATIC dlibc/printf.c dlibc/scanf.c dlibc/utils.c)
     target_include_directories(dlibc PUBLIC dlibc)
     add_library(doomgeneric STATIC ${SOURCES} ${CONVERTED_SOURCES})

@@ -52,11 +52,11 @@ int d_fread(void* dest, size_t size, size_t count, FILE* file) {
     size_t bytesRead = bytesLeft < bytesReq ? bytesLeft : bytesReq;
     // Whoever thought it was a good idea to have two parameters in fread/fwrite
     // I dearly hope they step on a lego
-    bytesRead /= size;
-    bytesRead *= size;
+    int elems = bytesRead / size;
+    bytesRead = size * elems;
     d_memcpy(dest, doom1_wad + doom1.offset, bytesRead);
     doom1.offset += bytesRead;
-    return bytesRead;
+    return elems;
 }
 
 int d_fwrite(const void* src, size_t size, size_t count, FILE* file) { return -1; }
