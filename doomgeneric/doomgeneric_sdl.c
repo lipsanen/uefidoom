@@ -1,5 +1,5 @@
 //doomgeneric for cross-platform development library 'Simple DirectMedia Layer'
-
+#include "doomdef.h"
 #include "dlibc.h"
 #include "doomkeys.h"
 #include "m_argv.h"
@@ -183,12 +183,14 @@ void DG_SetWindowTitle(const char * title)
 
 int main(int argc, char **argv)
 {
+  doom_data_t doom;
+  doomdata_init(&doom);
   DG_Init();
   doomgeneric_Create(argc, argv);
 
   for (int i = 0; ; i++)
   {
-      doomgeneric_Tick();
+      doomgeneric_Tick(&doom);
   }
 
   return 0;

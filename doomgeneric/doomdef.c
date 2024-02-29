@@ -21,6 +21,7 @@
 #include "doomdef.h"
 
 void doomdata_init(doom_data_t* doom) {
+    d_memset(doom, 0, sizeof(doom_data_t));
     d_strcpy(doom->cheat_amap.sequence, "iddt");
     doom->cheat_amap.sequence_len = d_strlen(doom->cheat_amap.sequence);
     d_strcpy(doom->cheat_amap.parameter_buf, "");

@@ -1,3 +1,4 @@
+#include "doomdef.h"
 #include "d_event.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -178,12 +179,14 @@ EFI_STATUS efi_main(
 
 	int argc = 1;
 	char *argv[] = {"efidoom"};
+	doom_data_t doom;
+	doomdata_init(&doom);
 	doomgeneric_Create(argc, argv);
 	d_memset(keyStateMap, 0, sizeof(keyStateMap));
 
 	for (int i = 0;; i++)
 	{
-		doomgeneric_Tick();
+		doomgeneric_Tick(&doom);
 	}
 
 	while (1)

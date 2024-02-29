@@ -208,7 +208,7 @@ void D_Display (struct doom_data_t_* doom)
 		if (!gametic)
 			break;
 		if (automapactive)
-			AM_Drawer ();
+			AM_Drawer (doom);
 		if (wipe || (viewheight != 200 && fullscreen) )
 			redrawsbar = true;
 		if (inhelpscreensstate && !inhelpscreens)

@@ -36,6 +36,7 @@ struct doom_data_t_ {
     int f_h;
 
     cheatseq_t cheat_amap;
+    int cheating;
 };
 
 typedef struct doom_data_t_ doom_data_t;
