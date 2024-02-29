@@ -20,9 +20,26 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
+#include <stdint.h>
+#include "m_cheat.h"
 #include "doomtype.h"
 #include "i_timer.h"
 #include "d_mode.h"
+
+struct doom_data_t_ {
+    // location of window on screen
+    int f_x;
+    int f_y;
+
+    // size of window on screen
+    int f_w;
+    int f_h;
+
+    cheatseq_t cheat_amap;
+};
+
+typedef struct doom_data_t_ doom_data_t;
+void doomdata_init(doom_data_t* doom);
 
 //
 // Global parameters/defines.

@@ -65,10 +65,10 @@ typedef struct
 
 static textscreen_t textscreens[] =
 {
-    { doom,      1, 8,  "FLOOR4_8",  E1TEXT},
-    { doom,      2, 8,  "SFLR6_1",   E2TEXT},
-    { doom,      3, 8,  "MFLR8_4",   E3TEXT},
-    { doom,      4, 8,  "MFLR8_3",   E4TEXT},
+    { doom1,      1, 8,  "FLOOR4_8",  E1TEXT},
+    { doom1,      2, 8,  "SFLR6_1",   E2TEXT},
+    { doom1,      3, 8,  "MFLR8_4",   E3TEXT},
+    { doom1,      4, 8,  "MFLR8_3",   E4TEXT},
 
     { doom2,     1, 6,  "SLIME16",   C1TEXT},
     { doom2,     1, 11, "RROCK14",   C2TEXT},
@@ -112,7 +112,7 @@ void F_StartFinale (void)
     viewactive = false;
     automapactive = false;
 
-    if (logical_gamemission == doom)
+    if (logical_gamemission == doom1)
     {
         S_ChangeMusic(mus_victor, true);
     }
@@ -129,13 +129,13 @@ void F_StartFinale (void)
 
         // Hack for Chex Quest
 
-        if (gameversion == exe_chex && screen->mission == doom)
+        if (gameversion == exe_chex && screen->mission == doom1)
         {
             screen->level = 5;
         }
 
         if (logical_gamemission == screen->mission
-         && (logical_gamemission != doom || gameepisode == screen->episode)
+         && (logical_gamemission != doom1 || gameepisode == screen->episode)
          && gamemap == screen->level)
         {
             finaletext = screen->text;

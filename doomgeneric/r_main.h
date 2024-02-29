@@ -149,7 +149,7 @@ R_AddPointToBox
 //
 
 // Called by G_Drawer.
-void R_RenderPlayerView (player_t *player);
+void R_RenderPlayerView (struct doom_data_t_* doom, player_t *player);
 
 // Called by startup code.
 void R_Init (void);

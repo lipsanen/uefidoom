@@ -333,7 +333,7 @@ void HU_Start(void)
     
     switch ( logical_gamemission )
     {
-      case doom:
+      case doom1:
 	s = HU_TITLE;
 	break;
       case doom2:

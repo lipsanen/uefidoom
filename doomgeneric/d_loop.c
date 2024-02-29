@@ -132,7 +132,7 @@ static int GetAdjustedTime(void)
     return (time_ms * TICRATE) / 1000;
 }
 
-static boolean BuildNewTic(void)
+static boolean BuildNewTic(struct doom_data_t_* doom)
 {
     int	gameticdiv;
     ticcmd_t cmd;
@@ -140,7 +140,7 @@ static boolean BuildNewTic(void)
     gameticdiv = gametic/ticdup;
 
     I_StartTic ();
-    loop_interface->ProcessEvents();
+    loop_interface->ProcessEvents(doom);
 
     // Always run the menu
 
@@ -199,7 +199,7 @@ static boolean BuildNewTic(void)
 //
 int      lasttime;
 
-void NetUpdate (void)
+void NetUpdate (struct doom_data_t_* doom)
 {
     int nowtime;
     int newtics;
@@ -241,7 +241,7 @@ void NetUpdate (void)
 
     for (i=0 ; i<newtics ; i++)
     {
-        if (!BuildNewTic())
+        if (!BuildNewTic(doom))
         {
             break;
         }
@@ -702,7 +702,7 @@ static void SinglePlayerClear(ticcmd_set_t *set)
 // TryRunTics
 //
 
-void TryRunTics (void)
+void TryRunTics (struct doom_data_t_* doom)
 {
     int	i;
     int	lowtic;
@@ -722,11 +722,11 @@ void TryRunTics (void)
 
     if (singletics)
     {
-        BuildNewTic();
+        BuildNewTic(doom);
     }
     else
     {
-        NetUpdate ();
+        NetUpdate (doom);
     }
 
     lowtic = GetLowTic();
@@ -765,7 +765,7 @@ void TryRunTics (void)
 
     while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
     {
-	NetUpdate ();
+	NetUpdate (doom);
 
         lowtic = GetLowTic();
 
@@ -815,7 +815,7 @@ void TryRunTics (void)
             TicdupSquash(set);
 	}
 
-	NetUpdate ();	// check for new console commands
+	NetUpdate (doom);	// check for new console commands
     }
 }
 

@@ -540,9 +540,9 @@ ST_Responder (event_t* ev)
 	    S_ChangeMusic(musnum, 1);
 	}
       }
-      else if ( (logical_gamemission == doom 
+      else if ( (logical_gamemission == doom1 
                  && cht_CheckCheat(&cheat_noclip, ev->data2))
-             || (logical_gamemission != doom 
+             || (logical_gamemission != doom1 
                  && cht_CheckCheat(&cheat_commercial_noclip,ev->data2)))
       {	
         // Noclip cheat.

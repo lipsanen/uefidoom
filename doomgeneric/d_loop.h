@@ -21,6 +21,8 @@
 
 #include "net_defs.h"
 
+struct doom_data_t_;
+
 // Callback function invoked while waiting for the netgame to start.
 // The callback is invoked when new players are ready. The callback
 // should return true, or return false to abort startup.
@@ -32,7 +34,7 @@ typedef struct
 {
     // Read events from the event queue, and process them.
 
-    void (*ProcessEvents)();
+    void (*ProcessEvents)(struct doom_data_t_* data);
 
     // Given the current input state, fill in the fields of the specified
     // ticcmd_t structure with data for a new tic.
@@ -52,14 +54,14 @@ typedef struct
 void D_RegisterLoopCallbacks(loop_interface_t *i);
 
 // Create any new ticcmds and broadcast to other players.
-void NetUpdate (void);
+void NetUpdate (struct doom_data_t_* doom);
 
 // Broadcasts special packets to other players
 //  to notify of game exit
 void D_QuitNetGame (void);
 
 //? how many ticks to run?
-void TryRunTics (void);
+void TryRunTics (struct doom_data_t_* doom);
 
 // Called at start of game loop to initialize timers
 void D_StartGameLoop(void);

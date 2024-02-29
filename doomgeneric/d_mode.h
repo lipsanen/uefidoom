@@ -26,7 +26,7 @@
 
 typedef enum
 {
-    doom,            // Doom 1
+    doom1,            // Doom 1
     doom2,           // Doom 2
     pack_tnt,        // Final Doom: TNT: Evilution
     pack_plut,       // Final Doom: The Plutonia Experiment

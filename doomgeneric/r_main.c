@@ -817,7 +817,7 @@ void R_SetupFrame (player_t* player)
 //
 // R_RenderView
 //
-void R_RenderPlayerView (player_t* player)
+void R_RenderPlayerView (struct doom_data_t_* doom, player_t* player)
 {	
     R_SetupFrame (player);
 
@@ -828,21 +828,21 @@ void R_RenderPlayerView (player_t* player)
     R_ClearSprites ();
     
     // check for new console commands.
-    NetUpdate ();
+    NetUpdate (doom);
 
     // The head node is the last node output.
     R_RenderBSPNode (numnodes-1);
     
     // Check for new console commands.
-    NetUpdate ();
+    NetUpdate (doom);
     
     R_DrawPlanes ();
     
     // Check for new console commands.
-    NetUpdate ();
+    NetUpdate (doom);
     
     R_DrawMasked ();
 
     // Check for new console commands.
-    NetUpdate ();				
+    NetUpdate (doom);				
 }

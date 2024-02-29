@@ -241,7 +241,7 @@ static boolean WeaponSelectable(weapontype_t weapon)
 {
     // Can't select the super shotgun in Doom 1.
 
-    if (weapon == wp_supershotgun && logical_gamemission == doom)
+    if (weapon == wp_supershotgun && logical_gamemission == doom1)
     {
         return false;
     }
@@ -249,7 +249,7 @@ static boolean WeaponSelectable(weapontype_t weapon)
     // These weapons aren't available in shareware.
 
     if ((weapon == wp_plasma || weapon == wp_bfg)
-     && gamemission == doom && gamemode == shareware)
+     && gamemission == doom1 && gamemode == shareware)
     {
         return false;
     }
@@ -726,7 +726,7 @@ static void SetMouseButtons(unsigned int buttons_mask)
 // G_Responder  
 // Get info needed to make ticcmd_ts for the players.
 // 
-boolean G_Responder (event_t* ev) 
+boolean G_Responder (doom_data_t* data, event_t* ev) 
 { 
     // allow spy mode changes even during the demo
     if (gamestate == GS_LEVEL && ev->type == ev_keydown 
@@ -770,7 +770,7 @@ boolean G_Responder (event_t* ev)
 	    return true;	// chat ate the event 
 	if (ST_Responder (ev)) 
 	    return true;	// status window ate it 
-	if (AM_Responder (ev)) 
+	if (AM_Responder (doom1, ev)) 
 	    return true;	// automap ate it 
     } 
 	 

@@ -591,7 +591,7 @@ void AM_maxOutWindowScale(void)
 //
 boolean
 AM_Responder
-( event_t*	ev )
+( doom_data_t* data, event_t*	ev )
 {
 
     int rc;

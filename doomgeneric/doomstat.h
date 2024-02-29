@@ -67,7 +67,7 @@ extern boolean bfgedition;
 // as the same most of the time.
 
 #define logical_gamemission                             \
-    (gamemission == pack_chex ? doom :                  \
+    (gamemission == pack_chex ? doom1 :                  \
      gamemission == pack_hacx ? doom2 : gamemission)
 
 // Set if homebrew PWAD stuff has been added.

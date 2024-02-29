@@ -27,7 +27,7 @@
 
 // Read events from all input devices
 
-void D_ProcessEvents (void); 
+void D_ProcessEvents (doom_data_t* data); 
 	
 
 //

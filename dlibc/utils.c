@@ -69,6 +69,12 @@ void* d_memmove( void* dest, const void* src, size_t count ) {
     return d_memcpy(dest, src, count);
 }
 
+
+void d_strcpy(char* dest, const char* src) {
+	size_t size = d_strlen(src);
+	d_memcpy(dest, src, size);
+}
+
 size_t d_strlen(const char* str) {
     size_t len;
     for(len=0; *str; ++len, ++str);

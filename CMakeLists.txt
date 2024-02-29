@@ -88,7 +88,8 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
 option(UEFIDOOM OFF)
 
 if(NOT UEFIDOOM)
-    add_compile_options(-g)
+    add_compile_options(-g -fsanitize=address -Wincompatible-pointer-types)
+    add_link_options(-fsanitize=address)
     add_library(dlibc STATIC dlibc/printf.c dlibc/scanf.c dlibc/utils.c)
     target_include_directories(dlibc PUBLIC dlibc)
     add_library(doomgeneric STATIC ${SOURCES} ${CONVERTED_SOURCES})
@@ -109,7 +110,7 @@ if(NOT UEFIDOOM)
     target_include_directories(doomgeneric_unittests PRIVATE doomgeneric)
 else()
     set(CMAKE_C_COMPILER clang)
-    add_compile_options(-ffreestanding -MMD -mno-red-zone -std=c11 -target x86_64-unknown-windows -Wno-microsoft-static-assert -Wno-unused-command-line-argument)
+    add_compile_options(-ffreestanding -g -MMD -mno-red-zone -std=c11 -target x86_64-unknown-windows -Wno-microsoft-static-assert -Wno-unused-command-line-argument)
 
     add_library(dlibc STATIC dlibc/printf.c dlibc/scanf.c dlibc/utils.c)
     target_include_directories(dlibc PUBLIC dlibc)

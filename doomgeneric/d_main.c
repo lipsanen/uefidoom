@@ -77,7 +77,7 @@
 //  calls all ?_Responder, ?_Ticker, and ?_Drawer,
 //  calls I_GetTime, I_StartFrame, and I_StartTic
 //
-void D_DoomLoop (void);
+void D_DoomLoop (struct doom_data_t_* doom);
 
 // Location where savegames are stored
 
@@ -130,7 +130,7 @@ void D_CheckNetGame(void);
 // D_ProcessEvents
 // Send all the events of the given timestamp down the responder chain
 //
-void D_ProcessEvents (void)
+void D_ProcessEvents (doom_data_t* data)
 {
     event_t*	ev;
 	
@@ -142,7 +142,7 @@ void D_ProcessEvents (void)
     {
 	if (M_Responder (ev))
 	    continue;               // menu ate the event
-	G_Responder (ev);
+	G_Responder (data, ev);
     }
 }
 
@@ -160,7 +160,7 @@ extern  boolean setsizeneeded;
 extern  int             showMessages;
 void R_ExecuteSetViewSize (void);
 
-void D_Display (void)
+void D_Display (struct doom_data_t_* doom)
 {
     static  boolean		viewactivestate = false;
     static  boolean		menuactivestate = false;
@@ -235,7 +235,7 @@ void D_Display (void)
     
     // draw the view directly
     if (gamestate == GS_LEVEL && !automapactive && gametic)
-    	R_RenderPlayerView (&players[displayplayer]);
+    	R_RenderPlayerView (doom, &players[displayplayer]);
 
     if (gamestate == GS_LEVEL && gametic)
     	HU_Drawer ();
@@ -289,7 +289,7 @@ void D_Display (void)
 
     // menus go directly to the screen
     M_Drawer ();          // menu is drawn even on top of everything
-    NetUpdate ();         // send out any new accumulation
+    NetUpdate (doom);         // send out any new accumulation
 
 
     // normal update
@@ -395,26 +395,26 @@ boolean D_GrabMouseCallback(void)
     return (gamestate == GS_LEVEL) && !demoplayback && !advancedemo;
 }
 
-void doomgeneric_Tick()
+void doomgeneric_Tick(struct doom_data_t_* doom)
 {
     // frame syncronous IO operations
     I_StartFrame ();
 
-    TryRunTics (); // will run at least one tic
+    TryRunTics (doom); // will run at least one tic
 
     S_UpdateSounds (players[consoleplayer].mo);// move positional sounds
 
     // Update display, next frame, with current state.
     if (screenvisible)
     {
-        D_Display ();
+        D_Display (doom);
     }
 }
 
 //
 //  D_DoomLoop
 //
-void D_DoomLoop (void)
+void D_DoomLoop (struct doom_data_t_* doom)
 {
     if (bfgedition &&
         (demorecording || (gameaction == ga_playdemo) || netgame))
@@ -430,7 +430,7 @@ void D_DoomLoop (void)
 
     main_loop_started = true;
 
-    TryRunTics();
+    TryRunTics(doom);
 
     I_GraphicsCheckCommandLine();
     I_SetGrabMouseCallback(D_GrabMouseCallback);
@@ -447,7 +447,7 @@ void D_DoomLoop (void)
         wipegamestate = gamestate;
     }
 
-    doomgeneric_Tick();
+    doomgeneric_Tick(doom);
 }
 
 
@@ -732,7 +732,7 @@ void D_IdentifyVersion(void)
             } 
             else if (!d_strnicmp(lumpinfo[i].name, "E1M1", 8))
             {
-                gamemission = doom;
+                gamemission = doom1;
                 break;
             }
         }
@@ -747,7 +747,7 @@ void D_IdentifyVersion(void)
 
     // Make sure gamemode is set up correctly
 
-    if (logical_gamemission == doom)
+    if (logical_gamemission == doom1)
     {
         // Doom 1.  But which version?
 
@@ -801,7 +801,7 @@ void D_SetGameDescription(void)
 
     gamedescription = "Unknown";
 
-    if (logical_gamemission == doom)
+    if (logical_gamemission == doom1)
     {
         // Doom 1.  But which version?
 
@@ -1087,7 +1087,7 @@ static void Init_ScreenBuffer()
 //
 // D_DoomMain
 //
-void D_DoomMain (void)
+void D_DoomMain (struct doom_data_t_* doom)
 {
     int p;
     char file[256];
@@ -1309,7 +1309,7 @@ void D_DoomMain (void)
     numiwadlumps = numlumps;
 #endif
 
-    W_CheckCorrectIWAD(doom);
+    W_CheckCorrectIWAD(doom1);
 
     // Now that we've loaded the IWAD, we can figure out what gamemission
     // we're playing and which version of Vanilla Doom we need to emulate.
@@ -1741,7 +1741,7 @@ void D_DoomMain (void)
     {
 		singledemo = true;              // quit after one demo
 		G_DeferedPlayDemo (demolumpname);
-		D_DoomLoop ();
+		D_DoomLoop (doom);
         return;
     }
 
@@ -1749,7 +1749,7 @@ void D_DoomMain (void)
     if (p)
     {
 		G_TimeDemo (demolumpname);
-		D_DoomLoop ();
+		D_DoomLoop (doom);
         return;
     }
 
@@ -1767,6 +1767,6 @@ void D_DoomMain (void)
 			D_StartTitle ();                // start up intro loop
     }
 
-    D_DoomLoop ();
+    D_DoomLoop (doom);
 }
 
