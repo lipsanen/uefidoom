@@ -46,6 +46,7 @@ struct doom_data_t_ {
     int cheating;
     mpoint_t m_paninc;
     patch_t *marknums[10];
+    byte*	fb; // pseudo-frame buffer
 };
 
 typedef struct doom_data_t_ doom_data_t;

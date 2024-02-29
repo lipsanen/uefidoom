@@ -199,7 +199,6 @@ static int 	f_w;
 static int	f_h;
 
 static int 	lightlev; 		// used for funky strobing effect
-static byte*	fb; 			// pseudo-frame buffer
 static int 	amclock;
 
 static fixed_t 	mtof_zoommul; // how far the window zooms in each tic (map coords)
@@ -339,7 +338,7 @@ void AM_addMark(void)
 // Determines bounding box of all vertices,
 // sets global variables controlling zoom range.
 //
-void AM_findMinMaxBoundaries(void)
+void AM_findMinMaxBoundaries(doom_data_t* doom)
 {
     int i;
     fixed_t a;
@@ -414,7 +413,7 @@ void AM_initVariables(doom_data_t* doom)
     static event_t st_notify = { ev_keyup, AM_MSGENTERED, 0, 0 };
 
     automapactive = true;
-    fb = I_VideoBuffer;
+    doom->fb = I_VideoBuffer;
 
     f_oldloc.x = INT_MAX;
     amclock = 0;
@@ -502,7 +501,7 @@ void AM_clearMarks(void)
 // should be called at the start of every level
 // right now, i figure it out myself
 //
-void AM_LevelInit(void)
+void AM_LevelInit(doom_data_t* doom)
 {
     leveljuststarted = 0;
 
@@ -512,7 +511,7 @@ void AM_LevelInit(void)
 
     AM_clearMarks();
 
-    AM_findMinMaxBoundaries();
+    AM_findMinMaxBoundaries(doom);
     scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
     if (scale_mtof > max_scale_mtof)
 	scale_mtof = min_scale_mtof;
@@ -546,7 +545,7 @@ void AM_Start (doom_data_t* doom)
     stopped = false;
     if (lastlevel != gamemap || lastepisode != gameepisode)
     {
-	AM_LevelInit();
+	AM_LevelInit(doom);
 	lastlevel = gamemap;
 	lastepisode = gameepisode;
     }
@@ -557,7 +556,7 @@ void AM_Start (doom_data_t* doom)
 //
 // set the window scale to the maximum size
 //
-void AM_minOutWindowScale(void)
+static void AM_minOutWindowScale(void)
 {
     scale_mtof = min_scale_mtof;
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
@@ -567,7 +566,7 @@ void AM_minOutWindowScale(void)
 //
 // set the window scale to the minimum size
 //
-void AM_maxOutWindowScale(void)
+static void AM_maxOutWindowScale(void)
 {
     scale_mtof = max_scale_mtof;
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
@@ -726,7 +725,7 @@ AM_Responder
 //
 // Zooming
 //
-void AM_changeWindowScale(void)
+static void AM_changeWindowScale(void)
 {
 
     // Change the scaling multipliers
@@ -745,7 +744,7 @@ void AM_changeWindowScale(void)
 //
 //
 //
-void AM_doFollowPlayer(void)
+static void AM_doFollowPlayer(void)
 {
 
     if (f_oldloc.x != plr->mo->x || f_oldloc.y != plr->mo->y)
@@ -769,7 +768,7 @@ void AM_doFollowPlayer(void)
 //
 //
 //
-void AM_updateLightLev(void)
+static void AM_updateLightLev(void)
 {
     static int nexttic = 0;
     //static int litelevels[] = { 0, 3, 5, 6, 6, 7, 7, 7 };
@@ -818,9 +817,9 @@ void AM_Ticker (doom_data_t* doom)
 //
 // Clear automap frame buffer.
 //
-void AM_clearFB(int color)
+static void AM_clearFB(doom_data_t* doom, int color)
 {
-    d_memset(fb, color, f_w*f_h);
+    d_memset(doom->fb, color, f_w*f_h);
 }
 
 
@@ -831,7 +830,7 @@ void AM_clearFB(int color)
 // faster reject and precalculated slopes.  If the speed is needed,
 // use a hash algorithm to handle  the common cases.
 //
-boolean
+static boolean
 AM_clipMline
 ( mline_t*	ml,
   fline_t*	fl )
@@ -967,9 +966,10 @@ AM_clipMline
 //
 // Classic Bresenham w/ whatever optimizations needed for speed
 //
-void
+static void
 AM_drawFline
-( fline_t*	fl,
+( doom_data_t* doom,
+  fline_t*	fl,
   int		color )
 {
     register int x;
@@ -994,7 +994,7 @@ AM_drawFline
 	return;
     }
 
-#define PUTDOT(xx,yy,cc) fb[(yy)*f_w+(xx)]=(cc)
+#define PUTDOT(xx,yy,cc) doom->fb[(yy)*f_w+(xx)]=(cc)
 
     dx = fl->b.x - fl->a.x;
     ax = 2 * (dx<0 ? -dx : dx);
@@ -1045,15 +1045,16 @@ AM_drawFline
 //
 // Clip lines, draw visible part sof lines.
 //
-void
+static void
 AM_drawMline
-( mline_t*	ml,
+( doom_data_t* doom,
+  mline_t*	ml,
   int		color )
 {
     static fline_t fl;
 
     if (AM_clipMline(ml, &fl))
-	AM_drawFline(&fl, color); // draws it on frame buffer using fb coords
+	AM_drawFline(doom, &fl, color); // draws it on frame buffer using fb coords
 }
 
 
@@ -1061,7 +1062,7 @@ AM_drawMline
 //
 // Draws flat (floor/ceiling tile) aligned grid lines.
 //
-void AM_drawGrid(int color)
+static void AM_drawGrid(doom_data_t* doom, int color)
 {
     fixed_t x, y;
     fixed_t start, end;
@@ -1081,7 +1082,7 @@ void AM_drawGrid(int color)
     {
 	ml.a.x = x;
 	ml.b.x = x;
-	AM_drawMline(&ml, color);
+	AM_drawMline(doom, &ml, color);
     }
 
     // Figure out start of horizontal gridlines
@@ -1098,7 +1099,7 @@ void AM_drawGrid(int color)
     {
 	ml.a.y = y;
 	ml.b.y = y;
-	AM_drawMline(&ml, color);
+	AM_drawMline(doom, &ml, color);
     }
 
 }
@@ -1107,7 +1108,7 @@ void AM_drawGrid(int color)
 // Determines visible lines, draws them.
 // This is LineDef based, not LineSeg based.
 //
-void AM_drawWalls(doom_data_t* doom)
+static void AM_drawWalls(doom_data_t* doom)
 {
     int i;
     static mline_t l;
@@ -1124,35 +1125,35 @@ void AM_drawWalls(doom_data_t* doom)
 		continue;
 	    if (!lines[i].backsector)
 	    {
-		AM_drawMline(&l, WALLCOLORS+lightlev);
+		AM_drawMline(doom, &l, WALLCOLORS+lightlev);
 	    }
 	    else
 	    {
 		if (lines[i].special == 39)
 		{ // teleporters
-		    AM_drawMline(&l, WALLCOLORS+WALLRANGE/2);
+		    AM_drawMline(doom, &l, WALLCOLORS+WALLRANGE/2);
 		}
 		else if (lines[i].flags & ML_SECRET) // secret door
 		{
-		    if (doom->cheating) AM_drawMline(&l, SECRETWALLCOLORS + lightlev);
-		    else AM_drawMline(&l, WALLCOLORS+lightlev);
+		    if (doom->cheating) AM_drawMline(doom, &l, SECRETWALLCOLORS + lightlev);
+		    else AM_drawMline(doom, &l, WALLCOLORS+lightlev);
 		}
 		else if (lines[i].backsector->floorheight
 			   != lines[i].frontsector->floorheight) {
-		    AM_drawMline(&l, FDWALLCOLORS + lightlev); // floor level change
+		    AM_drawMline(doom, &l, FDWALLCOLORS + lightlev); // floor level change
 		}
 		else if (lines[i].backsector->ceilingheight
 			   != lines[i].frontsector->ceilingheight) {
-		    AM_drawMline(&l, CDWALLCOLORS+lightlev); // ceiling level change
+		    AM_drawMline(doom, &l, CDWALLCOLORS+lightlev); // ceiling level change
 		}
 		else if (doom->cheating) {
-		    AM_drawMline(&l, TSWALLCOLORS+lightlev);
+		    AM_drawMline(doom, &l, TSWALLCOLORS+lightlev);
 		}
 	    }
 	}
 	else if (plr->powers[pw_allmap])
 	{
-	    if (!(lines[i].flags & LINE_NEVERSEE)) AM_drawMline(&l, GRAYS+3);
+	    if (!(lines[i].flags & LINE_NEVERSEE)) AM_drawMline(doom, &l, GRAYS+3);
 	}
     }
 }
@@ -1162,7 +1163,7 @@ void AM_drawWalls(doom_data_t* doom)
 // Rotation in 2D.
 // Used to rotate player arrow line character.
 //
-void
+static void
 AM_rotate
 ( fixed_t*	x,
   fixed_t*	y,
@@ -1181,9 +1182,10 @@ AM_rotate
     *x = tmpx;
 }
 
-void
+static void
 AM_drawLineCharacter
-( mline_t*	lineguy,
+( doom_data_t* doom,
+  mline_t*	lineguy,
   int		lineguylines,
   fixed_t	scale,
   angle_t	angle,
@@ -1226,11 +1228,11 @@ AM_drawLineCharacter
 	l.b.x += x;
 	l.b.y += y;
 
-	AM_drawMline(&l, color);
+	AM_drawMline(doom, &l, color);
     }
 }
 
-void AM_drawPlayers(doom_data_t* doom)
+static void AM_drawPlayers(doom_data_t* doom)
 {
     int		i;
     player_t*	p;
@@ -1242,11 +1244,11 @@ void AM_drawPlayers(doom_data_t* doom)
     {
 	if (doom->cheating)
 	    AM_drawLineCharacter
-		(cheat_player_arrow, arrlen(cheat_player_arrow), 0,
+		(doom, cheat_player_arrow, arrlen(cheat_player_arrow), 0,
 		 plr->mo->angle, WHITE, plr->mo->x, plr->mo->y);
 	else
 	    AM_drawLineCharacter
-		(player_arrow, arrlen(player_arrow), 0, plr->mo->angle,
+		(doom, player_arrow, arrlen(player_arrow), 0, plr->mo->angle,
 		 WHITE, plr->mo->x, plr->mo->y);
 	return;
     }
@@ -1268,15 +1270,16 @@ void AM_drawPlayers(doom_data_t* doom)
 	    color = their_colors[their_color];
 	
 	AM_drawLineCharacter
-	    (player_arrow, arrlen(player_arrow), 0, p->mo->angle,
+	    (doom, player_arrow, arrlen(player_arrow), 0, p->mo->angle,
 	     color, p->mo->x, p->mo->y);
     }
 
 }
 
-void
+static void
 AM_drawThings
-( int	colors,
+( doom_data_t* doom,
+  int	colors,
   int 	colorrange)
 {
     int		i;
@@ -1288,14 +1291,14 @@ AM_drawThings
 	while (t)
 	{
 	    AM_drawLineCharacter
-		(thintriangle_guy, arrlen(thintriangle_guy),
+		(doom, thintriangle_guy, arrlen(thintriangle_guy),
 		 16<<FRACBITS, t->angle, colors+lightlev, t->x, t->y);
 	    t = t->snext;
 	}
     }
 }
 
-void AM_drawMarks(doom_data_t* doom)
+static void AM_drawMarks(doom_data_t* doom)
 {
     int i, fx, fy, w, h;
 
@@ -1316,9 +1319,9 @@ void AM_drawMarks(doom_data_t* doom)
 
 }
 
-void AM_drawCrosshair(int color)
+static void AM_drawCrosshair(doom_data_t* doom, int color)
 {
-    fb[(f_w*(f_h+1))/2] = color; // single point for now
+    doom->fb[(f_w*(f_h+1))/2] = color; // single point for now
 
 }
 
@@ -1326,14 +1329,14 @@ void AM_Drawer (doom_data_t* doom)
 {
     if (!automapactive) return;
 
-    AM_clearFB(BACKGROUND);
+    AM_clearFB(doom, BACKGROUND);
     if (grid)
-	AM_drawGrid(GRIDCOLORS);
+	AM_drawGrid(doom, GRIDCOLORS);
     AM_drawWalls(doom);
     AM_drawPlayers(doom);
     if (doom->cheating==2)
-	AM_drawThings(THINGCOLORS, THINGRANGE);
-    AM_drawCrosshair(XHAIRCOLORS);
+	AM_drawThings(doom, THINGCOLORS, THINGRANGE);
+    AM_drawCrosshair(doom, XHAIRCOLORS);
 
     AM_drawMarks(doom);
 
