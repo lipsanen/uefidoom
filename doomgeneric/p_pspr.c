@@ -49,7 +49,8 @@
 //
 void
 P_SetPsprite
-( player_t*	player,
+( doom_data_t* doom,
+  player_t*	player,
   int		position,
   statenum_t	stnum ) 
 {
@@ -82,7 +83,7 @@ P_SetPsprite
 	// Modified handling.
 	if (state->action.acp2)
 	{
-	    state->action.acp2(player, psp);
+	    state->action.acp2(doom, player, psp);
 	    if (!psp->state)
 		break;
 	}
@@ -127,7 +128,7 @@ void P_CalcSwing (player_t*	player)
 // from the bottom of the screen.
 // Uses player
 //
-void P_BringUpWeapon (player_t* player)
+void P_BringUpWeapon (doom_data_t* doom, player_t* player)
 {
     statenum_t	newstate;
 	
@@ -142,7 +143,7 @@ void P_BringUpWeapon (player_t* player)
     player->pendingweapon = wp_nochange;
     player->psprites[ps_weapon].sy = WEAPONBOTTOM;
 
-    P_SetPsprite (player, ps_weapon, newstate);
+    P_SetPsprite (doom, player, ps_weapon, newstate);
 }
 
 //
@@ -150,7 +151,7 @@ void P_BringUpWeapon (player_t* player)
 // Returns true if there is enough ammo to shoot.
 // If not, selects the next weapon to use.
 //
-boolean P_CheckAmmo (player_t* player)
+boolean P_CheckAmmo (doom_data_t* doom, player_t* player)
 {
     ammotype_t		ammo;
     int			count;
@@ -224,7 +225,7 @@ boolean P_CheckAmmo (player_t* player)
     } while (player->pendingweapon == wp_nochange);
 
     // Now set appropriate weapon overlay.
-    P_SetPsprite (player,
+    P_SetPsprite (doom, player,
 		  ps_weapon,
 		  weaponinfo[player->readyweapon].downstate);
 
@@ -235,16 +236,16 @@ boolean P_CheckAmmo (player_t* player)
 //
 // P_FireWeapon.
 //
-void P_FireWeapon (player_t* player)
+void P_FireWeapon (doom_data_t* doom, player_t* player)
 {
     statenum_t	newstate;
 	
-    if (!P_CheckAmmo (player))
+    if (!P_CheckAmmo (doom, player))
 	return;
 	
-    P_SetMobjState (player->mo, S_PLAY_ATK1);
+    P_SetMobjState (doom, player->mo, S_PLAY_ATK1);
     newstate = weaponinfo[player->readyweapon].atkstate;
-    P_SetPsprite (player, ps_weapon, newstate);
+    P_SetPsprite (doom, player, ps_weapon, newstate);
     P_NoiseAlert (player->mo, player->mo);
 }
 
@@ -254,9 +255,9 @@ void P_FireWeapon (player_t* player)
 // P_DropWeapon
 // Player died, so put the weapon away.
 //
-void P_DropWeapon (player_t* player)
+void P_DropWeapon (doom_data_t* doom, player_t* player)
 {
-    P_SetPsprite (player,
+    P_SetPsprite (doom, player,
 		  ps_weapon,
 		  weaponinfo[player->readyweapon].downstate);
 }
@@ -272,7 +273,8 @@ void P_DropWeapon (player_t* player)
 //
 void
 A_WeaponReady
-( player_t*	player,
+( doom_data_t* doom,
+  player_t*	player,
   pspdef_t*	psp )
 {	
     statenum_t	newstate;
@@ -282,7 +284,7 @@ A_WeaponReady
     if (player->mo->state == &states[S_PLAY_ATK1]
 	|| player->mo->state == &states[S_PLAY_ATK2] )
     {
-	P_SetMobjState (player->mo, S_PLAY);
+	P_SetMobjState (doom, player->mo, S_PLAY);
     }
     
     if (player->readyweapon == wp_chainsaw
@@ -298,7 +300,7 @@ A_WeaponReady
 	// change weapon
 	//  (pending weapon should allready be validated)
 	newstate = weaponinfo[player->readyweapon].downstate;
-	P_SetPsprite (player, ps_weapon, newstate);
+	P_SetPsprite (doom, player, ps_weapon, newstate);
 	return;	
     }
     
@@ -311,7 +313,7 @@ A_WeaponReady
 		 && player->readyweapon != wp_bfg) )
 	{
 	    player->attackdown = true;
-	    P_FireWeapon (player);		
+	    P_FireWeapon (doom, player);		
 	    return;
 	}
     }
@@ -333,7 +335,8 @@ A_WeaponReady
 // without lowering it entirely.
 //
 void A_ReFire
-( player_t*	player,
+( doom_data_t* doom,
+  player_t*	player,
   pspdef_t*	psp )
 {
     
@@ -344,22 +347,23 @@ void A_ReFire
 	 && player->health)
     {
 	player->refire++;
-	P_FireWeapon (player);
+	P_FireWeapon (doom, player);
     }
     else
     {
 	player->refire = 0;
-	P_CheckAmmo (player);
+	P_CheckAmmo (doom, player);
     }
 }
 
 
 void
 A_CheckReload
-( player_t*	player,
+( doom_data_t* doom,
+  player_t*	player,
   pspdef_t*	psp )
 {
-    P_CheckAmmo (player);
+    P_CheckAmmo (doom, player);
 #if 0
     if (player->ammo[am_shell]<2)
 	P_SetPsprite (player, ps_weapon, S_DSNR1);
@@ -375,7 +379,8 @@ A_CheckReload
 //
 void
 A_Lower
-( player_t*	player,
+( doom_data_t* doom,
+  player_t*	player,
   pspdef_t*	psp )
 {	
     psp->sy += LOWERSPEED;
@@ -398,13 +403,13 @@ A_Lower
     if (!player->health)
     {
 	// Player is dead, so keep the weapon off screen.
-	P_SetPsprite (player,  ps_weapon, S_NULL);
+	P_SetPsprite (doom, player,  ps_weapon, S_NULL);
 	return;	
     }
 	
     player->readyweapon = player->pendingweapon; 
 
-    P_BringUpWeapon (player);
+    P_BringUpWeapon (doom, player);
 }
 
 
@@ -413,7 +418,8 @@ A_Lower
 //
 void
 A_Raise
-( player_t*	player,
+( doom_data_t* doom,
+  player_t*	player,
   pspdef_t*	psp )
 {
     statenum_t	newstate;
@@ -429,7 +435,7 @@ A_Raise
     //  so change to the ready state.
     newstate = weaponinfo[player->readyweapon].readystate;
 
-    P_SetPsprite (player, ps_weapon, newstate);
+    P_SetPsprite (doom, player, ps_weapon, newstate);
 }
 
 
@@ -439,11 +445,12 @@ A_Raise
 //
 void
 A_GunFlash
-( player_t*	player,
+( doom_data_t* doom,
+  player_t*	player,
   pspdef_t*	psp ) 
 {
-    P_SetMobjState (player->mo, S_PLAY_ATK2);
-    P_SetPsprite (player,ps_flash,weaponinfo[player->readyweapon].flashstate);
+    P_SetMobjState (doom, player->mo, S_PLAY_ATK2);
+    P_SetPsprite (doom, player,ps_flash,weaponinfo[player->readyweapon].flashstate);
 }
 
 
@@ -458,7 +465,8 @@ A_GunFlash
 //
 void
 A_Punch
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     angle_t	angle;
@@ -472,8 +480,8 @@ A_Punch
 
     angle = player->mo->angle;
     angle += (P_Random()-P_Random())<<18;
-    slope = P_AimLineAttack (player->mo, angle, MELEERANGE);
-    P_LineAttack (player->mo, angle, MELEERANGE, slope, damage);
+    slope = P_AimLineAttack (doom, player->mo, angle, MELEERANGE);
+    P_LineAttack (doom, player->mo, angle, MELEERANGE, slope, damage);
 
     // turn to face target
     if (linetarget)
@@ -492,7 +500,8 @@ A_Punch
 //
 void
 A_Saw
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     angle_t	angle;
@@ -504,8 +513,8 @@ A_Saw
     angle += (P_Random()-P_Random())<<18;
     
     // use meleerange + 1 se the puff doesn't skip the flash
-    slope = P_AimLineAttack (player->mo, angle, MELEERANGE+1);
-    P_LineAttack (player->mo, angle, MELEERANGE+1, slope, damage);
+    slope = P_AimLineAttack (doom, player->mo, angle, MELEERANGE+1);
+    P_LineAttack (doom, player->mo, angle, MELEERANGE+1, slope, damage);
 
     if (!linetarget)
     {
@@ -558,11 +567,12 @@ static void DecreaseAmmo(player_t *player, int ammonum, int amount)
 //
 void
 A_FireMissile
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 1);
-    P_SpawnPlayerMissile (player->mo, MT_ROCKET);
+    P_SpawnPlayerMissile (doom, player->mo, MT_ROCKET);
 }
 
 
@@ -571,12 +581,13 @@ A_FireMissile
 //
 void
 A_FireBFG
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 
                  deh_bfg_cells_per_shot);
-    P_SpawnPlayerMissile (player->mo, MT_BFG);
+    P_SpawnPlayerMissile (doom, player->mo, MT_BFG);
 }
 
 
@@ -586,16 +597,17 @@ A_FireBFG
 //
 void
 A_FirePlasma
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 1);
 
-    P_SetPsprite (player,
+    P_SetPsprite (doom, player,
 		  ps_flash,
 		  weaponinfo[player->readyweapon].flashstate+(P_Random ()&1) );
 
-    P_SpawnPlayerMissile (player->mo, MT_PLASMA);
+    P_SpawnPlayerMissile (doom, player->mo, MT_PLASMA);
 }
 
 
@@ -608,22 +620,22 @@ A_FirePlasma
 fixed_t		bulletslope;
 
 
-void P_BulletSlope (mobj_t*	mo)
+void P_BulletSlope (doom_data_t* doom, mobj_t*	mo)
 {
     angle_t	an;
     
     // see which target is to be aimed at
     an = mo->angle;
-    bulletslope = P_AimLineAttack (mo, an, 16*64*FRACUNIT);
+    bulletslope = P_AimLineAttack (doom, mo, an, 16*64*FRACUNIT);
 
     if (!linetarget)
     {
 	an += 1<<26;
-	bulletslope = P_AimLineAttack (mo, an, 16*64*FRACUNIT);
+	bulletslope = P_AimLineAttack (doom, mo, an, 16*64*FRACUNIT);
 	if (!linetarget)
 	{
 	    an -= 2<<26;
-	    bulletslope = P_AimLineAttack (mo, an, 16*64*FRACUNIT);
+	    bulletslope = P_AimLineAttack (doom, mo, an, 16*64*FRACUNIT);
 	}
     }
 }
@@ -634,7 +646,8 @@ void P_BulletSlope (mobj_t*	mo)
 //
 void
 P_GunShot
-( mobj_t*	mo,
+( doom_data_t* doom, 
+  mobj_t*	mo,
   boolean	accurate )
 {
     angle_t	angle;
@@ -646,7 +659,7 @@ P_GunShot
     if (!accurate)
 	angle += (P_Random()-P_Random())<<18;
 
-    P_LineAttack (mo, angle, MISSILERANGE, bulletslope, damage);
+    P_LineAttack (doom, mo, angle, MISSILERANGE, bulletslope, damage);
 }
 
 
@@ -655,20 +668,21 @@ P_GunShot
 //
 void
 A_FirePistol
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     S_StartSound (player->mo, sfx_pistol);
 
-    P_SetMobjState (player->mo, S_PLAY_ATK2);
+    P_SetMobjState (doom, player->mo, S_PLAY_ATK2);
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 1);
 
-    P_SetPsprite (player,
+    P_SetPsprite (doom, player,
 		  ps_flash,
 		  weaponinfo[player->readyweapon].flashstate);
 
-    P_BulletSlope (player->mo);
-    P_GunShot (player->mo, !player->refire);
+    P_BulletSlope (doom, player->mo);
+    P_GunShot (doom, player->mo, !player->refire);
 }
 
 
@@ -677,24 +691,25 @@ A_FirePistol
 //
 void
 A_FireShotgun
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     int		i;
 	
     S_StartSound (player->mo, sfx_shotgn);
-    P_SetMobjState (player->mo, S_PLAY_ATK2);
+    P_SetMobjState (doom, player->mo, S_PLAY_ATK2);
 
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 1);
 
-    P_SetPsprite (player,
+    P_SetPsprite (doom, player,
 		  ps_flash,
 		  weaponinfo[player->readyweapon].flashstate);
 
-    P_BulletSlope (player->mo);
+    P_BulletSlope (doom, player->mo);
 	
     for (i=0 ; i<7 ; i++)
-	P_GunShot (player->mo, false);
+	P_GunShot (doom, player->mo, false);
 }
 
 
@@ -704,7 +719,8 @@ A_FireShotgun
 //
 void
 A_FireShotgun2
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     int		i;
@@ -713,22 +729,22 @@ A_FireShotgun2
 		
 	
     S_StartSound (player->mo, sfx_dshtgn);
-    P_SetMobjState (player->mo, S_PLAY_ATK2);
+    P_SetMobjState (doom, player->mo, S_PLAY_ATK2);
 
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 2);
 
-    P_SetPsprite (player,
+    P_SetPsprite (doom, player,
 		  ps_flash,
 		  weaponinfo[player->readyweapon].flashstate);
 
-    P_BulletSlope (player->mo);
+    P_BulletSlope (doom, player->mo);
 	
     for (i=0 ; i<20 ; i++)
     {
 	damage = 5*(P_Random ()%3+1);
 	angle = player->mo->angle;
 	angle += (P_Random()-P_Random())<<19;
-	P_LineAttack (player->mo,
+	P_LineAttack (doom, player->mo,
 		      angle,
 		      MISSILERANGE,
 		      bulletslope + ((P_Random()-P_Random())<<5), damage);
@@ -741,7 +757,8 @@ A_FireShotgun2
 //
 void
 A_FireCGun
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp ) 
 {
     S_StartSound (player->mo, sfx_pistol);
@@ -749,18 +766,18 @@ A_FireCGun
     if (!player->ammo[weaponinfo[player->readyweapon].ammo])
 	return;
 		
-    P_SetMobjState (player->mo, S_PLAY_ATK2);
+    P_SetMobjState (doom, player->mo, S_PLAY_ATK2);
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 1);
 
-    P_SetPsprite (player,
+    P_SetPsprite (doom, player,
 		  ps_flash,
 		  weaponinfo[player->readyweapon].flashstate
 		  + psp->state
 		  - &states[S_CHAIN1] );
 
-    P_BulletSlope (player->mo);
+    P_BulletSlope (doom, player->mo);
 	
-    P_GunShot (player->mo, !player->refire);
+    P_GunShot (doom, player->mo, !player->refire);
 }
 
 
@@ -768,17 +785,17 @@ A_FireCGun
 //
 // ?
 //
-void A_Light0 (player_t *player, pspdef_t *psp)
+void A_Light0 (doom_data_t* doom, player_t *player, pspdef_t *psp)
 {
     player->extralight = 0;
 }
 
-void A_Light1 (player_t *player, pspdef_t *psp)
+void A_Light1 (doom_data_t* doom, player_t *player, pspdef_t *psp)
 {
     player->extralight = 1;
 }
 
-void A_Light2 (player_t *player, pspdef_t *psp)
+void A_Light2 (doom_data_t* doom, player_t *player, pspdef_t *psp)
 {
     player->extralight = 2;
 }
@@ -788,7 +805,7 @@ void A_Light2 (player_t *player, pspdef_t *psp)
 // A_BFGSpray
 // Spawn a BFG explosion on every monster in view
 //
-void A_BFGSpray (mobj_t* mo) 
+void A_BFGSpray (doom_data_t* doom, mobj_t* mo) 
 {
     int			i;
     int			j;
@@ -802,7 +819,7 @@ void A_BFGSpray (mobj_t* mo)
 
 	// mo->target is the originator (player)
 	//  of the missile
-	P_AimLineAttack (mo->target, an, 16*64*FRACUNIT);
+	P_AimLineAttack (doom, mo->target, an, 16*64*FRACUNIT);
 
 	if (!linetarget)
 	    continue;
@@ -816,7 +833,7 @@ void A_BFGSpray (mobj_t* mo)
 	for (j=0;j<15;j++)
 	    damage += (P_Random()&7) + 1;
 
-	P_DamageMobj (linetarget, mo->target,mo->target, damage);
+	P_DamageMobj (doom, linetarget, mo->target,mo->target, damage);
     }
 }
 
@@ -826,7 +843,8 @@ void A_BFGSpray (mobj_t* mo)
 //
 void
 A_BFGsound
-( player_t*	player,
+( doom_data_t* doom, 
+  player_t*	player,
   pspdef_t*	psp )
 {
     S_StartSound (player->mo, sfx_bfg);
@@ -838,7 +856,7 @@ A_BFGsound
 // P_SetupPsprites
 // Called at start of level for each player.
 //
-void P_SetupPsprites (player_t* player) 
+void P_SetupPsprites (doom_data_t* doom, player_t* player) 
 {
     int	i;
 	
@@ -848,7 +866,7 @@ void P_SetupPsprites (player_t* player)
 		
     // spawn the gun
     player->pendingweapon = player->readyweapon;
-    P_BringUpWeapon (player);
+    P_BringUpWeapon (doom, player);
 }
 
 
@@ -858,7 +876,7 @@ void P_SetupPsprites (player_t* player)
 // P_MovePsprites
 // Called every tic by player thinking routine.
 //
-void P_MovePsprites (player_t* player) 
+void P_MovePsprites (doom_data_t* doom, player_t* player) 
 {
     int		i;
     pspdef_t*	psp;
@@ -877,7 +895,7 @@ void P_MovePsprites (player_t* player)
 	    {
 		psp->tics--;
 		if (!psp->tics)
-		    P_SetPsprite (player, i, psp->state->nextstate);
+		    P_SetPsprite (doom, player, i, psp->state->nextstate);
 	    }				
 	}
     }

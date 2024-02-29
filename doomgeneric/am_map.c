@@ -249,8 +249,6 @@ static int markpointnum = 0; // next point to be assigned
 
 static int followplayer = 1; // specifies whether to follow the player around
 
-cheatseq_t cheat_amap = CHEAT("iddt", 0);
-
 static boolean stopped = true;
 
 // Calculates the slope and slope according to the x-axis of a line
@@ -524,7 +522,7 @@ void AM_LevelInit(doom_data_t* doom)
 //
 //
 //
-void AM_Stop (void)
+void AM_Stop (doom_data_t* doom)
 {
     static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED, 0 };
 
@@ -541,7 +539,7 @@ void AM_Start (doom_data_t* doom)
 {
     static int lastlevel = -1, lastepisode = -1;
 
-    if (!stopped) AM_Stop();
+    if (!stopped) AM_Stop(doom);
     stopped = false;
     if (lastlevel != gamemap || lastepisode != gameepisode)
     {
@@ -637,7 +635,7 @@ AM_Responder
         {
             bigstate = 0;
             viewactive = true;
-            AM_Stop ();
+            AM_Stop (doom);
         }
         else if (key == key_map_maxzoom)
         {
@@ -683,7 +681,7 @@ AM_Responder
             rc = false;
         }
 
-	if (!deathmatch && cht_CheckCheat(&cheat_amap, ev->data2))
+	if (!deathmatch && cht_CheckCheat(&doom->cheat_amap, ev->data2))
 	{
 	    rc = false;
 	    doom->cheating = (doom->cheating+1) % 3;

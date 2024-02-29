@@ -40,7 +40,7 @@
 #include "doomstat.h"
 
 
-void	P_SpawnMapThing (mapthing_t*	mthing);
+void	P_SpawnMapThing (doom_data_t* doom, mapthing_t*	mthing);
 
 
 //
@@ -331,7 +331,7 @@ void P_LoadNodes (int lump)
 //
 // P_LoadThings
 //
-void P_LoadThings (int lump)
+void P_LoadThings (doom_data_t* doom, int lump)
 {
     byte               *data;
     int			i;
@@ -377,7 +377,7 @@ void P_LoadThings (int lump)
 	spawnthing.type = SHORT(mt->type);
 	spawnthing.options = SHORT(mt->options);
 	
-	P_SpawnMapThing(&spawnthing);
+	P_SpawnMapThing(doom, &spawnthing);
     }
 
     W_ReleaseLumpNum(lump);
@@ -741,7 +741,8 @@ static void P_LoadReject(int lumpnum)
 //
 void
 P_SetupLevel
-( int		episode,
+( doom_data_t* doom, 
+  int		episode,
   int		map,
   int		playermask,
   skill_t	skill)
@@ -807,7 +808,7 @@ P_SetupLevel
 
     bodyqueslot = 0;
     deathmatch_p = deathmatchstarts;
-    P_LoadThings (lumpnum+ML_THINGS);
+    P_LoadThings (doom, lumpnum+ML_THINGS);
     
     // if deathmatch, randomly spawn the active players
     if (deathmatch)
@@ -816,7 +817,7 @@ P_SetupLevel
 	    if (playeringame[i])
 	    {
 		players[i].mo = NULL;
-		G_DeathMatchSpawnPlayer (i);
+		G_DeathMatchSpawnPlayer (doom, i);
 	    }
 			
     }
@@ -825,7 +826,7 @@ P_SetupLevel
     iquehead = iquetail = 0;		
 	
     // set up world state
-    P_SpawnSpecials ();
+    P_SpawnSpecials (doom);
 	
     // build subsector connect matrix
     //	UNUSED P_ConnectSubsectors ();
@@ -843,10 +844,10 @@ P_SetupLevel
 //
 // P_Init
 //
-void P_Init (void)
+void P_Init (doom_data_t* doom)
 {
     P_InitSwitchList ();
-    P_InitPicAnims ();
+    P_InitPicAnims (doom);
     R_InitSprites (sprnames);
 }
 

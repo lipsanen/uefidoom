@@ -28,9 +28,9 @@
 //
 // GAME
 //
-void G_DeathMatchSpawnPlayer (int playernum);
+void G_DeathMatchSpawnPlayer (doom_data_t* doom, int playernum);
 
-void G_InitNew (skill_t skill, int episode, int map);
+void G_InitNew (doom_data_t* doom, skill_t skill, int episode, int map);
 
 // Can be called by the startup code or M_Responder.
 // A normal game starts at map 1,
@@ -43,7 +43,7 @@ void G_DeferedPlayDemo (char* demo);
 // calls P_SetupLevel or W_EnterWorld.
 void G_LoadGame (char* name);
 
-void G_DoLoadGame (void);
+void G_DoLoadGame (doom_data_t* doom);
 
 // Called by M_Responder.
 void G_SaveGame (int slot, char* description);

@@ -40,7 +40,7 @@ void AM_Drawer (doom_data_t* data);
 
 // Called to force the automap to quit
 // if the level is completed while it is up.
-void AM_Stop (void);
+void AM_Stop (doom_data_t* doom);
 
 
 extern cheatseq_t cheat_amap;

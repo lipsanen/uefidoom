@@ -15,6 +15,7 @@
 // DESCRIPTION:  none
 //
 
+#include "g_game.h"
 #include "dlibc.h"
 
 #include "doomdef.h" 
@@ -75,14 +76,14 @@ void	G_ReadDemoTiccmd (ticcmd_t* cmd);
 void	G_WriteDemoTiccmd (ticcmd_t* cmd); 
 void	G_PlayerReborn (int player); 
  
-void	G_DoReborn (int playernum); 
+void	G_DoReborn (doom_data_t* doom, int playernum); 
  
-void	G_DoLoadLevel (void); 
-void	G_DoNewGame (void); 
-void	G_DoPlayDemo (void); 
-void	G_DoCompleted (void); 
+void	G_DoLoadLevel (doom_data_t* doom); 
+void	G_DoNewGame (doom_data_t* doom); 
+void	G_DoPlayDemo (doom_data_t* doom); 
+void	G_DoCompleted (doom_data_t* doom); 
 void	G_DoVictory (void); 
-void	G_DoWorldDone (void); 
+void	G_DoWorldDone (doom_data_t* doom); 
 void	G_DoSaveGame (void); 
  
 // Gamestate the last time G_Ticker was called.
@@ -596,7 +597,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 //
 // G_DoLoadLevel 
 //
-void G_DoLoadLevel (void) 
+void G_DoLoadLevel (doom_data_t* doom) 
 { 
     int             i; 
 
@@ -648,7 +649,7 @@ void G_DoLoadLevel (void)
 	d_memset (players[i].frags,0,sizeof(players[i].frags)); 
     } 
 		 
-    P_SetupLevel (gameepisode, gamemap, 0, gameskill);    
+    P_SetupLevel (doom, gameepisode, gamemap, 0, gameskill);    
     displayplayer = consoleplayer;		// view the guy you are playing    
     gameaction = ga_nothing; 
     Z_CheckHeap ();
@@ -856,7 +857,7 @@ void G_Ticker (doom_data_t* doom)
     // do player reborns if needed
     for (i=0 ; i<MAXPLAYERS ; i++) 
 	if (playeringame[i] && players[i].playerstate == PST_REBORN) 
-	    G_DoReborn (i);
+	    G_DoReborn (doom, i);
     
     // do things to change the game state
     while (gameaction != ga_nothing) 
@@ -864,28 +865,28 @@ void G_Ticker (doom_data_t* doom)
 	switch (gameaction) 
 	{ 
 	  case ga_loadlevel: 
-	    G_DoLoadLevel (); 
+	    G_DoLoadLevel (doom); 
 	    break; 
 	  case ga_newgame: 
-	    G_DoNewGame (); 
+	    G_DoNewGame (doom); 
 	    break; 
 	  case ga_loadgame: 
-	    G_DoLoadGame (); 
+	    G_DoLoadGame (doom); 
 	    break; 
 	  case ga_savegame: 
 	    G_DoSaveGame (); 
 	    break; 
 	  case ga_playdemo: 
-	    G_DoPlayDemo (); 
+	    G_DoPlayDemo (doom); 
 	    break; 
 	  case ga_completed: 
-	    G_DoCompleted (); 
+	    G_DoCompleted (doom); 
 	    break; 
 	  case ga_victory: 
 	    F_StartFinale (); 
 	    break; 
 	  case ga_worlddone: 
-	    G_DoWorldDone (); 
+	    G_DoWorldDone (doom); 
 	    break; 
 	  case ga_screenshot: 
 	    V_ScreenShot("DOOM%02i.%s"); 
@@ -1110,7 +1111,8 @@ void P_SpawnPlayer (mapthing_t* mthing);
  
 boolean
 G_CheckSpot
-( int		playernum,
+( doom_data_t* doom, 
+  int		playernum,
   mapthing_t*	mthing ) 
 { 
     fixed_t		x;
@@ -1132,7 +1134,7 @@ G_CheckSpot
     x = mthing->x << FRACBITS; 
     y = mthing->y << FRACBITS; 
 	 
-    if (!P_CheckPosition (players[playernum].mo, x, y) ) 
+    if (!P_CheckPosition (doom, players[playernum].mo, x, y) ) 
 	return false; 
  
     // flush an old corpse if needed 
@@ -1216,7 +1218,7 @@ G_CheckSpot
 // Spawns a player at one of the random death match spots 
 // called at level load and each death 
 //
-void G_DeathMatchSpawnPlayer (int playernum) 
+void G_DeathMatchSpawnPlayer (doom_data_t* doom, int playernum) 
 { 
     int             i,j; 
     int				selections; 
@@ -1228,7 +1230,7 @@ void G_DeathMatchSpawnPlayer (int playernum)
     for (j=0 ; j<20 ; j++) 
     { 
 	i = P_Random() % selections; 
-	if (G_CheckSpot (playernum, &deathmatchstarts[i]) ) 
+	if (G_CheckSpot (doom, playernum, &deathmatchstarts[i]) ) 
 	{ 
 	    deathmatchstarts[i].type = playernum+1; 
 	    P_SpawnPlayer (&deathmatchstarts[i]); 
@@ -1243,7 +1245,7 @@ void G_DeathMatchSpawnPlayer (int playernum)
 //
 // G_DoReborn 
 // 
-void G_DoReborn (int playernum) 
+void G_DoReborn (doom_data_t* doom, int playernum) 
 { 
     int                             i; 
 	 
@@ -1262,11 +1264,11 @@ void G_DoReborn (int playernum)
 	// spawn at random spot if in death match 
 	if (deathmatch) 
 	{ 
-	    G_DeathMatchSpawnPlayer (playernum); 
+	    G_DeathMatchSpawnPlayer (doom, playernum); 
 	    return; 
 	} 
 		 
-	if (G_CheckSpot (playernum, &playerstarts[playernum]) ) 
+	if (G_CheckSpot (doom, playernum, &playerstarts[playernum]) ) 
 	{ 
 	    P_SpawnPlayer (&playerstarts[playernum]); 
 	    return; 
@@ -1275,7 +1277,7 @@ void G_DoReborn (int playernum)
 	// try to spawn at one of the other players spots 
 	for (i=0 ; i<MAXPLAYERS ; i++)
 	{
-	    if (G_CheckSpot (playernum, &playerstarts[i]) ) 
+	    if (G_CheckSpot (doom, playernum, &playerstarts[i]) ) 
 	    { 
 		playerstarts[i].type = playernum+1;	// fake as other player 
 		P_SpawnPlayer (&playerstarts[i]); 
@@ -1339,7 +1341,7 @@ void G_SecretExitLevel (void)
     gameaction = ga_completed; 
 } 
  
-void G_DoCompleted (void) 
+void G_DoCompleted (doom_data_t* doom) 
 { 
     int             i; 
 	 
@@ -1350,7 +1352,7 @@ void G_DoCompleted (void)
 	    G_PlayerFinishLevel (i);        // take away cards and stuff 
 	 
     if (automapactive) 
-	AM_Stop (); 
+	AM_Stop (doom); 
 	
     if (gamemode != commercial)
     {
@@ -1512,11 +1514,11 @@ void G_WorldDone (void)
     }
 } 
  
-void G_DoWorldDone (void) 
+void G_DoWorldDone (doom_data_t* doom) 
 {        
     gamestate = GS_LEVEL; 
     gamemap = wminfo.next+1; 
-    G_DoLoadLevel (); 
+    G_DoLoadLevel (doom); 
     gameaction = ga_nothing; 
     viewactive = true; 
 } 
@@ -1541,7 +1543,7 @@ void G_LoadGame (char* name)
 #define VERSIONSIZE		16 
 
 
-void G_DoLoadGame (void) 
+void G_DoLoadGame (doom_data_t* doom) 
 {
     int savedleveltime;
 	 
@@ -1565,7 +1567,7 @@ void G_DoLoadGame (void)
     savedleveltime = leveltime;
     
     // load a base level 
-    G_InitNew (gameskill, gameepisode, gamemap); 
+    G_InitNew (doom, gameskill, gameepisode, gamemap); 
  
     leveltime = savedleveltime;
 
@@ -1703,7 +1705,7 @@ G_DeferedInitNew
 } 
 
 
-void G_DoNewGame (void) 
+void G_DoNewGame (doom_data_t* doom) 
 {
     demoplayback = false; 
     netdemo = false;
@@ -1714,14 +1716,15 @@ void G_DoNewGame (void)
     fastparm = false;
     nomonsters = false;
     consoleplayer = 0;
-    G_InitNew (d_skill, d_episode, d_map); 
+    G_InitNew (doom, d_skill, d_episode, d_map); 
     gameaction = ga_nothing; 
 } 
 
 
 void
 G_InitNew
-( skill_t	skill,
+( doom_data_t* doom, 
+  skill_t	skill,
   int		episode,
   int		map )
 {
@@ -1881,7 +1884,7 @@ G_InitNew
     skytexture = R_TextureNumForName(skytexturename);
 
 
-    G_DoLoadLevel ();
+    G_DoLoadLevel (doom);
 }
 
 
@@ -2145,7 +2148,7 @@ static char *DemoVersionDescription(int version)
     }
 }
 
-void G_DoPlayDemo (void) 
+void G_DoPlayDemo (doom_data_t* doom) 
 { 
     skill_t skill; 
     int             i, episode, map; 
@@ -2202,7 +2205,7 @@ void G_DoPlayDemo (void)
 
     // don't spend a lot of time in loadlevel 
     precache = false;
-    G_InitNew (skill, episode, map); 
+    G_InitNew (doom, skill, episode, map); 
     precache = true; 
     starttime = I_GetTime (); 
 

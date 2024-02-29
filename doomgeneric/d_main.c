@@ -1762,7 +1762,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     if (gameaction != ga_loadgame )
     {
 		if (autostart || netgame)
-			G_InitNew (startskill, startepisode, startmap);
+			G_InitNew (doom, startskill, startepisode, startmap);
 		else
 			D_StartTitle ();                // start up intro loop
     }

@@ -54,7 +54,7 @@ slidename_t	slideFrameNames[MAXSLIDEDOORS] =
 //
 // T_VerticalDoor
 //
-void T_VerticalDoor (vldoor_t* door)
+void T_VerticalDoor (doom_data_t* doom, vldoor_t* door)
 {
     result_e	res;
 	
@@ -107,7 +107,7 @@ void T_VerticalDoor (vldoor_t* door)
 	
       case -1:
 	// DOWN
-	res = T_MovePlane(door->sector,
+	res = T_MovePlane(doom, door->sector,
 			  door->speed,
 			  door->sector->floorheight,
 			  false,1,door->direction);
@@ -155,7 +155,7 @@ void T_VerticalDoor (vldoor_t* door)
 	
       case 1:
 	// UP
-	res = T_MovePlane(door->sector,
+	res = T_MovePlane(doom, door->sector,
 			  door->speed,
 			  door->topheight,
 			  false,1,door->direction);
@@ -193,7 +193,8 @@ void T_VerticalDoor (vldoor_t* door)
 
 int
 EV_DoLockedDoor
-( line_t*	line,
+( doom_data_t* doom,
+  line_t*	line,
   vldoor_e	type,
   mobj_t*	thing )
 {
@@ -244,13 +245,14 @@ EV_DoLockedDoor
 	break;	
     }
 
-    return EV_DoDoor(line,type);
+    return EV_DoDoor(doom,line,type);
 }
 
 
 int
 EV_DoDoor
-( line_t*	line,
+( doom_data_t* doom, 
+  line_t*	line,
   vldoor_e	type )
 {
     int		secnum,rtn;
@@ -260,7 +262,7 @@ EV_DoDoor
     secnum = -1;
     rtn = 0;
     
-    while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
+    while ((secnum = P_FindSectorFromLineTag(doom, line,secnum)) >= 0)
     {
 	sec = &sectors[secnum];
 	if (sec->specialdata)
@@ -282,7 +284,7 @@ EV_DoDoor
 	switch(type)
 	{
 	  case vld_blazeClose:
-	    door->topheight = P_FindLowestCeilingSurrounding(sec);
+	    door->topheight = P_FindLowestCeilingSurrounding(doom, sec);
 	    door->topheight -= 4*FRACUNIT;
 	    door->direction = -1;
 	    door->speed = VDOORSPEED * 4;
@@ -290,7 +292,7 @@ EV_DoDoor
 	    break;
 	    
 	  case vld_close:
-	    door->topheight = P_FindLowestCeilingSurrounding(sec);
+	    door->topheight = P_FindLowestCeilingSurrounding(doom, sec);
 	    door->topheight -= 4*FRACUNIT;
 	    door->direction = -1;
 	    S_StartSound(&door->sector->soundorg, sfx_dorcls);
@@ -305,7 +307,7 @@ EV_DoDoor
 	  case vld_blazeRaise:
 	  case vld_blazeOpen:
 	    door->direction = 1;
-	    door->topheight = P_FindLowestCeilingSurrounding(sec);
+	    door->topheight = P_FindLowestCeilingSurrounding(doom, sec);
 	    door->topheight -= 4*FRACUNIT;
 	    door->speed = VDOORSPEED * 4;
 	    if (door->topheight != sec->ceilingheight)
@@ -315,7 +317,7 @@ EV_DoDoor
 	  case vld_normal:
 	  case vld_open:
 	    door->direction = 1;
-	    door->topheight = P_FindLowestCeilingSurrounding(sec);
+	    door->topheight = P_FindLowestCeilingSurrounding(doom, sec);
 	    door->topheight -= 4*FRACUNIT;
 	    if (door->topheight != sec->ceilingheight)
 		S_StartSound(&door->sector->soundorg, sfx_doropn);
@@ -335,7 +337,8 @@ EV_DoDoor
 //
 void
 EV_VerticalDoor
-( line_t*	line,
+( doom_data_t* doom, 
+  line_t*	line,
   mobj_t*	thing )
 {
     player_t*	player;
@@ -508,7 +511,7 @@ EV_VerticalDoor
     }
     
     // find the top and bottom of the movement range
-    door->topheight = P_FindLowestCeilingSurrounding(sec);
+    door->topheight = P_FindLowestCeilingSurrounding(doom, sec);
     door->topheight -= 4*FRACUNIT;
 }
 
@@ -540,7 +543,8 @@ void P_SpawnDoorCloseIn30 (sector_t* sec)
 //
 void
 P_SpawnDoorRaiseIn5Mins
-( sector_t*	sec,
+( doom_data_t* doom, 
+  sector_t*	sec,
   int		secnum )
 {
     vldoor_t*	door;
@@ -557,7 +561,7 @@ P_SpawnDoorRaiseIn5Mins
     door->direction = 2;
     door->type = vld_raiseIn5Mins;
     door->speed = VDOORSPEED;
-    door->topheight = P_FindLowestCeilingSurrounding(sec);
+    door->topheight = P_FindLowestCeilingSurrounding(doom, sec);
     door->topheight -= 4*FRACUNIT;
     door->topwait = VDOORWAIT;
     door->topcountdown = 5 * 60 * TICRATE;

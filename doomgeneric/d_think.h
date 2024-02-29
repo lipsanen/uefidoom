@@ -32,9 +32,9 @@
 //  we will need to handle the various
 //  action functions cleanly.
 //
-typedef  void (*actionf_v)();
-typedef  void (*actionf_p1)( void* );
-typedef  void (*actionf_p2)( void*, void* );
+typedef  void (*actionf_v)( void* );
+typedef  void (*actionf_p1)( void*, void* );
+typedef  void (*actionf_p2)( void*, void*, void* );
 
 typedef union
 {

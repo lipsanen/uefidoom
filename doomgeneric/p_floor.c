@@ -40,7 +40,8 @@
 //
 result_e
 T_MovePlane
-( sector_t*	sector,
+( doom_data_t* doom,
+  sector_t*	sector,
   fixed_t	speed,
   fixed_t	dest,
   boolean	crush,
@@ -62,11 +63,11 @@ T_MovePlane
 	    {
 		lastpos = sector->floorheight;
 		sector->floorheight = dest;
-		flag = P_ChangeSector(sector,crush);
+		flag = P_ChangeSector(doom, sector,crush);
 		if (flag == true)
 		{
 		    sector->floorheight =lastpos;
-		    P_ChangeSector(sector,crush);
+		    P_ChangeSector(doom, sector,crush);
 		    //return crushed;
 		}
 		return pastdest;
@@ -75,11 +76,11 @@ T_MovePlane
 	    {
 		lastpos = sector->floorheight;
 		sector->floorheight -= speed;
-		flag = P_ChangeSector(sector,crush);
+		flag = P_ChangeSector(doom, sector,crush);
 		if (flag == true)
 		{
 		    sector->floorheight = lastpos;
-		    P_ChangeSector(sector,crush);
+		    P_ChangeSector(doom, sector,crush);
 		    return crushed;
 		}
 	    }
@@ -91,11 +92,11 @@ T_MovePlane
 	    {
 		lastpos = sector->floorheight;
 		sector->floorheight = dest;
-		flag = P_ChangeSector(sector,crush);
+		flag = P_ChangeSector(doom, sector,crush);
 		if (flag == true)
 		{
 		    sector->floorheight = lastpos;
-		    P_ChangeSector(sector,crush);
+		    P_ChangeSector(doom, sector,crush);
 		    //return crushed;
 		}
 		return pastdest;
@@ -105,13 +106,13 @@ T_MovePlane
 		// COULD GET CRUSHED
 		lastpos = sector->floorheight;
 		sector->floorheight += speed;
-		flag = P_ChangeSector(sector,crush);
+		flag = P_ChangeSector(doom, sector,crush);
 		if (flag == true)
 		{
 		    if (crush == true)
 			return crushed;
 		    sector->floorheight = lastpos;
-		    P_ChangeSector(sector,crush);
+		    P_ChangeSector(doom, sector,crush);
 		    return crushed;
 		}
 	    }
@@ -129,12 +130,12 @@ T_MovePlane
 	    {
 		lastpos = sector->ceilingheight;
 		sector->ceilingheight = dest;
-		flag = P_ChangeSector(sector,crush);
+		flag = P_ChangeSector(doom, sector,crush);
 
 		if (flag == true)
 		{
 		    sector->ceilingheight = lastpos;
-		    P_ChangeSector(sector,crush);
+		    P_ChangeSector(doom, sector,crush);
 		    //return crushed;
 		}
 		return pastdest;
@@ -144,14 +145,14 @@ T_MovePlane
 		// COULD GET CRUSHED
 		lastpos = sector->ceilingheight;
 		sector->ceilingheight -= speed;
-		flag = P_ChangeSector(sector,crush);
+		flag = P_ChangeSector(doom, sector,crush);
 
 		if (flag == true)
 		{
 		    if (crush == true)
 			return crushed;
 		    sector->ceilingheight = lastpos;
-		    P_ChangeSector(sector,crush);
+		    P_ChangeSector(doom, sector,crush);
 		    return crushed;
 		}
 	    }
@@ -163,11 +164,11 @@ T_MovePlane
 	    {
 		lastpos = sector->ceilingheight;
 		sector->ceilingheight = dest;
-		flag = P_ChangeSector(sector,crush);
+		flag = P_ChangeSector(doom, sector,crush);
 		if (flag == true)
 		{
 		    sector->ceilingheight = lastpos;
-		    P_ChangeSector(sector,crush);
+		    P_ChangeSector(doom, sector,crush);
 		    //return crushed;
 		}
 		return pastdest;
@@ -176,7 +177,7 @@ T_MovePlane
 	    {
 		lastpos = sector->ceilingheight;
 		sector->ceilingheight += speed;
-		flag = P_ChangeSector(sector,crush);
+		flag = P_ChangeSector(doom, sector,crush);
 // UNUSED
 #if 0
 		if (flag == true)
@@ -199,11 +200,11 @@ T_MovePlane
 //
 // MOVE A FLOOR TO IT'S DESTINATION (UP OR DOWN)
 //
-void T_MoveFloor(floormove_t* floor)
+void T_MoveFloor(doom_data_t* doom, floormove_t* floor)
 {
     result_e	res;
 	
-    res = T_MovePlane(floor->sector,
+    res = T_MovePlane(doom, floor->sector,
 		      floor->speed,
 		      floor->floordestheight,
 		      floor->crush,0,floor->direction);
@@ -249,7 +250,8 @@ void T_MoveFloor(floormove_t* floor)
 //
 int
 EV_DoFloor
-( line_t*	line,
+( doom_data_t* doom, 
+  line_t*	line,
   floor_e	floortype )
 {
     int			secnum;
@@ -260,7 +262,7 @@ EV_DoFloor
 
     secnum = -1;
     rtn = 0;
-    while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
+    while ((secnum = P_FindSectorFromLineTag(doom, line,secnum)) >= 0)
     {
 	sec = &sectors[secnum];
 		
@@ -284,7 +286,7 @@ EV_DoFloor
 	    floor->sector = sec;
 	    floor->speed = FLOORSPEED;
 	    floor->floordestheight = 
-		P_FindHighestFloorSurrounding(sec);
+		P_FindHighestFloorSurrounding(doom, sec);
 	    break;
 
 	  case lowerFloorToLowest:
@@ -292,7 +294,7 @@ EV_DoFloor
 	    floor->sector = sec;
 	    floor->speed = FLOORSPEED;
 	    floor->floordestheight = 
-		P_FindLowestFloorSurrounding(sec);
+		P_FindLowestFloorSurrounding(doom, sec);
 	    break;
 
 	  case turboLower:
@@ -300,7 +302,7 @@ EV_DoFloor
 	    floor->sector = sec;
 	    floor->speed = FLOORSPEED * 4;
 	    floor->floordestheight = 
-		P_FindHighestFloorSurrounding(sec);
+		P_FindHighestFloorSurrounding(doom, sec);
 	    if (floor->floordestheight != sec->floorheight)
 		floor->floordestheight += 8*FRACUNIT;
 	    break;
@@ -312,7 +314,7 @@ EV_DoFloor
 	    floor->sector = sec;
 	    floor->speed = FLOORSPEED;
 	    floor->floordestheight = 
-		P_FindLowestCeilingSurrounding(sec);
+		P_FindLowestCeilingSurrounding(doom, sec);
 	    if (floor->floordestheight > sec->ceilingheight)
 		floor->floordestheight = sec->ceilingheight;
 	    floor->floordestheight -= (8*FRACUNIT)*
@@ -324,7 +326,7 @@ EV_DoFloor
 	    floor->sector = sec;
 	    floor->speed = FLOORSPEED*4;
 	    floor->floordestheight = 
-		P_FindNextHighestFloor(sec,sec->floorheight);
+		P_FindNextHighestFloor(doom, sec,sec->floorheight);
 	    break;
 
 	  case raiseFloorToNearest:
@@ -332,7 +334,7 @@ EV_DoFloor
 	    floor->sector = sec;
 	    floor->speed = FLOORSPEED;
 	    floor->floordestheight = 
-		P_FindNextHighestFloor(sec,sec->floorheight);
+		P_FindNextHighestFloor(doom, sec,sec->floorheight);
 	    break;
 
 	  case raiseFloor24:
@@ -370,15 +372,15 @@ EV_DoFloor
 	      floor->speed = FLOORSPEED;
 	      for (i = 0; i < sec->linecount; i++)
 	      {
-		  if (twoSided (secnum, i) )
+		  if (twoSided (doom, secnum, i) )
 		  {
-		      side = getSide(secnum,i,0);
+		      side = getSide(doom, secnum,i,0);
 		      if (side->bottomtexture >= 0)
 			  if (textureheight[side->bottomtexture] < 
 			      minsize)
 			      minsize = 
 				  textureheight[side->bottomtexture];
-		      side = getSide(secnum,i,1);
+		      side = getSide(doom, secnum,i,1);
 		      if (side->bottomtexture >= 0)
 			  if (textureheight[side->bottomtexture] < 
 			      minsize)
@@ -396,16 +398,16 @@ EV_DoFloor
 	    floor->sector = sec;
 	    floor->speed = FLOORSPEED;
 	    floor->floordestheight = 
-		P_FindLowestFloorSurrounding(sec);
+		P_FindLowestFloorSurrounding(doom, sec);
 	    floor->texture = sec->floorpic;
 
 	    for (i = 0; i < sec->linecount; i++)
 	    {
-		if ( twoSided(secnum, i) )
+		if ( twoSided(doom, secnum, i) )
 		{
-		    if (getSide(secnum,i,0)->sector-sectors == secnum)
+		    if (getSide(doom, secnum,i,0)->sector-sectors == secnum)
 		    {
-			sec = getSector(secnum,i,1);
+			sec = getSector(doom, secnum,i,1);
 
 			if (sec->floorheight == floor->floordestheight)
 			{
@@ -416,7 +418,7 @@ EV_DoFloor
 		    }
 		    else
 		    {
-			sec = getSector(secnum,i,0);
+			sec = getSector(doom, secnum,i,0);
 
 			if (sec->floorheight == floor->floordestheight)
 			{
@@ -442,7 +444,8 @@ EV_DoFloor
 //
 int
 EV_BuildStairs
-( line_t*	line,
+( doom_data_t* doom, 
+  line_t*	line,
   stair_e	type )
 {
     int			secnum;
@@ -463,7 +466,7 @@ EV_BuildStairs
 
     secnum = -1;
     rtn = 0;
-    while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
+    while ((secnum = P_FindSectorFromLineTag(doom, line,secnum)) >= 0)
     {
 	sec = &sectors[secnum];
 		

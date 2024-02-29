@@ -138,7 +138,7 @@ void P_CalcHeight (player_t* player)
 //
 // P_MovePlayer
 //
-void P_MovePlayer (player_t* player)
+void P_MovePlayer (doom_data_t* doom, player_t* player)
 {
     ticcmd_t*		cmd;
 	
@@ -159,7 +159,7 @@ void P_MovePlayer (player_t* player)
     if ( (cmd->forwardmove || cmd->sidemove) 
 	 && player->mo->state == &states[S_PLAY] )
     {
-	P_SetMobjState (player->mo, S_PLAY_RUN1);
+	P_SetMobjState (doom, player->mo, S_PLAY_RUN1);
     }
 }	
 
@@ -172,12 +172,12 @@ void P_MovePlayer (player_t* player)
 //
 #define ANG5   	(ANG90/18)
 
-void P_DeathThink (player_t* player)
+void P_DeathThink (doom_data_t* doom, player_t* player)
 {
     angle_t		angle;
     angle_t		delta;
 
-    P_MovePsprites (player);
+    P_MovePsprites (doom, player);
 	
     // fall to the ground
     if (player->viewheight > 6*FRACUNIT)
@@ -226,7 +226,7 @@ void P_DeathThink (player_t* player)
 //
 // P_PlayerThink
 //
-void P_PlayerThink (player_t* player)
+void P_PlayerThink (doom_data_t* doom, player_t* player)
 {
     ticcmd_t*		cmd;
     weapontype_t	newweapon;
@@ -250,7 +250,7 @@ void P_PlayerThink (player_t* player)
 	
     if (player->playerstate == PST_DEAD)
     {
-	P_DeathThink (player);
+	P_DeathThink (doom, player);
 	return;
     }
     
@@ -260,12 +260,12 @@ void P_PlayerThink (player_t* player)
     if (player->mo->reactiontime)
 	player->mo->reactiontime--;
     else
-	P_MovePlayer (player);
+	P_MovePlayer (doom, player);
     
     P_CalcHeight (player);
 
     if (player->mo->subsector->sector->special)
-	P_PlayerInSpecialSector (player);
+	P_PlayerInSpecialSector (doom, player);
     
     // Check for weapon change.
 
@@ -316,7 +316,7 @@ void P_PlayerThink (player_t* player)
     {
 	if (!player->usedown)
 	{
-	    P_UseLines (player);
+	    P_UseLines (doom, player);
 	    player->usedown = true;
 	}
     }
@@ -324,7 +324,7 @@ void P_PlayerThink (player_t* player)
 	player->usedown = false;
     
     // cycle psprites
-    P_MovePsprites (player);
+    P_MovePsprites (doom, player);
     
     // Counters, time dependend power ups.
 

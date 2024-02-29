@@ -26,7 +26,8 @@
 // NOT called by W_Ticker. Fixme.
 void
 P_SetupLevel
-( int		episode,
+( doom_data_t* doom,
+  int		episode,
   int		map,
   int		playermask,
   skill_t	skill);

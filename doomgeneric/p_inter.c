@@ -664,7 +664,8 @@ P_TouchSpecialThing
 //
 void
 P_KillMobj
-( mobj_t*	source,
+( doom_data_t* doom,
+  mobj_t*	source,
   mobj_t*	target )
 {
     mobjtype_t	item;
@@ -702,14 +703,14 @@ P_KillMobj
 			
 	target->flags &= ~MF_SOLID;
 	target->player->playerstate = PST_DEAD;
-	P_DropWeapon (target->player);
+	P_DropWeapon (doom, target->player);
 
 	if (target->player == &players[consoleplayer]
 	    && automapactive)
 	{
 	    // don't die in auto map,
 	    // switch view prior to dying
-	    AM_Stop ();
+	    AM_Stop (doom);
 	}
 	
     }
@@ -717,10 +718,10 @@ P_KillMobj
     if (target->health < -target->info->spawnhealth 
 	&& target->info->xdeathstate)
     {
-	P_SetMobjState (target, target->info->xdeathstate);
+	P_SetMobjState (doom, target, target->info->xdeathstate);
     }
     else
-	P_SetMobjState (target, target->info->deathstate);
+	P_SetMobjState (doom, target, target->info->deathstate);
     target->tics -= P_Random()&3;
 
     if (target->tics < 1)
@@ -777,7 +778,8 @@ P_KillMobj
 //
 void
 P_DamageMobj
-( mobj_t*	target,
+( doom_data_t* doom,
+  mobj_t*	target,
   mobj_t*	inflictor,
   mobj_t*	source,
   int 		damage )
@@ -891,7 +893,7 @@ P_DamageMobj
     target->health -= damage;	
     if (target->health <= 0)
     {
-	P_KillMobj (source, target);
+	P_KillMobj (doom, source, target);
 	return;
     }
 
@@ -900,7 +902,7 @@ P_DamageMobj
     {
 	target->flags |= MF_JUSTHIT;	// fight back!
 	
-	P_SetMobjState (target, target->info->painstate);
+	P_SetMobjState (doom, target, target->info->painstate);
     }
 			
     target->reactiontime = 0;		// we're awake now...	
@@ -915,7 +917,7 @@ P_DamageMobj
 	target->threshold = BASETHRESHOLD;
 	if (target->state == &states[target->info->spawnstate]
 	    && target->info->seestate != S_NULL)
-	    P_SetMobjState (target, target->info->seestate);
+	    P_SetMobjState (doom, target, target->info->seestate);
     }
 			
 }

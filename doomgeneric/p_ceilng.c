@@ -16,7 +16,6 @@
 //
 
 
-
 #include "z_zone.h"
 #include "doomdef.h"
 #include "p_local.h"
@@ -29,6 +28,7 @@
 
 // Data.
 #include "sounds.h"
+#include "p_spec.h"
 
 //
 // CEILINGS
@@ -42,7 +42,7 @@ ceiling_t*	activeceilings[MAXCEILINGS];
 // T_MoveCeiling
 //
 
-void T_MoveCeiling (ceiling_t* ceiling)
+void T_MoveCeiling (doom_data_t* doom, ceiling_t* ceiling)
 {
     result_e	res;
 	
@@ -53,7 +53,7 @@ void T_MoveCeiling (ceiling_t* ceiling)
 	break;
       case 1:
 	// UP
-	res = T_MovePlane(ceiling->sector,
+	res = T_MovePlane(doom, ceiling->sector,
 			  ceiling->speed,
 			  ceiling->topheight,
 			  false,1,ceiling->direction);
@@ -95,7 +95,7 @@ void T_MoveCeiling (ceiling_t* ceiling)
 	
       case -1:
 	// DOWN
-	res = T_MovePlane(ceiling->sector,
+	res = T_MovePlane(doom, ceiling->sector,
 			  ceiling->speed,
 			  ceiling->bottomheight,
 			  ceiling->crush,1,ceiling->direction);
@@ -159,7 +159,8 @@ void T_MoveCeiling (ceiling_t* ceiling)
 //
 int
 EV_DoCeiling
-( line_t*	line,
+( doom_data_t* doom, 
+  line_t*	line,
   ceiling_e	type )
 {
     int		secnum;
@@ -181,7 +182,7 @@ EV_DoCeiling
 	break;
     }
 	
-    while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
+    while ((secnum = P_FindSectorFromLineTag(doom, line,secnum)) >= 0)
     {
 	sec = &sectors[secnum];
 	if (sec->specialdata)
@@ -220,7 +221,7 @@ EV_DoCeiling
 	    break;
 
 	  case raiseToHighest:
-	    ceiling->topheight = P_FindHighestCeilingSurrounding(sec);
+	    ceiling->topheight = P_FindHighestCeilingSurrounding(doom, sec);
 	    ceiling->direction = 1;
 	    ceiling->speed = CEILSPEED;
 	    break;

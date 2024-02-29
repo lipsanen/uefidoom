@@ -42,14 +42,14 @@ plat_t*		activeplats[MAXPLATS];
 //
 // Move a plat up and down
 //
-void T_PlatRaise(plat_t* plat)
+void T_PlatRaise(doom_data_t* doom, plat_t* plat)
 {
     result_e	res;
 	
     switch(plat->status)
     {
       case up:
-	res = T_MovePlane(plat->sector,
+	res = T_MovePlane(doom, plat->sector,
 			  plat->speed,
 			  plat->high,
 			  plat->crush,0,1);
@@ -96,7 +96,7 @@ void T_PlatRaise(plat_t* plat)
 	break;
 	
       case	down:
-	res = T_MovePlane(plat->sector,plat->speed,plat->low,false,0,-1);
+	res = T_MovePlane(doom, plat->sector,plat->speed,plat->low,false,0,-1);
 
 	if (res == pastdest)
 	{
@@ -127,7 +127,8 @@ void T_PlatRaise(plat_t* plat)
 //
 int
 EV_DoPlat
-( line_t*	line,
+( doom_data_t* doom, 
+  line_t*	line,
   plattype_e	type,
   int		amount )
 {
@@ -151,7 +152,7 @@ EV_DoPlat
 	break;
     }
 	
-    while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
+    while ((secnum = P_FindSectorFromLineTag(doom, line,secnum)) >= 0)
     {
 	sec = &sectors[secnum];
 
@@ -175,7 +176,7 @@ EV_DoPlat
 	  case raiseToNearestAndChange:
 	    plat->speed = PLATSPEED/2;
 	    sec->floorpic = sides[line->sidenum[0]].sector->floorpic;
-	    plat->high = P_FindNextHighestFloor(sec,sec->floorheight);
+	    plat->high = P_FindNextHighestFloor(doom, sec,sec->floorheight);
 	    plat->wait = 0;
 	    plat->status = up;
 	    // NO MORE DAMAGE, IF APPLICABLE
@@ -196,7 +197,7 @@ EV_DoPlat
 	    
 	  case downWaitUpStay:
 	    plat->speed = PLATSPEED * 4;
-	    plat->low = P_FindLowestFloorSurrounding(sec);
+	    plat->low = P_FindLowestFloorSurrounding(doom, sec);
 
 	    if (plat->low > sec->floorheight)
 		plat->low = sec->floorheight;
@@ -209,7 +210,7 @@ EV_DoPlat
 	    
 	  case blazeDWUS:
 	    plat->speed = PLATSPEED * 8;
-	    plat->low = P_FindLowestFloorSurrounding(sec);
+	    plat->low = P_FindLowestFloorSurrounding(doom, sec);
 
 	    if (plat->low > sec->floorheight)
 		plat->low = sec->floorheight;
@@ -222,12 +223,12 @@ EV_DoPlat
 	    
 	  case perpetualRaise:
 	    plat->speed = PLATSPEED;
-	    plat->low = P_FindLowestFloorSurrounding(sec);
+	    plat->low = P_FindLowestFloorSurrounding(doom, sec);
 
 	    if (plat->low > sec->floorheight)
 		plat->low = sec->floorheight;
 
-	    plat->high = P_FindHighestFloorSurrounding(sec);
+	    plat->high = P_FindHighestFloorSurrounding(doom, sec);
 
 	    if (plat->high < sec->floorheight)
 		plat->high = sec->floorheight;

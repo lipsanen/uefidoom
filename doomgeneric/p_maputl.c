@@ -432,9 +432,10 @@ P_SetThingPosition (mobj_t* thing)
 //
 boolean
 P_BlockLinesIterator
-( int			x,
+( doom_data_t* doom, 
+  int			x,
   int			y,
-  boolean(*func)(line_t*) )
+  boolean(*func)(doom_data_t* doom, line_t*) )
 {
     int			offset;
     short*		list;
@@ -461,7 +462,7 @@ P_BlockLinesIterator
 
 	ld->validcount = validcount;
 		
-	if ( !func(ld) )
+	if ( !func(doom, ld) )
 	    return false;
     }
     return true;	// everything was checked
@@ -473,9 +474,10 @@ P_BlockLinesIterator
 //
 boolean
 P_BlockThingsIterator
-( int			x,
+( doom_data_t* doom, 
+  int			x,
   int			y,
-  boolean(*func)(mobj_t*) )
+  boolean(*func)(doom_data_t* doom, mobj_t*) )
 {
     mobj_t*		mobj;
 	
@@ -492,7 +494,7 @@ P_BlockThingsIterator
 	 mobj ;
 	 mobj = mobj->bnext)
     {
-	if (!func( mobj ) )
+	if (!func(doom, mobj ) )
 	    return false;
     }
     return true;
@@ -523,7 +525,7 @@ static void InterceptsOverrun(int num_intercepts, intercept_t *intercept);
 // Returns true if earlyout and a solid line hit.
 //
 boolean
-PIT_AddLineIntercepts (line_t* ld)
+PIT_AddLineIntercepts (doom_data_t* doom, line_t* ld)
 {
     int			s1;
     int			s2;
@@ -578,7 +580,7 @@ PIT_AddLineIntercepts (line_t* ld)
 //
 // PIT_AddThingIntercepts
 //
-boolean PIT_AddThingIntercepts (mobj_t* thing)
+boolean PIT_AddThingIntercepts (doom_data_t* doom, mobj_t* thing)
 {
     fixed_t		x1;
     fixed_t		y1;
@@ -647,7 +649,8 @@ boolean PIT_AddThingIntercepts (mobj_t* thing)
 // 
 boolean
 P_TraverseIntercepts
-( traverser_t	func,
+( doom_data_t* doom, 
+  traverser_t	func,
   fixed_t	maxfrac )
 {
     int			count;
@@ -686,7 +689,7 @@ P_TraverseIntercepts
     }
 #endif
 
-        if ( !func (in) )
+        if ( !func (doom, in) )
 	    return false;	// don't bother going farther
 
 	in->frac = INT_MAX;
@@ -826,12 +829,13 @@ static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
 //
 boolean
 P_PathTraverse
-( fixed_t		x1,
+( doom_data_t* doom, 
+  fixed_t		x1,
   fixed_t		y1,
   fixed_t		x2,
   fixed_t		y2,
   int			flags,
-  boolean (*trav) (intercept_t *))
+  boolean (*trav) (doom_data_t* doom, intercept_t *))
 {
     fixed_t	xt1;
     fixed_t	yt1;
@@ -932,13 +936,13 @@ P_PathTraverse
     {
 	if (flags & PT_ADDLINES)
 	{
-	    if (!P_BlockLinesIterator (mapx, mapy,PIT_AddLineIntercepts))
+	    if (!P_BlockLinesIterator (doom, mapx, mapy,PIT_AddLineIntercepts))
 		return false;	// early out
 	}
 	
 	if (flags & PT_ADDTHINGS)
 	{
-	    if (!P_BlockThingsIterator (mapx, mapy,PIT_AddThingIntercepts))
+	    if (!P_BlockThingsIterator (doom, mapx, mapy,PIT_AddThingIntercepts))
 		return false;	// early out
 	}
 		
@@ -961,7 +965,7 @@ P_PathTraverse
 		
     }
     // go through the sorted list
-    return P_TraverseIntercepts ( trav, FRACUNIT );
+    return P_TraverseIntercepts (doom, trav, FRACUNIT );
 }
 
 

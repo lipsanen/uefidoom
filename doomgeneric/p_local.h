@@ -75,15 +75,15 @@ void P_RemoveThinker (thinker_t* thinker);
 //
 // P_PSPR
 //
-void P_SetupPsprites (player_t* curplayer);
-void P_MovePsprites (player_t* curplayer);
-void P_DropWeapon (player_t* player);
+void P_SetupPsprites (doom_data_t* doom, player_t* curplayer);
+void P_MovePsprites (doom_data_t* doom, player_t* curplayer);
+void P_DropWeapon (doom_data_t* doom, player_t* player);
 
 
 //
 // P_USER
 //
-void	P_PlayerThink (player_t* player);
+void	P_PlayerThink (doom_data_t* doom, player_t* player);
 
 
 //
@@ -112,13 +112,13 @@ P_SpawnMobj
 
 void 	P_RemoveMobj (mobj_t* th);
 mobj_t* P_SubstNullMobj (mobj_t* th);
-boolean	P_SetMobjState (mobj_t* mobj, statenum_t state);
-void 	P_MobjThinker (mobj_t* mobj);
+boolean	P_SetMobjState (doom_data_t* doom, mobj_t* mobj, statenum_t state);
+void 	P_MobjThinker (doom_data_t* doom, mobj_t* mobj);
 
-void	P_SpawnPuff (fixed_t x, fixed_t y, fixed_t z);
-void 	P_SpawnBlood (fixed_t x, fixed_t y, fixed_t z, int damage);
-mobj_t* P_SpawnMissile (mobj_t* source, mobj_t* dest, mobjtype_t type);
-void	P_SpawnPlayerMissile (mobj_t* source, mobjtype_t type);
+void	P_SpawnPuff (doom_data_t* doom, fixed_t x, fixed_t y, fixed_t z);
+void 	P_SpawnBlood (doom_data_t* doom, fixed_t x, fixed_t y, fixed_t z, int damage);
+mobj_t* P_SpawnMissile (doom_data_t* doom, mobj_t* source, mobj_t* dest, mobjtype_t type);
+void	P_SpawnPlayerMissile (doom_data_t* doom, mobj_t* source, mobjtype_t type);
 
 
 //
@@ -157,7 +157,7 @@ typedef struct
 extern intercept_t	intercepts[MAXINTERCEPTS];
 extern intercept_t*	intercept_p;
 
-typedef boolean (*traverser_t) (intercept_t *in);
+typedef boolean (*traverser_t) (doom_data_t* doom, intercept_t *in);
 
 fixed_t P_AproxDistance (fixed_t dx, fixed_t dy);
 int 	P_PointOnLineSide (fixed_t x, fixed_t y, line_t* line);
@@ -173,8 +173,8 @@ extern fixed_t		lowfloor;
 
 void 	P_LineOpening (line_t* linedef);
 
-boolean P_BlockLinesIterator (int x, int y, boolean(*func)(line_t*) );
-boolean P_BlockThingsIterator (int x, int y, boolean(*func)(mobj_t*) );
+boolean P_BlockLinesIterator (doom_data_t* doom, int x, int y, boolean(*func)(doom_data_t* doom, line_t*) );
+boolean P_BlockThingsIterator (doom_data_t* doom, int x, int y, boolean(*func)(doom_data_t* doom, mobj_t*) );
 
 #define PT_ADDLINES		1
 #define PT_ADDTHINGS	2
@@ -184,12 +184,13 @@ extern divline_t	trace;
 
 boolean
 P_PathTraverse
-( fixed_t	x1,
+( doom_data_t* doom, 
+  fixed_t	x1,
   fixed_t	y1,
   fixed_t	x2,
   fixed_t	y2,
   int		flags,
-  boolean	(*trav) (intercept_t *));
+  boolean	(*trav) (doom_data_t* doom, intercept_t *));
 
 void P_UnsetThingPosition (mobj_t* thing);
 void P_SetThingPosition (mobj_t* thing);
@@ -222,26 +223,28 @@ extern	line_t*		ceilingline;
 extern	line_t*	spechit[MAXSPECIALCROSS];
 extern	int	numspechit;
 
-boolean P_CheckPosition (mobj_t *thing, fixed_t x, fixed_t y);
-boolean P_TryMove (mobj_t* thing, fixed_t x, fixed_t y);
-boolean P_TeleportMove (mobj_t* thing, fixed_t x, fixed_t y);
-void	P_SlideMove (mobj_t* mo);
+boolean P_CheckPosition (doom_data_t* doom, mobj_t *thing, fixed_t x, fixed_t y);
+boolean P_TryMove (doom_data_t* doom, mobj_t* thing, fixed_t x, fixed_t y);
+boolean P_TeleportMove (doom_data_t* doom, mobj_t* thing, fixed_t x, fixed_t y);
+void	P_SlideMove (doom_data_t* doom, mobj_t* mo);
 boolean P_CheckSight (mobj_t* t1, mobj_t* t2);
-void 	P_UseLines (player_t* player);
+void 	P_UseLines (doom_data_t* doom, player_t* player);
 
-boolean P_ChangeSector (sector_t* sector, boolean crunch);
+boolean P_ChangeSector (doom_data_t* doom, sector_t* sector, boolean crunch);
 
 extern mobj_t*	linetarget;	// who got hit (or NULL)
 
 fixed_t
 P_AimLineAttack
-( mobj_t*	t1,
+( doom_data_t* doom, 
+  mobj_t*	t1,
   angle_t	angle,
   fixed_t	distance );
 
 void
 P_LineAttack
-( mobj_t*	t1,
+( doom_data_t* doom, 
+  mobj_t*	t1,
   angle_t	angle,
   fixed_t	distance,
   fixed_t	slope,
@@ -249,7 +252,8 @@ P_LineAttack
 
 void
 P_RadiusAttack
-( mobj_t*	spot,
+( doom_data_t* doom, 
+  mobj_t*	spot,
   mobj_t*	source,
   int		damage );
 
@@ -282,7 +286,8 @@ P_TouchSpecialThing
 
 void
 P_DamageMobj
-( mobj_t*	target,
+( doom_data_t* doom,
+  mobj_t*	target,
   mobj_t*	inflictor,
   mobj_t*	source,
   int		damage );
