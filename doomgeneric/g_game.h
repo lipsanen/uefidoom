@@ -66,7 +66,7 @@ void G_WorldDone (void);
 
 void G_BuildTiccmd (ticcmd_t *cmd, int maketic); 
 
-void G_Ticker (void);
+void G_Ticker (doom_data_t* data);
 boolean G_Responder (doom_data_t* data, event_t*	ev);
 
 void G_ScreenShot (void);

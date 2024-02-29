@@ -67,7 +67,7 @@ static void PlayerQuitGame(player_t *player)
     }
 }
 
-static void RunTic(ticcmd_t *cmds, boolean *ingame)
+static void RunTic(doom_data_t* doom, ticcmd_t *cmds, boolean *ingame)
 {
     extern boolean advancedemo;
     unsigned int i;
@@ -90,7 +90,7 @@ static void RunTic(ticcmd_t *cmds, boolean *ingame)
     if (advancedemo)
         D_DoAdvanceDemo ();
 
-    G_Ticker ();
+    G_Ticker (doom);
 }
 
 static loop_interface_t doom_loop_interface = {

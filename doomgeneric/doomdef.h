@@ -22,9 +22,15 @@
 
 #include <stdint.h>
 #include "m_cheat.h"
+#include "m_fixed.h"
 #include "doomtype.h"
 #include "i_timer.h"
 #include "d_mode.h"
+
+typedef struct
+{
+    fixed_t		x,y;
+} mpoint_t;
 
 struct doom_data_t_ {
     // location of window on screen
@@ -37,6 +43,7 @@ struct doom_data_t_ {
 
     cheatseq_t cheat_amap;
     int cheating;
+    mpoint_t m_paninc;
 };
 
 typedef struct doom_data_t_ doom_data_t;

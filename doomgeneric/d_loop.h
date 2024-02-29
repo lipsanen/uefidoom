@@ -43,7 +43,7 @@ typedef struct
 
     // Advance the game forward one tic, using the specified player input.
 
-    void (*RunTic)(ticcmd_t *cmds, boolean *ingame);
+    void (*RunTic)(struct doom_data_t_* doom, ticcmd_t *cmds, boolean *ingame);
 
     // Run the menu (runs independently of the game).
 

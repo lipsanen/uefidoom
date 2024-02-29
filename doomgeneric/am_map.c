@@ -120,11 +120,6 @@ typedef struct
 
 typedef struct
 {
-    fixed_t		x,y;
-} mpoint_t;
-
-typedef struct
-{
     mpoint_t a, b;
 } mline_t;
 
@@ -207,7 +202,6 @@ static int 	lightlev; 		// used for funky strobing effect
 static byte*	fb; 			// pseudo-frame buffer
 static int 	amclock;
 
-static mpoint_t m_paninc; // how far the window pans each tic (map coords)
 static fixed_t 	mtof_zoommul; // how far the window zooms in each tic (map coords)
 static fixed_t 	ftom_zoommul; // how far the window zooms in each tic (fb coords)
 
@@ -386,16 +380,16 @@ void AM_findMinMaxBoundaries(void)
 //
 //
 //
-void AM_changeWindowLoc(void)
+void AM_changeWindowLoc(doom_data_t* doom)
 {
-    if (m_paninc.x || m_paninc.y)
+    if (doom->m_paninc.x || doom->m_paninc.y)
     {
 	followplayer = 0;
 	f_oldloc.x = INT_MAX;
     }
 
-    m_x += m_paninc.x;
-    m_y += m_paninc.y;
+    m_x += doom->m_paninc.x;
+    m_y += doom->m_paninc.y;
 
     if (m_x + m_w/2 > max_x)
 	m_x = max_x - m_w/2;
@@ -415,7 +409,7 @@ void AM_changeWindowLoc(void)
 //
 //
 //
-void AM_initVariables(void)
+void AM_initVariables(doom_data_t* doom)
 {
     int pnum;
     static event_t st_notify = { ev_keyup, AM_MSGENTERED, 0, 0 };
@@ -427,7 +421,7 @@ void AM_initVariables(void)
     amclock = 0;
     lightlev = 0;
 
-    m_paninc.x = m_paninc.y = 0;
+    doom->m_paninc.x = doom->m_paninc.y = 0;
     ftom_zoommul = FRACUNIT;
     mtof_zoommul = FRACUNIT;
 
@@ -455,7 +449,7 @@ void AM_initVariables(void)
 
     m_x = plr->mo->x - m_w/2;
     m_y = plr->mo->y - m_h/2;
-    AM_changeWindowLoc();
+    AM_changeWindowLoc(doom);
 
     // for saving & restoring
     old_m_x = m_x;
@@ -545,7 +539,7 @@ void AM_Stop (void)
 //
 //
 //
-void AM_Start (void)
+void AM_Start (doom_data_t* doom)
 {
     static int lastlevel = -1, lastepisode = -1;
 
@@ -557,7 +551,7 @@ void AM_Start (void)
 	lastlevel = gamemap;
 	lastepisode = gameepisode;
     }
-    AM_initVariables();
+    AM_initVariables(doom);
     AM_loadPics();
 }
 
@@ -601,7 +595,7 @@ AM_Responder
     {
 	if (ev->type == ev_keydown && ev->data1 == key_map_toggle)
 	{
-	    AM_Start ();
+	    AM_Start (doom);
 	    viewactive = false;
 	    rc = true;
 	}
@@ -613,22 +607,22 @@ AM_Responder
 
         if (key == key_map_east)          // pan right
         {
-            if (!followplayer) m_paninc.x = FTOM(F_PANINC);
+            if (!followplayer) doom->m_paninc.x = FTOM(F_PANINC);
             else rc = false;
         }
         else if (key == key_map_west)     // pan left
         {
-            if (!followplayer) m_paninc.x = -FTOM(F_PANINC);
+            if (!followplayer) doom->m_paninc.x = -FTOM(F_PANINC);
             else rc = false;
         }
         else if (key == key_map_north)    // pan up
         {
-            if (!followplayer) m_paninc.y = FTOM(F_PANINC);
+            if (!followplayer) doom->m_paninc.y = FTOM(F_PANINC);
             else rc = false;
         }
         else if (key == key_map_south)    // pan down
         {
-            if (!followplayer) m_paninc.y = -FTOM(F_PANINC);
+            if (!followplayer) doom->m_paninc.y = -FTOM(F_PANINC);
             else rc = false;
         }
         else if (key == key_map_zoomout)  // zoom out
@@ -704,19 +698,19 @@ AM_Responder
 
         if (key == key_map_east)
         {
-            if (!followplayer) m_paninc.x = 0;
+            if (!followplayer) doom->m_paninc.x = 0;
         }
         else if (key == key_map_west)
         {
-            if (!followplayer) m_paninc.x = 0;
+            if (!followplayer) doom->m_paninc.x = 0;
         }
         else if (key == key_map_north)
         {
-            if (!followplayer) m_paninc.y = 0;
+            if (!followplayer) doom->m_paninc.y = 0;
         }
         else if (key == key_map_south)
         {
-            if (!followplayer) m_paninc.y = 0;
+            if (!followplayer) doom->m_paninc.y = 0;
         }
         else if (key == key_map_zoomout || key == key_map_zoomin)
         {
@@ -797,7 +791,7 @@ void AM_updateLightLev(void)
 //
 // Updates on Game Tick
 //
-void AM_Ticker (void)
+void AM_Ticker (doom_data_t* doom)
 {
 
     if (!automapactive)
@@ -813,8 +807,8 @@ void AM_Ticker (void)
 	AM_changeWindowScale();
 
     // Change x,y location
-    if (m_paninc.x || m_paninc.y)
-	AM_changeWindowLoc();
+    if (doom->m_paninc.x || doom->m_paninc.y)
+	AM_changeWindowLoc(doom);
 
     // Update light level
     // AM_updateLightLev();

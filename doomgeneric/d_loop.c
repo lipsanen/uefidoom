@@ -807,7 +807,7 @@ void TryRunTics (struct doom_data_t_* doom)
 
             d_memcpy(local_playeringame, set->ingame, sizeof(local_playeringame));
 
-            loop_interface->RunTic(set->cmds, set->ingame);
+            loop_interface->RunTic(doom, set->cmds, set->ingame);
 	    gametic++;
 
 	    // modify command for duplicated tics

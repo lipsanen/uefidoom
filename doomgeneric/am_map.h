@@ -32,7 +32,7 @@
 boolean AM_Responder (doom_data_t* data, event_t* ev);
 
 // Called by main loop.
-void AM_Ticker (void);
+void AM_Ticker (doom_data_t* data);
 
 // Called by main loop,
 // called instead of view drawer if automap active.

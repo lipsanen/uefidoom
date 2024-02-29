@@ -847,7 +847,7 @@ boolean G_Responder (doom_data_t* data, event_t* ev)
 // G_Ticker
 // Make ticcmd_ts for the players.
 //
-void G_Ticker (void) 
+void G_Ticker (doom_data_t* doom) 
 { 
     int		i;
     int		buf; 
@@ -1003,7 +1003,7 @@ void G_Ticker (void)
       case GS_LEVEL: 
 	P_Ticker (); 
 	ST_Ticker (); 
-	AM_Ticker (); 
+	AM_Ticker (doom); 
 	HU_Ticker ();            
 	break; 
 	 
