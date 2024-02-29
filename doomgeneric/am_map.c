@@ -245,7 +245,6 @@ static fixed_t scale_ftom;
 
 static player_t *plr; // the player represented by an arrow
 
-static patch_t *marknums[10]; // numbers used for marking by the automap
 static mpoint_t markpoints[AM_NUMMARKPOINTS]; // where the points are
 static int markpointnum = 0; // next point to be assigned
 
@@ -465,7 +464,7 @@ void AM_initVariables(doom_data_t* doom)
 //
 // 
 //
-void AM_loadPics(void)
+void AM_loadPics(doom_data_t* doom)
 {
     int i;
     char namebuf[9];
@@ -473,7 +472,7 @@ void AM_loadPics(void)
     for (i=0;i<10;i++)
     {
 	d_snprintf(namebuf, 9, "AMMNUM%d", i);
-	marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
+	doom->marknums[i] = W_CacheLumpName(namebuf, PU_STATIC);
     }
 
 }
@@ -552,7 +551,7 @@ void AM_Start (doom_data_t* doom)
 	lastepisode = gameepisode;
     }
     AM_initVariables(doom);
-    AM_loadPics();
+    AM_loadPics(doom);
 }
 
 //
@@ -1296,7 +1295,7 @@ AM_drawThings
     }
 }
 
-void AM_drawMarks(void)
+void AM_drawMarks(doom_data_t* doom)
 {
     int i, fx, fy, w, h;
 
@@ -1311,7 +1310,7 @@ void AM_drawMarks(void)
 	    fx = CXMTOF(markpoints[i].x);
 	    fy = CYMTOF(markpoints[i].y);
 	    if (fx >= f_x && fx <= f_w - w && fy >= f_y && fy <= f_h - h)
-		V_DrawPatch(fx, fy, marknums[i]);
+		V_DrawPatch(fx, fy, doom->marknums[i]);
 	}
     }
 
@@ -1336,7 +1335,7 @@ void AM_Drawer (doom_data_t* doom)
 	AM_drawThings(THINGCOLORS, THINGRANGE);
     AM_drawCrosshair(XHAIRCOLORS);
 
-    AM_drawMarks();
+    AM_drawMarks(doom);
 
     V_MarkRect(f_x, f_y, f_w, f_h);
 

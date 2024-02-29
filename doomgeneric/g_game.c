@@ -726,7 +726,7 @@ static void SetMouseButtons(unsigned int buttons_mask)
 // G_Responder  
 // Get info needed to make ticcmd_ts for the players.
 // 
-boolean G_Responder (doom_data_t* data, event_t* ev) 
+boolean G_Responder (doom_data_t* doom, event_t* ev) 
 { 
     // allow spy mode changes even during the demo
     if (gamestate == GS_LEVEL && ev->type == ev_keydown 
@@ -770,7 +770,7 @@ boolean G_Responder (doom_data_t* data, event_t* ev)
 	    return true;	// chat ate the event 
 	if (ST_Responder (ev)) 
 	    return true;	// status window ate it 
-	if (AM_Responder (doom1, ev)) 
+	if (AM_Responder (doom, ev)) 
 	    return true;	// automap ate it 
     } 
 	 

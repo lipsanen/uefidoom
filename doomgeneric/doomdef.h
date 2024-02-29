@@ -21,9 +21,10 @@
 #define __DOOMDEF__
 
 #include <stdint.h>
+#include "doomtype.h"
 #include "m_cheat.h"
 #include "m_fixed.h"
-#include "doomtype.h"
+#include "v_patch.h"
 #include "i_timer.h"
 #include "d_mode.h"
 
@@ -44,6 +45,7 @@ struct doom_data_t_ {
     cheatseq_t cheat_amap;
     int cheating;
     mpoint_t m_paninc;
+    patch_t *marknums[10];
 };
 
 typedef struct doom_data_t_ doom_data_t;
