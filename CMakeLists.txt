@@ -4,35 +4,44 @@ project(doomgeneric VERSION 1.4.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FILE(GLOB_RECURSE CONVERTED_SOURCES
-    doomgeneric/printf.c
-    doomgeneric/scanf.c
-    doomgeneric/utils.c
-    doomgeneric/m_misc.c
-    doomgeneric/m_argv.c
-    doomgeneric/m_config.c
+    doomgeneric/am_map.c
+    doomgeneric/d_event.c
+    doomgeneric/d_items.c
+    doomgeneric/d_iwad.c
+    doomgeneric/d_loop.c
+    doomgeneric/d_main.c
+    doomgeneric/d_mode.c
+    doomgeneric/d_net.c
+    doomgeneric/doomdef.c
+    doomgeneric/doomgeneric.c
+    doomgeneric/doomstat.c
     doomgeneric/dstrings.c
     doomgeneric/dummy.c
+    doomgeneric/embedded.c
     doomgeneric/f_finale.c
     doomgeneric/f_wipe.c
     doomgeneric/g_game.c
     doomgeneric/hu_lib.c
     doomgeneric/hu_stuff.c
     doomgeneric/i_cdmus.c
-    doomgeneric/icon.c
     doomgeneric/i_endoom.c
     doomgeneric/i_input.c
-    doomgeneric/info.c
     doomgeneric/i_sound.c
     doomgeneric/i_system.c
     doomgeneric/i_timer.c
     doomgeneric/i_video.c
+    doomgeneric/icon.c
+    doomgeneric/info.c
+    doomgeneric/m_argv.c
     doomgeneric/m_bbox.c
     doomgeneric/m_cheat.c
+    doomgeneric/m_config.c
     doomgeneric/m_controls.c
-    doomgeneric/memio.c
     doomgeneric/m_fixed.c
     doomgeneric/m_menu.c
+    doomgeneric/m_misc.c
     doomgeneric/m_random.c
+    doomgeneric/memio.c
     doomgeneric/mus2mid.c
     doomgeneric/p_ceilng.c
     doomgeneric/p_doors.c
@@ -53,6 +62,7 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/p_telept.c
     doomgeneric/p_tick.c
     doomgeneric/p_user.c
+    doomgeneric/printf.c
     doomgeneric/r_bsp.c
     doomgeneric/r_data.c
     doomgeneric/r_draw.c
@@ -61,46 +71,37 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/r_segs.c
     doomgeneric/r_sky.c
     doomgeneric/r_things.c
+    doomgeneric/s_sound.c
+    doomgeneric/scanf.c
     doomgeneric/sha1.c
     doomgeneric/sounds.c
-    doomgeneric/s_sound.c
-    doomgeneric/statdump.c
     doomgeneric/st_lib.c
     doomgeneric/st_stuff.c
+    doomgeneric/statdump.c
     doomgeneric/tables.c
+    doomgeneric/utils.c
     doomgeneric/v_video.c
     doomgeneric/w_checksum.c
     doomgeneric/w_file.c
     doomgeneric/w_file_stdc.c
-    doomgeneric/wi_stuff.c
     doomgeneric/w_wad.c
-    doomgeneric/am_map.c
-    doomgeneric/d_event.c
-    doomgeneric/d_items.c
-    doomgeneric/d_iwad.c
-    doomgeneric/d_loop.c
-    doomgeneric/d_main.c
-    doomgeneric/d_mode.c
-    doomgeneric/d_net.c
-    doomgeneric/doomdef.c
-    doomgeneric/doomgeneric.c
-    doomgeneric/doomstat.c
+    doomgeneric/wi_stuff.c
     doomgeneric/z_zone.c
-    doomgeneric/embedded.c
 )
 
 option(UEFIDOOM OFF)
 
 if(NOT UEFIDOOM)
-    add_compile_options(-g -fsanitize=address -Wincompatible-pointer-types)
+    set(CMAKE_C_FLAGS_DEBUG "-g -fsanitize=address")
     add_link_options(-fsanitize=address)
     add_library(dlibc STATIC dlibc/printf.c dlibc/scanf.c dlibc/utils.c)
     target_include_directories(dlibc PUBLIC dlibc)
     add_library(doomgeneric STATIC ${SOURCES} ${CONVERTED_SOURCES})
+    target_include_directories(doomgeneric PUBLIC doomgeneric)
     target_compile_options(doomgeneric PRIVATE -Wimplicit-function-declaration)
 
-    add_executable(doom_embedded doomgeneric/doomgeneric_embedded_sdl.c)
-    target_link_libraries(doom_embedded PRIVATE SDL2 doomgeneric)
+    add_executable(doom_sdl doom_sdl/main.c)
+    target_link_libraries(doom_sdl PRIVATE SDL2 doomgeneric)
 
     set(GOOGLETEST_VERSION 1.14.0)
     enable_testing()
