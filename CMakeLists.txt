@@ -24,7 +24,6 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/hu_lib.c
     doomgeneric/hu_stuff.c
     doomgeneric/i_cdmus.c
-    doomgeneric/i_endoom.c
     doomgeneric/i_input.c
     doomgeneric/i_sound.c
     doomgeneric/i_system.c

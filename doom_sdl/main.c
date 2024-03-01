@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 
   uint64_t startTick = SDL_GetTicks64();
 
-  for (int i = 1; ; i++)
+  for (int i = 1; !doom.should_quit; i++)
   {
     uint64_t ticks_needed = (i * 1000) / 35;
     uint64_t current_tick = SDL_GetTicks64();

@@ -16,6 +16,7 @@
 //
 
 
+#include "doomdef.h"
 #include "dlibc.h"
 
 #include "config.h"
@@ -164,41 +165,16 @@ void I_PrintStartupBanner(char *gamedescription)
 
 boolean I_ConsoleStdout(void)
 {
-#ifdef _WIN32
-    // SDL "helpfully" always redirects stdout to a file.
-    return 0;
-#else
-#if ORIGCODE
-    return isatty(fileno(stdout));
-#else
 	return 0;
-#endif
-#endif
 }
-
-//
-// I_Init
-//
-/*
-void I_Init (void)
-{
-    I_CheckIsScreensaver();
-    I_InitJoystick();
-}
-void I_BindVariables(void)
-{
-    I_BindVideoVariables();
-    I_BindJoystickVariables();
-    I_BindSoundVariables();
-}
-*/
 
 //
 // I_Quit
 //
 
-void I_Quit (void)
+void I_Quit (doom_data_t* doom)
 {
+    doom->should_quit = 1;
     atexit_listentry_t *entry;
 
     // Run through all exit functions

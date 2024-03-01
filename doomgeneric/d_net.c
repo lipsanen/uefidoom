@@ -41,7 +41,7 @@ ticcmd_t *netcmds;
 
 // Called when a player leaves the game
 
-static void PlayerQuitGame(player_t *player)
+static void PlayerQuitGame(doom_data_t* doom, player_t *player)
 {
     static char exitmsg[80];
     unsigned int player_num;
@@ -63,7 +63,7 @@ static void PlayerQuitGame(player_t *player)
 
     if (demorecording) 
     {
-        G_CheckDemoStatus ();
+        G_CheckDemoStatus (doom);
     }
 }
 
@@ -78,7 +78,7 @@ static void RunTic(doom_data_t* doom, ticcmd_t *cmds, boolean *ingame)
     {
         if (!demoplayback && playeringame[i] && !ingame[i])
         {
-            PlayerQuitGame(&players[i]);
+            PlayerQuitGame(doom, &players[i]);
         }
     }
 

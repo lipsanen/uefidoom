@@ -47,6 +47,7 @@ struct doom_data_t_ {
     mpoint_t m_paninc;
     patch_t *marknums[10];
     byte*	fb; // pseudo-frame buffer
+    uint8_t should_quit;
 };
 
 typedef struct doom_data_t_ doom_data_t;

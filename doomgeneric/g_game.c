@@ -72,8 +72,8 @@
 
 #define SAVEGAMESIZE	0x2c000
 
-void	G_ReadDemoTiccmd (ticcmd_t* cmd); 
-void	G_WriteDemoTiccmd (ticcmd_t* cmd); 
+void	G_ReadDemoTiccmd (doom_data_t* doom, ticcmd_t* cmd); 
+void	G_WriteDemoTiccmd (doom_data_t* doom, ticcmd_t* cmd); 
 void	G_PlayerReborn (int player); 
  
 void	G_DoReborn (doom_data_t* doom, int playernum); 
@@ -910,9 +910,9 @@ void G_Ticker (doom_data_t* doom)
 	    d_memcpy(cmd, &netcmds[i], sizeof(ticcmd_t));
 
 	    if (demoplayback) 
-		G_ReadDemoTiccmd (cmd); 
+		G_ReadDemoTiccmd (doom, cmd); 
 	    if (demorecording) 
-		G_WriteDemoTiccmd (cmd);
+		G_WriteDemoTiccmd (doom, cmd);
 	    
 	    // check for turbo cheats
 
@@ -1893,12 +1893,12 @@ G_InitNew
 #define DEMOMARKER		0x80
 
 
-void G_ReadDemoTiccmd (ticcmd_t* cmd) 
+void G_ReadDemoTiccmd (doom_data_t* doom, ticcmd_t* cmd) 
 { 
     if (*demo_p == DEMOMARKER) 
     {
 	// end of demo data stream 
-	G_CheckDemoStatus (); 
+	G_CheckDemoStatus (doom); 
 	return; 
     } 
     cmd->forwardmove = ((signed char)*demo_p++); 
@@ -1951,12 +1951,12 @@ static void IncreaseDemoBuffer(void)
     demoend = demobuffer + new_length;
 }
 
-void G_WriteDemoTiccmd (ticcmd_t* cmd) 
+void G_WriteDemoTiccmd (doom_data_t* doom, ticcmd_t* cmd) 
 { 
     byte *demo_start;
 
     if (gamekeydown[key_demo_quit])           // press q to end demo recording 
-	G_CheckDemoStatus (); 
+	G_CheckDemoStatus (doom); 
 
     demo_start = demo_p;
 
@@ -1985,7 +1985,7 @@ void G_WriteDemoTiccmd (ticcmd_t* cmd)
         if (vanilla_demo_limit)
         {
             // no more space 
-            G_CheckDemoStatus (); 
+            G_CheckDemoStatus (doom); 
             return; 
         }
         else
@@ -1997,7 +1997,7 @@ void G_WriteDemoTiccmd (ticcmd_t* cmd)
         }
     } 
 	
-    G_ReadDemoTiccmd (cmd);         // make SURE it is exactly the same 
+    G_ReadDemoTiccmd (doom, cmd);         // make SURE it is exactly the same 
 } 
  
  
@@ -2242,7 +2242,7 @@ void G_TimeDemo (char* name)
 =================== 
 */ 
  
-boolean G_CheckDemoStatus (void) 
+boolean G_CheckDemoStatus (doom_data_t* doom) 
 { 
     int             endtime; 
 	  
@@ -2260,7 +2260,7 @@ boolean G_CheckDemoStatus (void)
 	consoleplayer = 0;
         
         if (singledemo) 
-            I_Quit (); 
+            I_Quit (doom); 
         else 
             D_AdvanceDemo (); 
 

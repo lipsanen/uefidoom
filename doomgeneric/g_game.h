@@ -55,7 +55,7 @@ void G_BeginRecording (void);
 
 void G_PlayDemo (char* name);
 void G_TimeDemo (char* name);
-boolean G_CheckDemoStatus (void);
+boolean G_CheckDemoStatus (doom_data_t* doom);
 
 void G_ExitLevel (void);
 void G_SecretExitLevel (void);

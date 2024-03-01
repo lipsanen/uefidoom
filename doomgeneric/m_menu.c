@@ -94,7 +94,7 @@ int			messageLastMenuActive;
 // timed message = no input from user
 boolean			messageNeedsInput;
 
-void    (*messageRoutine)(int response);
+void    (*messageRoutine)(doom_data_t* doom, int response);
 
 char gammamsg[5][26] =
 {
@@ -1126,7 +1126,7 @@ int     quitsounds2[8] =
 
 
 
-void M_QuitResponse(int key)
+void M_QuitResponse(doom_data_t* doom, int key)
 {
     if (key != key_menu_confirm)
 	return;
@@ -1137,7 +1137,7 @@ void M_QuitResponse(int key)
 	else
 	    S_StartSound(NULL,quitsounds[(gametic>>2)&7]);
     }
-    I_Quit ();
+    I_Quit (doom);
 }
 
 
@@ -1410,7 +1410,7 @@ static boolean IsNullKey(int key)
 //
 // M_Responder
 //
-boolean M_Responder (event_t* ev)
+boolean M_Responder (doom_data_t* doom, event_t* ev)
 {
     int             ch;
     int             key;
@@ -1429,7 +1429,7 @@ boolean M_Responder (event_t* ev)
          || (ev->type == ev_keydown
           && (ev->data1 == key_menu_activate || ev->data1 == key_menu_quit)))
         {
-            I_Quit();
+            I_Quit(doom);
             return true;
         }
 
@@ -1444,7 +1444,7 @@ boolean M_Responder (event_t* ev)
 
         if (menuactive && messageToPrint && messageRoutine == M_QuitResponse)
         {
-            M_QuitResponse(key_menu_confirm);
+            M_QuitResponse(doom, key_menu_confirm);
         }
         else
         {
@@ -1597,7 +1597,7 @@ boolean M_Responder (event_t* ev)
 	menuactive = messageLastMenuActive;
 	messageToPrint = 0;
 	if (messageRoutine)
-	    messageRoutine(key);
+	    messageRoutine(doom, key);
 
 	menuactive = false;
 	S_StartSound(NULL,sfx_swtchx);

@@ -20,6 +20,7 @@
 #ifndef __I_SYSTEM__
 #define __I_SYSTEM__
 
+#include "doomdef.h"
 #include "d_ticcmd.h"
 #include "d_event.h"
 
@@ -50,7 +51,7 @@ ticcmd_t* I_BaseTiccmd (void);
 
 // Called by M_Responder when quit is selected.
 // Clean exit, displays sell blurb.
-void I_Quit (void);
+void I_Quit (doom_data_t* doom);
 
 void I_Error (char *error, ...);
 

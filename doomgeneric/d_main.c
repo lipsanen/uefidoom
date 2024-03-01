@@ -140,7 +140,7 @@ void D_ProcessEvents (doom_data_t* data)
 	
     while ((ev = D_PopEvent()) != NULL)
     {
-	if (M_Responder (ev))
+	if (M_Responder (data, ev))
 	    continue;               // menu ate the event
 	G_Responder (data, ev);
     }
@@ -1071,8 +1071,6 @@ static void D_Endoom(void)
     }
 
     endoom = W_CacheLumpName(DEH_String("ENDOOM"), PU_STATIC);
-
-    I_Endoom(endoom);
 
 	//exit(0);
 }
