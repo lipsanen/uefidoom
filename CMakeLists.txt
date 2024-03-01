@@ -4,6 +4,9 @@ project(doomgeneric VERSION 1.4.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FILE(GLOB_RECURSE CONVERTED_SOURCES
+    doomgeneric/printf.c
+    doomgeneric/scanf.c
+    doomgeneric/utils.c
     doomgeneric/m_misc.c
     doomgeneric/m_argv.c
     doomgeneric/m_config.c
@@ -83,6 +86,7 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/doomgeneric.c
     doomgeneric/doomstat.c
     doomgeneric/z_zone.c
+    doomgeneric/embedded.c
 )
 
 option(UEFIDOOM OFF)
@@ -93,19 +97,16 @@ if(NOT UEFIDOOM)
     add_library(dlibc STATIC dlibc/printf.c dlibc/scanf.c dlibc/utils.c)
     target_include_directories(dlibc PUBLIC dlibc)
     add_library(doomgeneric STATIC ${SOURCES} ${CONVERTED_SOURCES})
-    target_link_libraries(doomgeneric PUBLIC dlibc)
     target_compile_options(doomgeneric PRIVATE -Wimplicit-function-declaration)
-    add_executable(doom_sdl doomgeneric/doomgeneric_sdl.c doomgeneric/hostlibc/host.c)
-    target_link_libraries(doom_sdl PRIVATE SDL2 doomgeneric)
 
-    add_executable(doom_embedded doomgeneric/doomgeneric_embedded_sdl.c doomgeneric/hostlibc/embedded.c)
+    add_executable(doom_embedded doomgeneric/doomgeneric_embedded_sdl.c)
     target_link_libraries(doom_embedded PRIVATE SDL2 doomgeneric)
 
     set(GOOGLETEST_VERSION 1.14.0)
     enable_testing()
     add_subdirectory(thirdparty/googletest)
 
-    add_executable(doomgeneric_unittests tests/printf_tests.cpp tests/scanf_tests.cpp tests/aspect_ratio.cpp doomgeneric/hostlibc/host.c)
+    add_executable(doomgeneric_unittests tests/printf_tests.cpp tests/scanf_tests.cpp tests/aspect_ratio.cpp tests/host.c)
     target_link_libraries(doomgeneric_unittests PRIVATE gtest gtest_main doomgeneric dlibc)
     target_include_directories(doomgeneric_unittests PRIVATE doomgeneric)
 else()
@@ -115,8 +116,7 @@ else()
     add_library(dlibc STATIC dlibc/printf.c dlibc/scanf.c dlibc/utils.c)
     target_include_directories(dlibc PUBLIC dlibc)
 
-    add_library(doomgeneric_freestanding STATIC ${CONVERTED_SOURCES} doomgeneric/hostlibc/embedded.c)
-    target_link_libraries(doomgeneric_freestanding PUBLIC dlibc)
+    add_library(doomgeneric_freestanding STATIC ${CONVERTED_SOURCES})
     target_include_directories(doomgeneric_freestanding PUBLIC doomgeneric)
     
     add_library(efiutils STATIC efidoom/efi_utils.c efidoom/x86.c)
