@@ -37,6 +37,7 @@ void doomdata_init(doom_data_t* doom) {
     doom->ticdup = 1;
     doom->show_endoom = 1;
     doom->wipegamestate = GS_DEMOSCREEN;
+    doom->oldgamestate = -1;
 }
 
 // Location for any defines turned variables.

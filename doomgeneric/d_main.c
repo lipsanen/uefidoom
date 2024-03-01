@@ -130,12 +130,6 @@ static void Do_Wipe(doom_data_t* doom)
 
 void D_Display (struct doom_data_t_* doom)
 {
-    static  boolean		viewactivestate = false;
-    static  boolean		menuactivestate = false;
-    static  boolean		inhelpscreensstate = false;
-    static  boolean		fullscreen = false;
-    static  gamestate_t		oldgamestate = -1;
-    static  int			borderdrawcount;
     int				y;
     boolean			redrawsbar;
 
@@ -153,8 +147,8 @@ void D_Display (struct doom_data_t_* doom)
     if (setsizeneeded)
     {
 		R_ExecuteSetViewSize ();
-		oldgamestate = -1;                      // force background redraw
-		borderdrawcount = 3;
+		doom->oldgamestate = -1;                      // force background redraw
+		doom->borderdrawcount = 3;
     }
 
     // save the current screen if about to wipe
@@ -177,12 +171,12 @@ void D_Display (struct doom_data_t_* doom)
 			break;
 		if (doom->automapactive)
 			AM_Drawer (doom);
-		if (doom->wipe || (viewheight != 200 && fullscreen) )
+		if (doom->wipe || (viewheight != 200 && doom->fullscreen) )
 			redrawsbar = true;
-		if (inhelpscreensstate && !inhelpscreens)
+		if (doom->inhelpscreensstate && !inhelpscreens)
 			redrawsbar = true;              // just put away the help screen
 		ST_Drawer (doom, viewheight == 200, redrawsbar );
-		fullscreen = viewheight == 200;
+		doom->fullscreen = viewheight == 200;
 		break;
 
       case GS_INTERMISSION:
@@ -194,7 +188,7 @@ void D_Display (struct doom_data_t_* doom)
 		break;
 
       case GS_DEMOSCREEN:
-		D_PageDrawer ();
+		D_PageDrawer (doom);
 		break;
     }
     
@@ -209,25 +203,25 @@ void D_Display (struct doom_data_t_* doom)
     	HU_Drawer (doom);
     
     // clean up border stuff
-    if (gamestate != oldgamestate && gamestate != GS_LEVEL)
+    if (gamestate != doom->oldgamestate && gamestate != GS_LEVEL)
     	I_SetPalette (W_CacheLumpName (DEH_String("PLAYPAL"),PU_CACHE));
 
     // see if the border needs to be initially drawn
-    if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
+    if (gamestate == GS_LEVEL && doom->oldgamestate != GS_LEVEL)
     {
-		viewactivestate = false;        // view was not active
+		doom->viewactivestate = false;        // view was not active
 		R_FillBackScreen ();    // draw the pattern into the back screen
     }
 
     // see if the border needs to be updated to the screen
     if (gamestate == GS_LEVEL && !doom->automapactive && scaledviewwidth != SCREENWIDTH)
     {
-		if (menuactive || menuactivestate || !viewactivestate)
-			borderdrawcount = 3;
-		if (borderdrawcount)
+		if (menuactive || doom->menuactivestate || !doom->viewactivestate)
+			doom->borderdrawcount = 3;
+		if (doom->borderdrawcount)
 		{
 			R_DrawViewBorder ();    // erase old menu stuff
-			borderdrawcount--;
+			doom->borderdrawcount--;
 		}
     }
 
@@ -238,10 +232,10 @@ void D_Display (struct doom_data_t_* doom)
         V_DrawMouseSpeedBox(testcontrols_mousespeed);
     }
 
-    menuactivestate = menuactive;
-    viewactivestate = viewactive;
-    inhelpscreensstate = inhelpscreens;
-    oldgamestate = doom->wipegamestate = gamestate;
+    doom->menuactivestate = menuactive;
+    doom->viewactivestate = viewactive;
+    doom->inhelpscreensstate = inhelpscreens;
+    doom->oldgamestate = doom->wipegamestate = gamestate;
     
     // draw pause pic
     if (paused)
@@ -398,23 +392,13 @@ void D_DoomLoop (struct doom_data_t_* doom)
     doomgeneric_Tick(doom);
 }
 
-
-
-//
-//  DEMO LOOP
-//
-int             demosequence;
-int             pagetic;
-char                    *pagename;
-
-
 //
 // D_PageTicker
 // Handles timing for warped projection
 //
 void D_PageTicker (doom_data_t* doom)
 {
-    if (--pagetic < 0)
+    if (--doom->pagetic < 0)
 	D_AdvanceDemo (doom);
 }
 
@@ -423,9 +407,9 @@ void D_PageTicker (doom_data_t* doom)
 //
 // D_PageDrawer
 //
-void D_PageDrawer (void)
+void D_PageDrawer (doom_data_t* doom)
 {
-    V_DrawPatch (0, 0, W_CacheLumpName(pagename, PU_CACHE));
+    V_DrawPatch (0, 0, W_CacheLumpName(doom->pagename, PU_CACHE));
 }
 
 
@@ -461,19 +445,19 @@ void D_DoAdvanceDemo (doom_data_t* doom)
     // includes a fixed executable.
 
     if (gameversion == exe_ultimate || gameversion == exe_final)
-      demosequence = (demosequence+1)%7;
+      doom->demosequence = (doom->demosequence+1)%7;
     else
-      demosequence = (demosequence+1)%6;
+      doom->demosequence = (doom->demosequence+1)%6;
     
-    switch (demosequence)
+    switch (doom->demosequence)
     {
       case 0:
 	if ( gamemode == commercial )
-	    pagetic = TICRATE * 11;
+	    doom->pagetic = TICRATE * 11;
 	else
-	    pagetic = 170;
+	    doom->pagetic = 170;
 	gamestate = GS_DEMOSCREEN;
-	pagename = DEH_String("TITLEPIC");
+	doom->pagename = DEH_String("TITLEPIC");
 	if ( gamemode == commercial )
 	  S_StartMusic(mus_dm2ttl);
 	else
@@ -483,9 +467,9 @@ void D_DoAdvanceDemo (doom_data_t* doom)
 	G_DeferedPlayDemo(DEH_String("demo1"));
 	break;
       case 2:
-	pagetic = 200;
+	doom->pagetic = 200;
 	gamestate = GS_DEMOSCREEN;
-	pagename = DEH_String("CREDIT");
+	doom->pagename = DEH_String("CREDIT");
 	break;
       case 3:
 	G_DeferedPlayDemo(DEH_String("demo2"));
@@ -494,18 +478,18 @@ void D_DoAdvanceDemo (doom_data_t* doom)
 	gamestate = GS_DEMOSCREEN;
 	if ( gamemode == commercial)
 	{
-	    pagetic = TICRATE * 11;
-	    pagename = DEH_String("TITLEPIC");
+	    doom->pagetic = TICRATE * 11;
+	    doom->pagename = DEH_String("TITLEPIC");
 	    S_StartMusic(mus_dm2ttl);
 	}
 	else
 	{
-	    pagetic = 200;
+	    doom->pagetic = 200;
 
 	    if ( gamemode == retail )
-	      pagename = DEH_String("CREDIT");
+	      doom->pagename = DEH_String("CREDIT");
 	    else
-	      pagename = DEH_String("HELP2");
+	      doom->pagename = DEH_String("HELP2");
 	}
 	break;
       case 5:
@@ -519,10 +503,10 @@ void D_DoAdvanceDemo (doom_data_t* doom)
 
     // The Doom 3: BFG Edition version of doom2.wad does not have a
     // TITLETPIC lump. Use INTERPIC instead as a workaround.
-    if (doom->bfgedition && !d_stricmp(pagename, "TITLEPIC")
+    if (doom->bfgedition && !d_stricmp(doom->pagename, "TITLEPIC")
         && W_CheckNumForName("titlepic") < 0)
     {
-        pagename = DEH_String("INTERPIC");
+        doom->pagename = DEH_String("INTERPIC");
     }
 }
 
@@ -534,7 +518,7 @@ void D_DoAdvanceDemo (doom_data_t* doom)
 void D_StartTitle (doom_data_t* doom)
 {
     gameaction = ga_nothing;
-    demosequence = -1;
+    doom->demosequence = -1;
     D_AdvanceDemo (doom);
 }
 

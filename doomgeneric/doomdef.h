@@ -255,6 +255,20 @@ struct doom_data_t_ {
     gamestate_t     wipegamestate;
     boolean			wipe;
 
+    //
+    //  DEMO LOOP
+    //
+    int             demosequence;
+    int             pagetic;
+    char                    *pagename;
+
+
+    boolean		viewactivestate;
+    boolean		menuactivestate;
+    boolean		inhelpscreensstate;
+    boolean		fullscreen;
+    gamestate_t		oldgamestate;
+    int	borderdrawcount;
 };
 
 typedef struct doom_data_t_ doom_data_t;
