@@ -134,7 +134,7 @@ static doom_data_t doom;
 
 void HandleMouse()
 {
-  bool has_focus = (SDL_GetWindowFlags(window) & SDL_WINDOW_INPUT_FOCUS) != 0;
+  bool has_focus = false; // (SDL_GetWindowFlags(window) & SDL_WINDOW_INPUT_FOCUS) != 0;
 
   if(has_focus != mouse_active) {
     mouse_active = has_focus;
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 
   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_TARGET, WIDTH, HEIGHT);
 
-  doomgeneric_Create(argc, argv);
+  doomgeneric_Create(&doom, argc, argv);
 
   uint64_t startTick = SDL_GetTicks64();
 

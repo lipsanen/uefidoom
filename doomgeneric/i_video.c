@@ -78,7 +78,7 @@ struct color {
 
 static struct color colors[256];
 
-void I_GetEvent(void);
+void I_GetEvent(doom_data_t* doom);
 
 // The screen buffer; this is modified to draw things to the screen
 
@@ -273,9 +273,9 @@ void I_StartFrame (void)
 
 }
 
-void I_StartTic (void)
+void I_StartTic (doom_data_t* doom)
 {
-	I_GetEvent();
+	I_GetEvent(doom);
 }
 
 void I_UpdateNoBlit (void)

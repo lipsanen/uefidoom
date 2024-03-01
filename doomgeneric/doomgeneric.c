@@ -7,16 +7,16 @@
 
 uint32_t* DG_ScreenBuffer = 0;
 
-void D_DoomMain (void);
+void D_DoomMain (struct doom_data_t_* doom);
 
 
-void doomgeneric_Create(int argc, char **argv)
+void doomgeneric_Create(struct doom_data_t_* doom, int argc, char **argv)
 {
 	// save arguments
     myargc = argc;
     myargv = argv;
 
-	D_DoomMain ();
+	D_DoomMain (doom);
 }
 
 #define KEYQUEUE_SIZE 16

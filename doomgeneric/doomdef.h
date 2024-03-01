@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include "doomtype.h"
+#include "d_event.h"
 #include "m_cheat.h"
 #include "m_fixed.h"
 #include "v_patch.h"
@@ -55,6 +56,8 @@ typedef struct
 
 
 #define AM_NUMMARKPOINTS 10
+#define MAXEVENTS 64
+
 
 struct player_s;
 
@@ -125,6 +128,10 @@ struct doom_data_t_ {
     // old location used by the Follower routine
     mpoint_t f_oldloc;
     boolean automapactive;
+
+    event_t events[MAXEVENTS];
+    int eventhead;
+    int eventtail;
 };
 
 typedef struct doom_data_t_ doom_data_t;

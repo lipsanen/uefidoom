@@ -121,7 +121,7 @@ static boolean BuildNewTic(struct doom_data_t_* doom)
 
     gameticdiv = gametic/ticdup;
 
-    I_StartTic ();
+    I_StartTic (doom);
     loop_interface->ProcessEvents(doom);
 
     // Always run the menu

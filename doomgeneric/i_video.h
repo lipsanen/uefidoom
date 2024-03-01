@@ -127,8 +127,9 @@ void I_StartFrame (void);
 
 // Called before processing each tic in a frame.
 // Quick syncronous operations are performed here.
+struct doom_data_t_;
 
-void I_StartTic (void);
+void I_StartTic (struct doom_data_t_* doom);
 
 // Enable the loading disk image displayed when reading from disk.
 

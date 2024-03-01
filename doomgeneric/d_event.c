@@ -20,22 +20,16 @@
 //
 
 #include <stddef.h>
+#include "doomdef.h"
 #include "d_event.h"
-
-#define MAXEVENTS 64
-
-static event_t events[MAXEVENTS];
-static int eventhead;
-static int eventtail;
-
 //
 // D_PostEvent
 // Called by the I/O functions when input is detected
 //
 void D_PostEvent (doom_data_t* doom, event_t* ev)
 {
-    events[eventhead] = *ev;
-    eventhead = (eventhead + 1) % MAXEVENTS;
+    doom->events[doom->eventhead] = *ev;
+    doom->eventhead = (doom->eventhead + 1) % MAXEVENTS;
 }
 
 // Read an event from the queue.
@@ -46,16 +40,16 @@ event_t *D_PopEvent(doom_data_t* doom)
 
     // No more events waiting.
 
-    if (eventtail == eventhead)
+    if (doom->eventtail == doom->eventhead)
     {
         return NULL;
     }
     
-    result = &events[eventtail];
+    result = &doom->events[doom->eventtail];
 
     // Advance to the next event in the queue.
 
-    eventtail = (eventtail + 1) % MAXEVENTS;
+    doom->eventtail = (doom->eventtail + 1) % MAXEVENTS;
 
     return result;
 }
