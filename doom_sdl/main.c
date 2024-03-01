@@ -163,21 +163,7 @@ void DG_DrawFrame()
   handleKeyInput();
 }
 
-static uint64_t frame = 0;
-
-uint32_t DG_GetTicksMs()
-{
-  return (frame * 100000) / 2857;
-}
-
 int d_putchar(int c) { return putchar(c); }
-
-void DG_SetWindowTitle(const char * title)
-{
-  if (window != NULL){
-    SDL_SetWindowTitle(window, title);
-  }
-}
 
 int main(int argc, char **argv)
 {
@@ -212,7 +198,6 @@ int main(int argc, char **argv)
       current_tick = SDL_GetTicks64();
       SDL_Delay(1);
     }
-    ++frame;
 
     doomgeneric_Tick(&doom);
   }

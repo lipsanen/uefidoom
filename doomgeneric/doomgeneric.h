@@ -15,8 +15,6 @@ void DG_AddKeyToQueue(int pressed, unsigned int keyCode);
 //Implement below functions for your platform
 void DG_Init();
 void DG_DrawFrame();
-uint32_t DG_GetTicksMs();
 int DG_GetKey(int* pressed, unsigned char* key);
-void DG_SetWindowTitle(const char * title);
 
 #endif //DOOM_GENERIC
