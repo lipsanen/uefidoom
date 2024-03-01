@@ -531,8 +531,3 @@ int d_snprintf(char* buffer, size_t count, const char* format, ...)
   return ret;
 }
 
-int vsnprintf_(char* buffer, size_t count, const char* format, va_list va)
-{
-  printf_data data = { buffer, _out_buffer, 0, count };
-  return func_printf(&data, format, va);
-}

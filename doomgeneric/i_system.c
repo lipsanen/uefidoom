@@ -191,43 +191,14 @@ void I_Quit (doom_data_t* doom)
 //
 // I_Error
 //
-
-static boolean already_quitting = false;
-
 void I_Error (char *error, ...)
 {
-    char msgbuf[512];
-    va_list argptr;
-    atexit_listentry_t *entry;
-    boolean exit_gui_popup;
-
-    if (already_quitting)
-    {
-        d_printf( "Warning: recursive call to I_Error detected.\n");
-    }
-    else
-    {
-        already_quitting = true;
-    }
+    va_list va;
+    va_start(va, error);
+    d_vprintf(error, va);
+    va_end(va);
 }
 
-//
-// Read Access Violation emulation.
-//
-// From PrBoom+, by entryway.
-//
-
-// C:\>debug
-// -d 0:0
-//
-// DOS 6.22:
-// 0000:0000  (57 92 19 00) F4 06 70 00-(16 00)
-// DOS 7.1:
-// 0000:0000  (9E 0F C9 00) 65 04 70 00-(16 00)
-// Win98:
-// 0000:0000  (9E 0F C9 00) 65 04 70 00-(16 00)
-// DOSBox under XP:
-// 0000:0000  (00 00 00 F1) ?? ?? ?? 00-(07 00)
 
 #define DOS_MEM_DUMP_SIZE 10
 

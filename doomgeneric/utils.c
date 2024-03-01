@@ -325,6 +325,17 @@ int d_printf(const char* format, ...)
     return result;
 }
 
+int d_vprintf(const char* format, va_list va)
+{
+	printf_data data =
+	{
+		.fct = internal_putchar
+	};
+
+    int result = func_printf(&data, format, va);
+    return result;
+}
+
 static int internal_writechar(char c, void* user, size_t idx, size_t maxlen)
 {
 	FILE* file = user;
