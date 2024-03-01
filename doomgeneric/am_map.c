@@ -84,8 +84,6 @@
 
 // drawing stuff
 
-#define AM_NUMMARKPOINTS 10
-
 // scale on entry
 #define INITSCALEMTOF (.2*FRACUNIT)
 // how much the automap moves window per tic in frame-buffer coordinates
@@ -107,26 +105,6 @@
 
 // the following is crap
 #define LINE_NEVERSEE ML_DONTDRAW
-
-typedef struct
-{
-    int x, y;
-} fpoint_t;
-
-typedef struct
-{
-    fpoint_t a, b;
-} fline_t;
-
-typedef struct
-{
-    mpoint_t a, b;
-} mline_t;
-
-typedef struct
-{
-    fixed_t slp, islp;
-} islope_t;
 
 
 
@@ -186,8 +164,6 @@ mline_t thintriangle_guy[] = {
 
 static int 	grid = 0;
 
-static int 	leveljuststarted = 1; 	// kluge until AM_LevelInit() is called
-
 boolean    	automapactive = false;
 
 // location of window on screen
@@ -244,13 +220,6 @@ static fixed_t scale_ftom;
 
 static player_t *plr; // the player represented by an arrow
 
-static mpoint_t markpoints[AM_NUMMARKPOINTS]; // where the points are
-static int markpointnum = 0; // next point to be assigned
-
-static int followplayer = 1; // specifies whether to follow the player around
-
-static boolean stopped = true;
-
 // Calculates the slope and slope according to the x-axis of a line
 // segment in map coordinates (with the upright y-axis n' all) so
 // that it can be used with the brain-dead drawing stuff.
@@ -306,7 +275,7 @@ void AM_restoreScaleAndLoc(doom_data_t* doom)
 
     m_w = old_m_w;
     m_h = old_m_h;
-    if (!followplayer)
+    if (!doom->followplayer)
     {
 	m_x = old_m_x;
 	m_y = old_m_y;
@@ -327,9 +296,9 @@ void AM_restoreScaleAndLoc(doom_data_t* doom)
 //
 void AM_addMark(doom_data_t* doom)
 {
-    markpoints[markpointnum].x = m_x + m_w/2;
-    markpoints[markpointnum].y = m_y + m_h/2;
-    markpointnum = (markpointnum + 1) % AM_NUMMARKPOINTS;
+    doom->markpoints[doom->markpointnum].x = m_x + m_w/2;
+    doom->markpoints[doom->markpointnum].y = m_y + m_h/2;
+    doom->markpointnum = (doom->markpointnum + 1) % AM_NUMMARKPOINTS;
 
 }
 
@@ -381,7 +350,7 @@ void AM_changeWindowLoc(doom_data_t* doom)
 {
     if (doom->m_paninc.x || doom->m_paninc.y)
     {
-	followplayer = 0;
+	doom->followplayer = 0;
 	f_oldloc.x = INT_MAX;
     }
 
@@ -492,8 +461,8 @@ void AM_clearMarks(doom_data_t* doom)
     int i;
 
     for (i=0;i<AM_NUMMARKPOINTS;i++)
-	markpoints[i].x = -1; // means empty
-    markpointnum = 0;
+	doom->markpoints[i].x = -1; // means empty
+    doom->markpointnum = 0;
 }
 
 //
@@ -502,7 +471,7 @@ void AM_clearMarks(doom_data_t* doom)
 //
 void AM_LevelInit(doom_data_t* doom)
 {
-    leveljuststarted = 0;
+    doom->leveljuststarted = 0;
 
     f_x = f_y = 0;
     f_w = SCREENWIDTH;
@@ -530,7 +499,7 @@ void AM_Stop (doom_data_t* doom)
     AM_unloadPics(doom);
     automapactive = false;
     ST_Responder(&st_notify);
-    stopped = true;
+    doom->stopped = true;
 }
 
 //
@@ -540,8 +509,8 @@ void AM_Start (doom_data_t* doom)
 {
     static int lastlevel = -1, lastepisode = -1;
 
-    if (!stopped) AM_Stop(doom);
-    stopped = false;
+    if (!doom->stopped) AM_Stop(doom);
+    doom->stopped = false;
     if (lastlevel != gamemap || lastepisode != gameepisode)
     {
 	AM_LevelInit(doom);
@@ -604,22 +573,22 @@ AM_Responder
 
         if (key == key_map_east)          // pan right
         {
-            if (!followplayer) doom->m_paninc.x = FTOM(F_PANINC);
+            if (!doom->followplayer) doom->m_paninc.x = FTOM(F_PANINC);
             else rc = false;
         }
         else if (key == key_map_west)     // pan left
         {
-            if (!followplayer) doom->m_paninc.x = -FTOM(F_PANINC);
+            if (!doom->followplayer) doom->m_paninc.x = -FTOM(F_PANINC);
             else rc = false;
         }
         else if (key == key_map_north)    // pan up
         {
-            if (!followplayer) doom->m_paninc.y = FTOM(F_PANINC);
+            if (!doom->followplayer) doom->m_paninc.y = FTOM(F_PANINC);
             else rc = false;
         }
         else if (key == key_map_south)    // pan down
         {
-            if (!followplayer) doom->m_paninc.y = -FTOM(F_PANINC);
+            if (!doom->followplayer) doom->m_paninc.y = -FTOM(F_PANINC);
             else rc = false;
         }
         else if (key == key_map_zoomout)  // zoom out
@@ -650,9 +619,9 @@ AM_Responder
         }
         else if (key == key_map_follow)
         {
-            followplayer = !followplayer;
+            doom->followplayer = !doom->followplayer;
             f_oldloc.x = INT_MAX;
-            if (followplayer)
+            if (doom->followplayer)
                 plr->message = DEH_String(AMSTR_FOLLOWON);
             else
                 plr->message = DEH_String(AMSTR_FOLLOWOFF);
@@ -668,7 +637,7 @@ AM_Responder
         else if (key == key_map_mark)
         {
             d_snprintf(buffer, sizeof(buffer), "%s %d",
-                       DEH_String(AMSTR_MARKEDSPOT), markpointnum);
+                       DEH_String(AMSTR_MARKEDSPOT), doom->markpointnum);
             plr->message = buffer;
             AM_addMark(doom);
         }
@@ -695,19 +664,19 @@ AM_Responder
 
         if (key == key_map_east)
         {
-            if (!followplayer) doom->m_paninc.x = 0;
+            if (!doom->followplayer) doom->m_paninc.x = 0;
         }
         else if (key == key_map_west)
         {
-            if (!followplayer) doom->m_paninc.x = 0;
+            if (!doom->followplayer) doom->m_paninc.x = 0;
         }
         else if (key == key_map_north)
         {
-            if (!followplayer) doom->m_paninc.y = 0;
+            if (!doom->followplayer) doom->m_paninc.y = 0;
         }
         else if (key == key_map_south)
         {
-            if (!followplayer) doom->m_paninc.y = 0;
+            if (!doom->followplayer) doom->m_paninc.y = 0;
         }
         else if (key == key_map_zoomout || key == key_map_zoomin)
         {
@@ -796,7 +765,7 @@ void AM_Ticker (doom_data_t* doom)
 
     amclock++;
 
-    if (followplayer)
+    if (doom->followplayer)
 	AM_doFollowPlayer(doom);
 
     // Change the zoom if necessary
@@ -1305,14 +1274,14 @@ static void AM_drawMarks(doom_data_t* doom)
 
     for (i=0;i<AM_NUMMARKPOINTS;i++)
     {
-	if (markpoints[i].x != -1)
+	if (doom->markpoints[i].x != -1)
 	{
 	    //      w = SHORT(marknums[i]->width);
 	    //      h = SHORT(marknums[i]->height);
 	    w = 5; // because something's wrong with the wad, i guess
 	    h = 6; // because something's wrong with the wad, i guess
-	    fx = CXMTOF(markpoints[i].x);
-	    fy = CYMTOF(markpoints[i].y);
+	    fx = CXMTOF(doom->markpoints[i].x);
+	    fy = CYMTOF(doom->markpoints[i].y);
 	    if (fx >= f_x && fx <= f_w - w && fy >= f_y && fy <= f_h - h)
 		V_DrawPatch(fx, fy, doom->marknums[i]);
 	}

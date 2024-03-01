@@ -25,9 +25,10 @@ void doomdata_init(doom_data_t* doom) {
     d_strcpy(doom->cheat_amap.sequence, "iddt");
     doom->cheat_amap.sequence_len = d_strlen(doom->cheat_amap.sequence);
     d_strcpy(doom->cheat_amap.parameter_buf, "");
-    doom->cheat_amap.chars_read = 0;
-    doom->cheat_amap.parameter_chars = 0;
-    doom->cheat_amap.param_chars_read = 0;
+    doom->leveljuststarted = 1;
+    doom->markpointnum = 0; // next point to be assigned
+    doom->followplayer = 1; // specifies whether to follow the player around
+    doom->stopped = true;
 }
 
 // Location for any defines turned variables.

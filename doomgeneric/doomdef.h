@@ -33,6 +33,29 @@ typedef struct
     fixed_t		x,y;
 } mpoint_t;
 
+typedef struct
+{
+    int x, y;
+} fpoint_t;
+
+typedef struct
+{
+    fpoint_t a, b;
+} fline_t;
+
+typedef struct
+{
+    mpoint_t a, b;
+} mline_t;
+
+typedef struct
+{
+    fixed_t slp, islp;
+} islope_t;
+
+
+#define AM_NUMMARKPOINTS 10
+
 struct doom_data_t_ {
     // location of window on screen
     int f_x;
@@ -42,12 +65,18 @@ struct doom_data_t_ {
     int f_w;
     int f_h;
 
+    int leveljuststarted; 	// kluge until AM_LevelInit() is called
     cheatseq_t cheat_amap;
     int cheating;
     mpoint_t m_paninc;
     patch_t *marknums[10];
     byte*	fb; // pseudo-frame buffer
     uint8_t should_quit;
+    mpoint_t markpoints[AM_NUMMARKPOINTS]; // where the points are
+    int markpointnum; // next point to be assigned
+    int followplayer; // specifies whether to follow the player around
+    boolean stopped;
+
 };
 
 typedef struct doom_data_t_ doom_data_t;
