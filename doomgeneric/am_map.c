@@ -98,8 +98,8 @@
 #define FTOM(x) FixedMul(((x)<<16),doom->scale_ftom)
 #define MTOF(x) (FixedMul((x),doom->scale_mtof)>>16)
 // translates between frame-buffer and map coordinates
-#define CXMTOF(x)  (f_x + MTOF((x)-m_x))
-#define CYMTOF(y)  (f_y + (f_h - MTOF((y)-m_y)))
+#define CXMTOF(x)  (doom->f_x + MTOF((x)-doom->m_x))
+#define CYMTOF(y)  (doom->f_y + (doom->f_h - MTOF((y)-doom->m_y)))
 
 // the following is crap
 #define LINE_NEVERSEE ML_DONTDRAW
@@ -162,53 +162,6 @@ static const mline_t thintriangle_guy[] = {
 
 boolean    	automapactive = false;
 
-// location of window on screen
-static int 	f_x;
-static int	f_y;
-
-// size of window on screen
-static int 	f_w;
-static int	f_h;
-
-static int 	lightlev; 		// used for funky strobing effect
-static int 	amclock;
-
-static fixed_t 	mtof_zoommul; // how far the window zooms in each tic (map coords)
-static fixed_t 	ftom_zoommul; // how far the window zooms in each tic (fb coords)
-
-static fixed_t 	m_x, m_y;   // LL x,y where the window is on the map (map coords)
-static fixed_t 	m_x2, m_y2; // UR x,y where the window is on the map (map coords)
-
-//
-// width/height of window on map (map coords)
-//
-static fixed_t 	m_w;
-static fixed_t	m_h;
-
-// based on level size
-static fixed_t 	min_x;
-static fixed_t	min_y; 
-static fixed_t 	max_x;
-static fixed_t  max_y;
-
-static fixed_t 	max_w; // max_x-min_x,
-static fixed_t  max_h; // max_y-min_y
-
-// based on player size
-static fixed_t 	min_w;
-static fixed_t  min_h;
-
-
-static fixed_t 	min_scale_mtof; // used to tell when to stop zooming out
-static fixed_t 	max_scale_mtof; // used to tell when to stop zooming in
-
-// old stuff for recovery later
-static fixed_t old_m_w, old_m_h;
-static fixed_t old_m_x, old_m_y;
-
-// old location used by the Follower routine
-static mpoint_t f_oldloc;
-
 
 // Calculates the slope and slope according to the x-axis of a line
 // segment in map coordinates (with the upright y-axis n' all) so
@@ -236,14 +189,14 @@ AM_getIslope
 //
 void AM_activateNewScale(doom_data_t* doom)
 {
-    m_x += m_w/2;
-    m_y += m_h/2;
-    m_w = FTOM(f_w);
-    m_h = FTOM(f_h);
-    m_x -= m_w/2;
-    m_y -= m_h/2;
-    m_x2 = m_x + m_w;
-    m_y2 = m_y + m_h;
+    doom->m_x += doom->m_w/2;
+    doom->m_y += doom->m_h/2;
+    doom->m_w = FTOM(doom->f_w);
+    doom->m_h = FTOM(doom->f_h);
+    doom->m_x -= doom->m_w/2;
+    doom->m_y -= doom->m_h/2;
+    doom->m_x2 = doom->m_x + doom->m_w;
+    doom->m_y2 = doom->m_y + doom->m_h;
 }
 
 //
@@ -251,10 +204,10 @@ void AM_activateNewScale(doom_data_t* doom)
 //
 void AM_saveScaleAndLoc(doom_data_t* doom)
 {
-    old_m_x = m_x;
-    old_m_y = m_y;
-    old_m_w = m_w;
-    old_m_h = m_h;
+    doom->old_m_x = doom->m_x;
+    doom->old_m_y = doom->m_y;
+    doom->old_m_w = doom->m_w;
+    doom->old_m_h = doom->m_h;
 }
 
 //
@@ -263,21 +216,21 @@ void AM_saveScaleAndLoc(doom_data_t* doom)
 void AM_restoreScaleAndLoc(doom_data_t* doom)
 {
 
-    m_w = old_m_w;
-    m_h = old_m_h;
+    doom->m_w = doom->old_m_w;
+    doom->m_h = doom->old_m_h;
     if (!doom->followplayer)
     {
-	m_x = old_m_x;
-	m_y = old_m_y;
+	doom->m_x = doom->old_m_x;
+	doom->m_y = doom->old_m_y;
     } else {
-	m_x = doom->plr->mo->x - m_w/2;
-	m_y = doom->plr->mo->y - m_h/2;
+	doom->m_x = doom->plr->mo->x - doom->m_w/2;
+	doom->m_y = doom->plr->mo->y - doom->m_h/2;
     }
-    m_x2 = m_x + m_w;
-    m_y2 = m_y + m_h;
+    doom->m_x2 = doom->m_x + doom->m_w;
+    doom->m_y2 = doom->m_y + doom->m_h;
 
     // Change the scaling multipliers
-    doom->scale_mtof = FixedDiv(f_w<<FRACBITS, m_w);
+    doom->scale_mtof = FixedDiv(doom->f_w<<FRACBITS, doom->m_w);
     doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
 }
 
@@ -286,8 +239,8 @@ void AM_restoreScaleAndLoc(doom_data_t* doom)
 //
 void AM_addMark(doom_data_t* doom)
 {
-    doom->markpoints[doom->markpointnum].x = m_x + m_w/2;
-    doom->markpoints[doom->markpointnum].y = m_y + m_h/2;
+    doom->markpoints[doom->markpointnum].x = doom->m_x + doom->m_w/2;
+    doom->markpoints[doom->markpointnum].y = doom->m_y + doom->m_h/2;
     doom->markpointnum = (doom->markpointnum + 1) % AM_NUMMARKPOINTS;
 
 }
@@ -302,33 +255,33 @@ void AM_findMinMaxBoundaries(doom_data_t* doom)
     fixed_t a;
     fixed_t b;
 
-    min_x = min_y =  INT_MAX;
-    max_x = max_y = -INT_MAX;
+    doom->min_x = doom->min_y =  INT_MAX;
+    doom->max_x = doom->max_y = -INT_MAX;
   
     for (i=0;i<numvertexes;i++)
     {
-	if (vertexes[i].x < min_x)
-	    min_x = vertexes[i].x;
-	else if (vertexes[i].x > max_x)
-	    max_x = vertexes[i].x;
+	if (vertexes[i].x < doom->min_x)
+	    doom->min_x = vertexes[i].x;
+	else if (vertexes[i].x > doom->max_x)
+	    doom->max_x = vertexes[i].x;
     
-	if (vertexes[i].y < min_y)
-	    min_y = vertexes[i].y;
-	else if (vertexes[i].y > max_y)
-	    max_y = vertexes[i].y;
+	if (vertexes[i].y < doom->min_y)
+	    doom->min_y = vertexes[i].y;
+	else if (vertexes[i].y > doom->max_y)
+	    doom->max_y = vertexes[i].y;
     }
   
-    max_w = max_x - min_x;
-    max_h = max_y - min_y;
+    doom->max_w = doom->max_x - doom->min_x;
+    doom->max_h = doom->max_y - doom->min_y;
 
-    min_w = 2*PLAYERRADIUS; // const? never changed?
-    min_h = 2*PLAYERRADIUS;
+    doom->min_w = 2*PLAYERRADIUS; // const? never changed?
+    doom->min_h = 2*PLAYERRADIUS;
 
-    a = FixedDiv(f_w<<FRACBITS, max_w);
-    b = FixedDiv(f_h<<FRACBITS, max_h);
+    a = FixedDiv(doom->f_w<<FRACBITS, doom->max_w);
+    b = FixedDiv(doom->f_h<<FRACBITS, doom->max_h);
   
-    min_scale_mtof = a < b ? a : b;
-    max_scale_mtof = FixedDiv(f_h<<FRACBITS, 2*PLAYERRADIUS);
+    doom->min_scale_mtof = a < b ? a : b;
+    doom->max_scale_mtof = FixedDiv(doom->f_h<<FRACBITS, 2*PLAYERRADIUS);
 
 }
 
@@ -341,24 +294,24 @@ void AM_changeWindowLoc(doom_data_t* doom)
     if (doom->m_paninc.x || doom->m_paninc.y)
     {
 	doom->followplayer = 0;
-	f_oldloc.x = INT_MAX;
+	doom->f_oldloc.x = INT_MAX;
     }
 
-    m_x += doom->m_paninc.x;
-    m_y += doom->m_paninc.y;
+    doom->m_x += doom->m_paninc.x;
+    doom->m_y += doom->m_paninc.y;
 
-    if (m_x + m_w/2 > max_x)
-	m_x = max_x - m_w/2;
-    else if (m_x + m_w/2 < min_x)
-	m_x = min_x - m_w/2;
+    if (doom->m_x + doom->m_w/2 > doom->max_x)
+	doom->m_x = doom->max_x - doom->m_w/2;
+    else if (doom->m_x + doom->m_w/2 < doom->min_x)
+	doom->m_x = doom->min_x - doom->m_w/2;
   
-    if (m_y + m_h/2 > max_y)
-	m_y = max_y - m_h/2;
-    else if (m_y + m_h/2 < min_y)
-	m_y = min_y - m_h/2;
+    if (doom->m_y + doom->m_h/2 > doom->max_y)
+	doom->m_y = doom->max_y - doom->m_h/2;
+    else if (doom->m_y + doom->m_h/2 < doom->min_y)
+	doom->m_y = doom->min_y - doom->m_h/2;
 
-    m_x2 = m_x + m_w;
-    m_y2 = m_y + m_h;
+    doom->m_x2 = doom->m_x + doom->m_w;
+    doom->m_y2 = doom->m_y + doom->m_h;
 }
 
 
@@ -373,16 +326,16 @@ void AM_initVariables(doom_data_t* doom)
     automapactive = true;
     doom->fb = I_VideoBuffer;
 
-    f_oldloc.x = INT_MAX;
-    amclock = 0;
-    lightlev = 0;
+    doom->f_oldloc.x = INT_MAX;
+    doom->amclock = 0;
+    doom->lightlev = 0;
 
     doom->m_paninc.x = doom->m_paninc.y = 0;
-    ftom_zoommul = FRACUNIT;
-    mtof_zoommul = FRACUNIT;
+    doom->ftom_zoommul = FRACUNIT;
+    doom->mtof_zoommul = FRACUNIT;
 
-    m_w = FTOM(f_w);
-    m_h = FTOM(f_h);
+    doom->m_w = FTOM(doom->f_w);
+    doom->m_h = FTOM(doom->f_h);
 
     // find player to center on initially
     if (playeringame[consoleplayer])
@@ -403,15 +356,15 @@ void AM_initVariables(doom_data_t* doom)
         }
     }
 
-    m_x = doom->plr->mo->x - m_w/2;
-    m_y = doom->plr->mo->y - m_h/2;
+    doom->m_x = doom->plr->mo->x - doom->m_w/2;
+    doom->m_y = doom->plr->mo->y - doom->m_h/2;
     AM_changeWindowLoc(doom);
 
     // for saving & restoring
-    old_m_x = m_x;
-    old_m_y = m_y;
-    old_m_w = m_w;
-    old_m_h = m_h;
+    doom->old_m_x = doom->m_x;
+    doom->old_m_y = doom->m_y;
+    doom->old_m_w = doom->m_w;
+    doom->old_m_h = doom->m_h;
 
     // inform the status bar of the change
     ST_Responder(&st_notify);
@@ -463,16 +416,16 @@ void AM_LevelInit(doom_data_t* doom)
 {
     doom->leveljuststarted = 0;
 
-    f_x = f_y = 0;
-    f_w = SCREENWIDTH;
-    f_h = SCREENHEIGHT - 32;
+    doom->f_x = doom->f_y = 0;
+    doom->f_w = SCREENWIDTH;
+    doom->f_h = SCREENHEIGHT - 32;
 
     AM_clearMarks(doom);
 
     AM_findMinMaxBoundaries(doom);
-    doom->scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
-    if (doom->scale_mtof > max_scale_mtof)
-        doom->scale_mtof = min_scale_mtof;
+    doom->scale_mtof = FixedDiv(doom->min_scale_mtof, (int) (0.7*FRACUNIT));
+    if (doom->scale_mtof > doom->max_scale_mtof)
+        doom->scale_mtof = doom->min_scale_mtof;
     doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
 }
 
@@ -516,7 +469,7 @@ void AM_Start (doom_data_t* doom)
 //
 static void AM_minOutWindowScale(doom_data_t* doom)
 {
-    doom->scale_mtof = min_scale_mtof;
+    doom->scale_mtof = doom->min_scale_mtof;
     doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
     AM_activateNewScale(doom);
 }
@@ -526,7 +479,7 @@ static void AM_minOutWindowScale(doom_data_t* doom)
 //
 static void AM_maxOutWindowScale(doom_data_t* doom)
 {
-    doom->scale_mtof = max_scale_mtof;
+    doom->scale_mtof = doom->max_scale_mtof;
     doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
     AM_activateNewScale(doom);
 }
@@ -583,13 +536,13 @@ AM_Responder
         }
         else if (key == key_map_zoomout)  // zoom out
         {
-            mtof_zoommul = M_ZOOMOUT;
-            ftom_zoommul = M_ZOOMIN;
+            doom->mtof_zoommul = M_ZOOMOUT;
+            doom->ftom_zoommul = M_ZOOMIN;
         }
         else if (key == key_map_zoomin)   // zoom in
         {
-            mtof_zoommul = M_ZOOMIN;
-            ftom_zoommul = M_ZOOMOUT;
+            doom->mtof_zoommul = M_ZOOMIN;
+            doom->ftom_zoommul = M_ZOOMOUT;
         }
         else if (key == key_map_toggle)
         {
@@ -610,7 +563,7 @@ AM_Responder
         else if (key == key_map_follow)
         {
             doom->followplayer = !doom->followplayer;
-            f_oldloc.x = INT_MAX;
+            doom->f_oldloc.x = INT_MAX;
             if (doom->followplayer)
                 doom->plr->message = DEH_String(AMSTR_FOLLOWON);
             else
@@ -670,8 +623,8 @@ AM_Responder
         }
         else if (key == key_map_zoomout || key == key_map_zoomin)
         {
-            mtof_zoommul = FRACUNIT;
-            ftom_zoommul = FRACUNIT;
+            doom->mtof_zoommul = FRACUNIT;
+            doom->ftom_zoommul = FRACUNIT;
         }
     }
 
@@ -687,12 +640,12 @@ static void AM_changeWindowScale(doom_data_t* doom)
 {
 
     // Change the scaling multipliers
-    doom->scale_mtof = FixedMul(doom->scale_mtof, mtof_zoommul);
+    doom->scale_mtof = FixedMul(doom->scale_mtof, doom->mtof_zoommul);
     doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
 
-    if (doom->scale_mtof < min_scale_mtof)
+    if (doom->scale_mtof < doom->min_scale_mtof)
 	AM_minOutWindowScale(doom);
-    else if (doom->scale_mtof > max_scale_mtof)
+    else if (doom->scale_mtof > doom->max_scale_mtof)
 	AM_maxOutWindowScale(doom);
     else
 	AM_activateNewScale(doom);
@@ -705,19 +658,19 @@ static void AM_changeWindowScale(doom_data_t* doom)
 static void AM_doFollowPlayer(doom_data_t* doom)
 {
 
-    if (f_oldloc.x != doom->plr->mo->x || f_oldloc.y != doom->plr->mo->y)
+    if (doom->f_oldloc.x != doom->plr->mo->x || doom->f_oldloc.y != doom->plr->mo->y)
     {
-	m_x = FTOM(MTOF(doom->plr->mo->x)) - m_w/2;
-	m_y = FTOM(MTOF(doom->plr->mo->y)) - m_h/2;
-	m_x2 = m_x + m_w;
-	m_y2 = m_y + m_h;
-	f_oldloc.x = doom->plr->mo->x;
-	f_oldloc.y = doom->plr->mo->y;
+	doom->m_x = FTOM(MTOF(doom->plr->mo->x)) - doom->m_w/2;
+	doom->m_y = FTOM(MTOF(doom->plr->mo->y)) - doom->m_h/2;
+	doom->m_x2 = doom->m_x + doom->m_w;
+	doom->m_y2 = doom->m_y + doom->m_h;
+	doom->f_oldloc.x = doom->plr->mo->x;
+	doom->f_oldloc.y = doom->plr->mo->y;
 
-	//  m_x = FTOM(MTOF(plr->mo->x - m_w/2));
-	//  m_y = FTOM(MTOF(plr->mo->y - m_h/2));
-	//  m_x = plr->mo->x - m_w/2;
-	//  m_y = plr->mo->y - m_h/2;
+	//  doom->m_x = FTOM(MTOF(plr->mo->x - doom->m_w/2));
+	//  doom->m_y = FTOM(MTOF(plr->mo->y - doom->m_h/2));
+	//  doom->m_x = plr->mo->x - doom->m_w/2;
+	//  doom->m_y = plr->mo->y - doom->m_h/2;
 
     }
 
@@ -726,7 +679,7 @@ static void AM_doFollowPlayer(doom_data_t* doom)
 //
 //
 //
-static void AM_updateLightLev(doom_data_t* doom)
+static void AM_updatelightlev(doom_data_t* doom)
 {
     static int nexttic = 0;
     //static int litelevels[] = { 0, 3, 5, 6, 6, 7, 7, 7 };
@@ -734,11 +687,11 @@ static void AM_updateLightLev(doom_data_t* doom)
     static int litelevelscnt = 0;
    
     // Change light level
-    if (amclock>nexttic)
+    if (doom->amclock>nexttic)
     {
-	lightlev = litelevels[litelevelscnt++];
+	doom->lightlev = litelevels[litelevelscnt++];
 	if (litelevelscnt == arrlen(litelevels)) litelevelscnt = 0;
-	nexttic = amclock + 6 - (amclock % 6);
+	nexttic = doom->amclock + 6 - (doom->amclock % 6);
     }
 
 }
@@ -753,13 +706,13 @@ void AM_Ticker (doom_data_t* doom)
     if (!automapactive)
 	return;
 
-    amclock++;
+    doom->amclock++;
 
     if (doom->followplayer)
 	AM_doFollowPlayer(doom);
 
     // Change the zoom if necessary
-    if (ftom_zoommul != FRACUNIT)
+    if (doom->ftom_zoommul != FRACUNIT)
 	AM_changeWindowScale(doom);
 
     // Change x,y location
@@ -767,7 +720,7 @@ void AM_Ticker (doom_data_t* doom)
 	AM_changeWindowLoc(doom);
 
     // Update light level
-    // AM_updateLightLev();
+    // AM_updatedoom->lightlev();
 
 }
 
@@ -777,7 +730,7 @@ void AM_Ticker (doom_data_t* doom)
 //
 static void AM_clearFB(doom_data_t* doom, int color)
 {
-    d_memset(doom->fb, color, f_w*f_h);
+    d_memset(doom->fb, color, doom->f_w*doom->f_h);
 }
 
 
@@ -814,33 +767,33 @@ AM_clipMline
 #define DOOUTCODE(oc, mx, my) \
     (oc) = 0; \
     if ((my) < 0) (oc) |= TOP; \
-    else if ((my) >= f_h) (oc) |= BOTTOM; \
+    else if ((my) >= doom->f_h) (oc) |= BOTTOM; \
     if ((mx) < 0) (oc) |= LEFT; \
-    else if ((mx) >= f_w) (oc) |= RIGHT;
+    else if ((mx) >= doom->f_w) (oc) |= RIGHT;
 
     
     // do trivial rejects and outcodes
-    if (ml->a.y > m_y2)
+    if (ml->a.y > doom->m_y2)
 	outcode1 = TOP;
-    else if (ml->a.y < m_y)
+    else if (ml->a.y < doom->m_y)
 	outcode1 = BOTTOM;
 
-    if (ml->b.y > m_y2)
+    if (ml->b.y > doom->m_y2)
 	outcode2 = TOP;
-    else if (ml->b.y < m_y)
+    else if (ml->b.y < doom->m_y)
 	outcode2 = BOTTOM;
     
     if (outcode1 & outcode2)
 	return false; // trivially outside
 
-    if (ml->a.x < m_x)
+    if (ml->a.x < doom->m_x)
 	outcode1 |= LEFT;
-    else if (ml->a.x > m_x2)
+    else if (ml->a.x > doom->m_x2)
 	outcode1 |= RIGHT;
     
-    if (ml->b.x < m_x)
+    if (ml->b.x < doom->m_x)
 	outcode2 |= LEFT;
-    else if (ml->b.x > m_x2)
+    else if (ml->b.x > doom->m_x2)
 	outcode2 |= RIGHT;
     
     if (outcode1 & outcode2)
@@ -879,15 +832,15 @@ AM_clipMline
 	{
 	    dy = fl->a.y - fl->b.y;
 	    dx = fl->b.x - fl->a.x;
-	    tmp.x = fl->a.x + (dx*(fl->a.y-f_h))/dy;
-	    tmp.y = f_h-1;
+	    tmp.x = fl->a.x + (dx*(fl->a.y-doom->f_h))/dy;
+	    tmp.y = doom->f_h-1;
 	}
 	else if (outside & RIGHT)
 	{
 	    dy = fl->b.y - fl->a.y;
 	    dx = fl->b.x - fl->a.x;
-	    tmp.y = fl->a.y + (dy*(f_w-1 - fl->a.x))/dx;
-	    tmp.x = f_w-1;
+	    tmp.y = fl->a.y + (dy*(doom->f_w-1 - fl->a.x))/dx;
+	    tmp.x = doom->f_w-1;
 	}
 	else if (outside & LEFT)
 	{
@@ -944,16 +897,16 @@ AM_drawFline
     static int fuck = 0;
 
     // For debugging only
-    if (      fl->a.x < 0 || fl->a.x >= f_w
-	   || fl->a.y < 0 || fl->a.y >= f_h
-	   || fl->b.x < 0 || fl->b.x >= f_w
-	   || fl->b.y < 0 || fl->b.y >= f_h)
+    if (      fl->a.x < 0 || fl->a.x >= doom->f_w
+	   || fl->a.y < 0 || fl->a.y >= doom->f_h
+	   || fl->b.x < 0 || fl->b.x >= doom->f_w
+	   || fl->b.y < 0 || fl->b.y >= doom->f_h)
     {
         d_printf("fuck %d \r", fuck++);
 	return;
     }
 
-#define PUTDOT(xx,yy,cc) doom->fb[(yy)*f_w+(xx)]=(cc)
+#define PUTDOT(xx,yy,cc) doom->fb[(yy)*doom->f_w+(xx)]=(cc)
 
     dx = fl->b.x - fl->a.x;
     ax = 2 * (dx<0 ? -dx : dx);
@@ -1028,15 +981,15 @@ static void AM_drawGrid(doom_data_t* doom, int color)
     mline_t ml;
 
     // Figure out start of vertical gridlines
-    start = m_x;
+    start = doom->m_x;
     if ((start-bmaporgx)%(MAPBLOCKUNITS<<FRACBITS))
 	start += (MAPBLOCKUNITS<<FRACBITS)
 	    - ((start-bmaporgx)%(MAPBLOCKUNITS<<FRACBITS));
-    end = m_x + m_w;
+    end = doom->m_x + doom->m_w;
 
     // draw vertical gridlines
-    ml.a.y = m_y;
-    ml.b.y = m_y+m_h;
+    ml.a.y = doom->m_y;
+    ml.b.y = doom->m_y+doom->m_h;
     for (x=start; x<end; x+=(MAPBLOCKUNITS<<FRACBITS))
     {
 	ml.a.x = x;
@@ -1045,15 +998,15 @@ static void AM_drawGrid(doom_data_t* doom, int color)
     }
 
     // Figure out start of horizontal gridlines
-    start = m_y;
+    start = doom->m_y;
     if ((start-bmaporgy)%(MAPBLOCKUNITS<<FRACBITS))
 	start += (MAPBLOCKUNITS<<FRACBITS)
 	    - ((start-bmaporgy)%(MAPBLOCKUNITS<<FRACBITS));
-    end = m_y + m_h;
+    end = doom->m_y + doom->m_h;
 
     // draw horizontal gridlines
-    ml.a.x = m_x;
-    ml.b.x = m_x + m_w;
+    ml.a.x = doom->m_x;
+    ml.b.x = doom->m_x + doom->m_w;
     for (y=start; y<end; y+=(MAPBLOCKUNITS<<FRACBITS))
     {
 	ml.a.y = y;
@@ -1084,7 +1037,7 @@ static void AM_drawWalls(doom_data_t* doom)
 		continue;
 	    if (!lines[i].backsector)
 	    {
-		AM_drawMline(doom, &l, WALLCOLORS+lightlev);
+		AM_drawMline(doom, &l, WALLCOLORS+doom->lightlev);
 	    }
 	    else
 	    {
@@ -1094,19 +1047,19 @@ static void AM_drawWalls(doom_data_t* doom)
 		}
 		else if (lines[i].flags & ML_SECRET) // secret door
 		{
-		    if (doom->cheating) AM_drawMline(doom, &l, SECRETWALLCOLORS + lightlev);
-		    else AM_drawMline(doom, &l, WALLCOLORS+lightlev);
+		    if (doom->cheating) AM_drawMline(doom, &l, SECRETWALLCOLORS + doom->lightlev);
+		    else AM_drawMline(doom, &l, WALLCOLORS+doom->lightlev);
 		}
 		else if (lines[i].backsector->floorheight
 			   != lines[i].frontsector->floorheight) {
-		    AM_drawMline(doom, &l, FDWALLCOLORS + lightlev); // floor level change
+		    AM_drawMline(doom, &l, FDWALLCOLORS + doom->lightlev); // floor level change
 		}
 		else if (lines[i].backsector->ceilingheight
 			   != lines[i].frontsector->ceilingheight) {
-		    AM_drawMline(doom, &l, CDWALLCOLORS+lightlev); // ceiling level change
+		    AM_drawMline(doom, &l, CDWALLCOLORS+doom->lightlev); // ceiling level change
 		}
 		else if (doom->cheating) {
-		    AM_drawMline(doom, &l, TSWALLCOLORS+lightlev);
+		    AM_drawMline(doom, &l, TSWALLCOLORS+doom->lightlev);
 		}
 	    }
 	}
@@ -1252,7 +1205,7 @@ AM_drawThings
 	{
 	    AM_drawLineCharacter
 		(doom, thintriangle_guy, arrlen(thintriangle_guy),
-		 16<<FRACBITS, t->angle, colors+lightlev, t->x, t->y);
+		 16<<FRACBITS, t->angle, colors+doom->lightlev, t->x, t->y);
 	    t = t->snext;
 	}
     }
@@ -1272,7 +1225,7 @@ static void AM_drawMarks(doom_data_t* doom)
 	    h = 6; // because something's wrong with the wad, i guess
 	    fx = CXMTOF(doom->markpoints[i].x);
 	    fy = CYMTOF(doom->markpoints[i].y);
-	    if (fx >= f_x && fx <= f_w - w && fy >= f_y && fy <= f_h - h)
+	    if (fx >= doom->f_x && fx <= doom->f_w - w && fy >= doom->f_y && fy <= doom->f_h - h)
 		V_DrawPatch(fx, fy, doom->marknums[i]);
 	}
     }
@@ -1281,7 +1234,7 @@ static void AM_drawMarks(doom_data_t* doom)
 
 static void AM_drawCrosshair(doom_data_t* doom, int color)
 {
-    doom->fb[(f_w*(f_h+1))/2] = color; // single point for now
+    doom->fb[(doom->f_w*(doom->f_h+1))/2] = color; // single point for now
 
 }
 
@@ -1300,6 +1253,6 @@ void AM_Drawer (doom_data_t* doom)
 
     AM_drawMarks(doom);
 
-    V_MarkRect(f_x, f_y, f_w, f_h);
+    V_MarkRect(doom->f_x, doom->f_y, doom->f_w, doom->f_h);
 
 }
