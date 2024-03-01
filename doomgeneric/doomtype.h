@@ -47,14 +47,6 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-
-// Use builtin bool type with C++.
-
-typedef bool boolean;
-
-#else
-
 typedef enum 
 {
     false	= 0,
@@ -83,6 +75,4 @@ typedef uint8_t byte;
 #endif
 
 #define arrlen(array) (sizeof(array) / sizeof(*array))
-
-#endif
 
