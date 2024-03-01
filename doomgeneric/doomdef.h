@@ -69,6 +69,18 @@ typedef struct
     boolean ingame[NET_MAXPLAYERS];
 } ticcmd_set_t;
 
+// The current state of the game: whether we are
+// playing, gazing at the intermission screen,
+// the game final animation, or a demo. 
+typedef enum
+{
+    GS_LEVEL,
+    GS_INTERMISSION,
+    GS_FINALE,
+    GS_DEMOSCREEN,
+} gamestate_t;
+
+
 struct loop_interface_t_;
 
 struct doom_data_t_ {
@@ -197,6 +209,52 @@ struct doom_data_t_ {
     // If we are only doing a single player game then this needs to be remembered
     // and saved in the game settings.
     int player_class;
+
+    // Location where savegames are stored
+
+    char *savegamedir;
+
+    // location of IWAD and WAD files
+
+    const char *iwadfile;
+
+
+    boolean devparm;	// started game with -devparm
+    boolean nomonsters;	// checkparm of -nomonsters
+    boolean respawnparm;	// checkparm of -respawn
+    boolean fastparm;	// checkparm of -fast
+
+
+    skill_t		startskill;
+    int             startepisode;
+    int		startmap;
+    boolean		autostart;
+    int             startloadgame;
+
+    boolean		advancedemo;
+
+    // Store demo, do not accept any inputs
+    boolean         storedemo;
+
+    // "BFG Edition" version of doom2.wad does not include TITLEPIC.
+    boolean         bfgedition;
+
+    // If true, the main game loop has started.
+    boolean         main_loop_started;
+
+    char		wadfile[1024];		// primary wad file
+    char		mapdir[1024];           // directory of development maps
+
+    int             show_endoom;
+
+    // D_Display
+    //  draw current display, possibly wiping it from the previous
+    //
+
+    // wipegamestate can be set to -1 to force a wipe on the next draw
+    gamestate_t     wipegamestate;
+    boolean			wipe;
+
 };
 
 typedef struct doom_data_t_ doom_data_t;
@@ -219,16 +277,6 @@ void doomdata_init(doom_data_t* doom);
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS 4
 
-// The current state of the game: whether we are
-// playing, gazing at the intermission screen,
-// the game final animation, or a demo. 
-typedef enum
-{
-    GS_LEVEL,
-    GS_INTERMISSION,
-    GS_FINALE,
-    GS_DEMOSCREEN,
-} gamestate_t;
 
 typedef enum
 {

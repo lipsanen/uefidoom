@@ -43,13 +43,13 @@ boolean savegame_error;
 // the file has been successfully saved, it will be renamed to the 
 // real file.
 
-char *P_TempSaveGameFile(void)
+char *P_TempSaveGameFile(doom_data_t* doom)
 {
     static char *filename = NULL;
 
     if (filename == NULL)
     {
-        filename = M_StringJoin(savegamedir, "temp.dsg", NULL);
+        filename = M_StringJoin(doom->savegamedir, "temp.dsg", NULL);
     }
 
     return filename;
@@ -57,7 +57,7 @@ char *P_TempSaveGameFile(void)
 
 // Get the filename of the save game file to use for the specified slot.
 
-char *P_SaveGameFile(int slot)
+char *P_SaveGameFile(doom_data_t* doom, int slot)
 {
     static char *filename = NULL;
     static size_t filename_size = 0;
@@ -65,12 +65,12 @@ char *P_SaveGameFile(int slot)
 
     if (filename == NULL)
     {
-        filename_size = d_strlen(savegamedir) + 32;
+        filename_size = d_strlen(doom->savegamedir) + 32;
         filename = Z_Malloc(filename_size, PU_STATIC, NULL);
     }
 
     d_snprintf(basename, 32, SAVEGAMENAME "%d.dsg", slot);
-    d_snprintf(filename, filename_size, "%s%s", savegamedir, basename);
+    d_snprintf(filename, filename_size, "%s%s", doom->savegamedir, basename);
 
     return filename;
 }

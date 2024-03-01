@@ -26,13 +26,15 @@
 
 #define SAVESTRINGSIZE 24
 
+struct doom_data_t_;
+
 // temporary filename to use while saving.
 
-char *P_TempSaveGameFile(void);
+char *P_TempSaveGameFile(struct doom_data_t_* doom);
 
 // filename to use for a savegame slot
 
-char *P_SaveGameFile(int slot);
+char *P_SaveGameFile(struct doom_data_t_* doom, int slot);
 
 // Savegame file header read/write functions
 

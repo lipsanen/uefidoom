@@ -700,7 +700,7 @@ void A_Chase (doom_data_t* doom, mobj_t*	actor)
     if (actor->flags & MF_JUSTATTACKED)
     {
 	actor->flags &= ~MF_JUSTATTACKED;
-	if (gameskill != sk_nightmare && !fastparm)
+	if (gameskill != sk_nightmare && !doom->fastparm)
 	    P_NewChaseDir (doom, actor);
 	return;
     }
@@ -720,7 +720,7 @@ void A_Chase (doom_data_t* doom, mobj_t*	actor)
     if (actor->info->missilestate)
     {
 	if (gameskill < sk_nightmare
-	    && !fastparm && actor->movecount)
+	    && !doom->fastparm && actor->movecount)
 	{
 	    goto nomissile;
 	}

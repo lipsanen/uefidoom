@@ -51,7 +51,7 @@ void G_SaveGame (int slot, char* description);
 // Only called by startup code.
 void G_RecordDemo (char* name);
 
-void G_BeginRecording (void);
+void G_BeginRecording (doom_data_t* doom);
 
 void G_PlayDemo (char* name);
 void G_TimeDemo (doom_data_t* doom, char* name);

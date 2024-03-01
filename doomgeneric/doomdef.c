@@ -35,6 +35,8 @@ void doomdata_init(doom_data_t* doom) {
     doom->scale_mtof = (fixed_t)INITSCALEMTOF;
     doom->new_sync = true;
     doom->ticdup = 1;
+    doom->show_endoom = 1;
+    doom->wipegamestate = GS_DEMOSCREEN;
 }
 
 // Location for any defines turned variables.

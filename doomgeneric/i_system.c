@@ -183,7 +183,7 @@ void I_Quit (doom_data_t* doom)
 
     while (entry != NULL)
     {
-        entry->func();
+        entry->func(doom);
         entry = entry->next;
     }
 }

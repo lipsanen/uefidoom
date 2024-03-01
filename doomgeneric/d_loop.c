@@ -291,7 +291,7 @@ boolean D_InitNetGame(doom_data_t* doom, net_connect_data_t *connect_data)
 // Called before quitting to leave a net game
 // without hanging the other players
 //
-void D_QuitNetGame (void)
+void D_QuitNetGame (doom_data_t* doom)
 {
 #ifdef FEATURE_MULTIPLAYER
     NET_SV_Shutdown();

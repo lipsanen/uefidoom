@@ -39,17 +39,6 @@
 #include "net_defs.h"
 
 
-
-// ------------------------
-// Command line parameters.
-//
-extern  boolean	nomonsters;	// checkparm of -nomonsters
-extern  boolean	respawnparm;	// checkparm of -respawn
-extern  boolean	fastparm;	// checkparm of -fast
-
-extern  boolean	devparm;	// DEBUG: launched with -devparm
-
-
 // -----------------------------------------------------
 // Game Mode - identify IWAD as shareware, retail etc.
 //
@@ -57,9 +46,6 @@ extern GameMode_t	gamemode;
 extern GameMission_t	gamemission;
 extern GameVersion_t    gameversion;
 extern char            *gamedescription;
-
-// If true, we're using one of the mangled BFG edition IWADs.
-extern boolean bfgedition;
 
 // Convenience macro.
 // 'gamemission' can be equal to pack_chex or pack_hacx, but these are
@@ -78,18 +64,8 @@ extern  boolean	modifiedgame;
 // Selected skill type, map etc.
 //
 
-// Defaults for menu, methinks.
-extern  skill_t		startskill;
-extern  int             startepisode;
-extern	int		startmap;
-
 // Savegame slot to load on startup.  This is the value provided to
 // the -loadgame option.  If this has not been provided, this is -1.
-
-extern  int             startloadgame;
-
-extern  boolean		autostart;
-
 // Selected by user. 
 extern  skill_t         gameskill;
 extern  int		gameepisode;
@@ -245,7 +221,6 @@ extern  wbstartstruct_t		wminfo;
 //
 
 // File handling stuff.
-extern  char *          savegamedir;
 extern	char		basedefault[1024];
 
 // if true, load all graphics at level load
@@ -254,7 +229,6 @@ extern  boolean         precache;
 
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
-extern  gamestate_t     wipegamestate;
 
 extern  int             mouseSensitivity;
 

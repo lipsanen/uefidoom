@@ -69,7 +69,6 @@ static void PlayerQuitGame(doom_data_t* doom, player_t *player)
 
 static void RunTic(doom_data_t* doom, ticcmd_t *cmds, boolean *ingame)
 {
-    extern boolean advancedemo;
     unsigned int i;
 
     // Check for player quits.
@@ -87,8 +86,8 @@ static void RunTic(doom_data_t* doom, ticcmd_t *cmds, boolean *ingame)
     // check that there are players in the game.  if not, we cannot
     // run a tic.
 
-    if (advancedemo)
-        D_DoAdvanceDemo ();
+    if (doom->advancedemo)
+        D_DoAdvanceDemo (doom);
 
     G_Ticker (doom);
 }
@@ -104,19 +103,19 @@ static loop_interface_t doom_loop_interface = {
 // Load game settings from the specified structure and
 // set global variables.
 
-static void LoadGameSettings(net_gamesettings_t *settings)
+static void LoadGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
 {
     unsigned int i;
 
     deathmatch = settings->deathmatch;
-    startepisode = settings->episode;
-    startmap = settings->map;
-    startskill = settings->skill;
-    startloadgame = settings->loadgame;
+    doom->startepisode = settings->episode;
+    doom->startmap = settings->map;
+    doom->startskill = settings->skill;
+    doom->startloadgame = settings->loadgame;
     lowres_turn = settings->lowres_turn;
-    nomonsters = settings->nomonsters;
-    fastparm = settings->fast_monsters;
-    respawnparm = settings->respawn_monsters;
+    doom->nomonsters = settings->nomonsters;
+    doom->fastparm = settings->fast_monsters;
+    doom->respawnparm = settings->respawn_monsters;
     timelimit = settings->timelimit;
     consoleplayer = settings->consoleplayer;
 
@@ -135,20 +134,20 @@ static void LoadGameSettings(net_gamesettings_t *settings)
 // Save the game settings from global variables to the specified
 // game settings structure.
 
-static void SaveGameSettings(net_gamesettings_t *settings)
+static void SaveGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
 {
     // Fill in game settings structure with appropriate parameters
     // for the new game
 
     settings->deathmatch = deathmatch;
-    settings->episode = startepisode;
-    settings->map = startmap;
-    settings->skill = startskill;
-    settings->loadgame = startloadgame;
+    settings->episode = doom->startepisode;
+    settings->map = doom->startmap;
+    settings->skill = doom->startskill;
+    settings->loadgame = doom->startloadgame;
     settings->gameversion = gameversion;
-    settings->nomonsters = nomonsters;
-    settings->fast_monsters = fastparm;
-    settings->respawn_monsters = respawnparm;
+    settings->nomonsters = doom->nomonsters;
+    settings->fast_monsters = doom->fastparm;
+    settings->respawn_monsters = doom->respawnparm;
     settings->timelimit = timelimit;
 
     settings->lowres_turn = M_CheckParm("-record") > 0
@@ -242,17 +241,17 @@ void D_CheckNetGame (struct doom_data_t_* doom)
 
     if (netgame)
     {
-        autostart = true;
+        doom->autostart = true;
     }
 
     D_RegisterLoopCallbacks(doom, &doom_loop_interface);
 
-    SaveGameSettings(&settings);
+    SaveGameSettings(doom, &settings);
     D_StartNetGame(doom, &settings, NULL);
-    LoadGameSettings(&settings);
+    LoadGameSettings(doom, &settings);
 
     d_printf("startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
-               startskill, deathmatch, startmap, startepisode);
+               doom->startskill, deathmatch, doom->startmap, doom->startepisode);
 
     d_printf("player %i of %i (%i nodes)\n",
                consoleplayer+1, settings.num_players, settings.num_players);

@@ -25,7 +25,7 @@
 #include "d_event.h"
 
 
-typedef void (*atexit_func_t)(void);
+typedef void (*atexit_func_t)(doom_data_t* doom);
 
 // Called by DoomMain.
 void I_Init (void);

@@ -89,7 +89,9 @@ typedef struct
     boolean poor_quality;
 } screen_mode_t;
 
-typedef boolean (*grabmouse_callback_t)(void);
+struct doom_data_t_;
+
+typedef boolean (*grabmouse_callback_t)(struct doom_data_t_* doom);
 
 // Called by D_DoomMain,
 // determines the hardware configuration

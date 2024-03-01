@@ -194,8 +194,8 @@ void M_Sound(doom_data_t* doom, int choice);
 void M_FinishReadThis(doom_data_t* doom, int choice);
 void M_LoadSelect(doom_data_t* doom, int choice);
 void M_SaveSelect(doom_data_t* doom, int choice);
-void M_ReadSaveStrings(void);
-void M_QuickSave(void);
+void M_ReadSaveStrings(doom_data_t* doom);
+void M_QuickSave(doom_data_t* doom);
 void M_QuickLoad(void);
 
 void M_DrawMainMenu(void);
@@ -498,7 +498,7 @@ menu_t  SaveDef =
 // M_ReadSaveStrings
 //  read the strings from the savegame files
 //
-void M_ReadSaveStrings(void)
+void M_ReadSaveStrings(doom_data_t* doom)
 {
     FILE   *handle;
     int     i;
@@ -506,7 +506,7 @@ void M_ReadSaveStrings(void)
 
     for (i = 0;i < load_end;i++)
     {
-        M_StringCopy(name, P_SaveGameFile(i), sizeof(name));
+        M_StringCopy(name, P_SaveGameFile(doom, i), sizeof(name));
 
 	handle = d_fopen(name, "rb");
         if (handle == NULL)
@@ -571,7 +571,7 @@ void M_LoadSelect(doom_data_t* doom, int choice)
 {
     char    name[256];
 	
-    M_StringCopy(name, P_SaveGameFile(choice), sizeof(name));
+    M_StringCopy(name, P_SaveGameFile(doom, choice), sizeof(name));
 
     G_LoadGame (name);
     M_ClearMenus ();
@@ -589,7 +589,7 @@ void M_LoadGame (doom_data_t* doom, int choice)
     }
 	
     M_SetupNextMenu(&LoadDef);
-    M_ReadSaveStrings();
+    M_ReadSaveStrings(doom);
 }
 
 
@@ -657,7 +657,7 @@ void M_SaveGame (doom_data_t* doom, int choice)
 	return;
 	
     M_SetupNextMenu(&SaveDef);
-    M_ReadSaveStrings();
+    M_ReadSaveStrings(doom);
 }
 
 
@@ -676,7 +676,7 @@ void M_QuickSaveResponse(int key)
     }
 }
 
-void M_QuickSave(void)
+void M_QuickSave(doom_data_t* doom)
 {
     if (!usergame)
     {
@@ -690,7 +690,7 @@ void M_QuickSave(void)
     if (quickSaveSlot < 0)
     {
 	M_StartControlPanel();
-	M_ReadSaveStrings();
+	M_ReadSaveStrings(doom);
 	M_SetupNextMenu(&SaveDef);
 	quickSaveSlot = -2;	// means to pick a slot now
 	return;
@@ -1030,14 +1030,14 @@ void M_ChangeMessages(doom_data_t* doom, int choice)
 //
 // M_EndGame
 //
-void M_EndGameResponse(int key)
+void M_EndGameResponse(doom_data_t* doom, int key)
 {
     if (key != key_menu_confirm)
 	return;
 		
     currentMenu->lastOn = itemOn;
     M_ClearMenus ();
-    D_StartTitle ();
+    D_StartTitle (doom);
 }
 
 void M_EndGame(doom_data_t* doom, int choice)
@@ -1604,7 +1604,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 	return true;
     }
 
-    if ((devparm && key == key_menu_help) ||
+    if ((doom->devparm && key == key_menu_help) ||
         (key != 0 && key == key_menu_screenshot))
     {
 	G_ScreenShot ();
@@ -1674,7 +1674,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
         else if (key == key_menu_qsave)    // Quicksave
         {
 	    S_StartSound(NULL,sfx_swtchn);
-	    M_QuickSave();
+	    M_QuickSave(doom);
 	    return true;
         }
         else if (key == key_menu_endgame)  // End game

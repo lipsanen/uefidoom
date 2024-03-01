@@ -58,7 +58,7 @@ void NetUpdate (struct doom_data_t_* doom);
 
 // Broadcasts special packets to other players
 //  to notify of game exit
-void D_QuitNetGame (void);
+void D_QuitNetGame (struct doom_data_t_* doom);
 
 //? how many ticks to run?
 void TryRunTics (struct doom_data_t_* doom);

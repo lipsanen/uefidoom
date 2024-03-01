@@ -79,60 +79,12 @@
 //
 void D_DoomLoop (struct doom_data_t_* doom);
 
-// Location where savegames are stored
-
-char *          savegamedir;
-
-// location of IWAD and WAD files
-
-const char *          iwadfile;
-
-
-boolean		devparm;	// started game with -devparm
-boolean         nomonsters;	// checkparm of -nomonsters
-boolean         respawnparm;	// checkparm of -respawn
-boolean         fastparm;	// checkparm of -fast
-
-//extern int soundVolume;
-//extern  int	sfxVolume;
-//extern  int	musicVolume;
 
 extern  boolean	inhelpscreens;
-
-skill_t		startskill;
-int             startepisode;
-int		startmap;
-boolean		autostart;
-int             startloadgame;
-
-boolean		advancedemo;
-
-// Store demo, do not accept any inputs
-boolean         storedemo;
-
-// "BFG Edition" version of doom2.wad does not include TITLEPIC.
-boolean         bfgedition;
-
-// If true, the main game loop has started.
-boolean         main_loop_started = false;
-
-char		wadfile[1024];		// primary wad file
-char		mapdir[1024];           // directory of development maps
-
-int             show_endoom = 1;
-
-// D_Display
-//  draw current display, possibly wiping it from the previous
-//
-
-// wipegamestate can be set to -1 to force a wipe on the next draw
-gamestate_t     wipegamestate = GS_DEMOSCREEN;
 extern  boolean setsizeneeded;
 extern  int             showMessages;
+
 void R_ExecuteSetViewSize (void);
-static boolean			wipe = false;
-
-
 void D_ConnectNetGame(doom_data_t* doom);
 void D_CheckNetGame(doom_data_t* doom);
 
@@ -141,23 +93,23 @@ void D_CheckNetGame(doom_data_t* doom);
 // D_ProcessEvents
 // Send all the events of the given timestamp down the responder chain
 //
-void D_ProcessEvents (doom_data_t* data)
+void D_ProcessEvents (doom_data_t* doom)
 {
     event_t*	ev;
 	
     // IF STORE DEMO, DO NOT ACCEPT INPUT
-    if (storedemo)
+    if (doom->storedemo)
         return;
 	
-    while ((ev = D_PopEvent(data)) != NULL)
+    while ((ev = D_PopEvent(doom)) != NULL)
     {
-	if (M_Responder (data, ev))
+	if (M_Responder (doom, ev))
 	    continue;               // menu ate the event
-	G_Responder (data, ev);
+	G_Responder (doom, ev);
     }
 }
 
-static void Do_Wipe()
+static void Do_Wipe(doom_data_t* doom)
 {
     // wipe update
     int				nowtime;
@@ -172,7 +124,7 @@ static void Do_Wipe()
 	I_FinishUpdate ();                      // page flip or blit buffer
     
     if (done) {
-        wipe = false;
+        doom->wipe = false;
     }
 }
 
@@ -187,8 +139,8 @@ void D_Display (struct doom_data_t_* doom)
     int				y;
     boolean			redrawsbar;
 
-    if (wipe) {
-        Do_Wipe();
+    if (doom->wipe) {
+        Do_Wipe(doom);
         return;
     }
 
@@ -206,13 +158,13 @@ void D_Display (struct doom_data_t_* doom)
     }
 
     // save the current screen if about to wipe
-    if (gamestate != wipegamestate)
+    if (gamestate != doom->wipegamestate)
 	{
-		wipe = true;
+		doom->wipe = true;
 		wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
     }
     else
-    	wipe = false;
+    	doom->wipe = false;
 
     if (gamestate == GS_LEVEL && doom->gametic)
     	HU_Erase(doom);
@@ -225,7 +177,7 @@ void D_Display (struct doom_data_t_* doom)
 			break;
 		if (doom->automapactive)
 			AM_Drawer (doom);
-		if (wipe || (viewheight != 200 && fullscreen) )
+		if (doom->wipe || (viewheight != 200 && fullscreen) )
 			redrawsbar = true;
 		if (inhelpscreensstate && !inhelpscreens)
 			redrawsbar = true;              // just put away the help screen
@@ -289,7 +241,7 @@ void D_Display (struct doom_data_t_* doom)
     menuactivestate = menuactive;
     viewactivestate = viewactive;
     inhelpscreensstate = inhelpscreens;
-    oldgamestate = wipegamestate = gamestate;
+    oldgamestate = doom->wipegamestate = gamestate;
     
     // draw pause pic
     if (paused)
@@ -309,7 +261,7 @@ void D_Display (struct doom_data_t_* doom)
 
 
     // normal update
-    if (!wipe)
+    if (!doom->wipe)
     {
 	I_FinishUpdate ();              // page flip or blit buffer
 	return;
@@ -322,7 +274,7 @@ void D_Display (struct doom_data_t_* doom)
 // Add configuration file variable bindings.
 //
 
-void D_BindVariables(void)
+void D_BindVariables(doom_data_t* doom)
 {
     int i;
 
@@ -355,7 +307,7 @@ void D_BindVariables(void)
     M_BindVariable("snd_channels",           &snd_channels);
     M_BindVariable("vanilla_savegame_limit", &vanilla_savegame_limit);
     M_BindVariable("vanilla_demo_limit",     &vanilla_demo_limit);
-    M_BindVariable("show_endoom",            &show_endoom);
+    M_BindVariable("show_endoom",            &doom->show_endoom);
 
     // Multiplayer chat macros
 
@@ -374,7 +326,7 @@ void D_BindVariables(void)
 // Called to determine whether to grab the mouse pointer
 //
 
-boolean D_GrabMouseCallback(void)
+boolean D_GrabMouseCallback(doom_data_t* doom)
 {
     // Drone players don't need mouse focus
 
@@ -388,7 +340,7 @@ boolean D_GrabMouseCallback(void)
 
     // only grab mouse when playing levels (but not demos)
 
-    return (gamestate == GS_LEVEL) && !demoplayback && !advancedemo;
+    return (gamestate == GS_LEVEL) && !demoplayback && !doom->advancedemo;
 }
 
 void doomgeneric_Tick(struct doom_data_t_* doom)
@@ -412,7 +364,7 @@ void doomgeneric_Tick(struct doom_data_t_* doom)
 //
 void D_DoomLoop (struct doom_data_t_* doom)
 {
-    if (bfgedition &&
+    if (doom->bfgedition &&
         (demorecording || (gameaction == ga_playdemo) || netgame))
     {
         d_printf(" WARNING: You are playing using one of the Doom Classic\n"
@@ -422,9 +374,9 @@ void D_DoomLoop (struct doom_data_t_* doom)
     }
 
     if (demorecording)
-    	G_BeginRecording ();
+    	G_BeginRecording (doom);
 
-    main_loop_started = true;
+    doom->main_loop_started = true;
 
     TryRunTics(doom);
 
@@ -440,7 +392,7 @@ void D_DoomLoop (struct doom_data_t_* doom)
 
     if (testcontrols)
     {
-        wipegamestate = gamestate;
+        doom->wipegamestate = gamestate;
     }
 
     doomgeneric_Tick(doom);
@@ -460,10 +412,10 @@ char                    *pagename;
 // D_PageTicker
 // Handles timing for warped projection
 //
-void D_PageTicker (void)
+void D_PageTicker (doom_data_t* doom)
 {
     if (--pagetic < 0)
-	D_AdvanceDemo ();
+	D_AdvanceDemo (doom);
 }
 
 
@@ -481,9 +433,9 @@ void D_PageDrawer (void)
 // D_AdvanceDemo
 // Called after each demo or intro demosequence finishes
 //
-void D_AdvanceDemo (void)
+void D_AdvanceDemo (doom_data_t* doom)
 {
-    advancedemo = true;
+    doom->advancedemo = true;
 }
 
 
@@ -491,10 +443,10 @@ void D_AdvanceDemo (void)
 // This cycles through the demo sequences.
 // FIXME - version dependend demo numbers?
 //
-void D_DoAdvanceDemo (void)
+void D_DoAdvanceDemo (doom_data_t* doom)
 {
     players[consoleplayer].playerstate = PST_LIVE;  // not reborn
-    advancedemo = false;
+    doom->advancedemo = false;
     usergame = false;               // no save / end game here
     paused = false;
     gameaction = ga_nothing;
@@ -567,7 +519,7 @@ void D_DoAdvanceDemo (void)
 
     // The Doom 3: BFG Edition version of doom2.wad does not have a
     // TITLETPIC lump. Use INTERPIC instead as a workaround.
-    if (bfgedition && !d_stricmp(pagename, "TITLEPIC")
+    if (doom->bfgedition && !d_stricmp(pagename, "TITLEPIC")
         && W_CheckNumForName("titlepic") < 0)
     {
         pagename = DEH_String("INTERPIC");
@@ -579,11 +531,11 @@ void D_DoAdvanceDemo (void)
 //
 // D_StartTitle
 //
-void D_StartTitle (void)
+void D_StartTitle (doom_data_t* doom)
 {
     gameaction = ga_nothing;
     demosequence = -1;
-    D_AdvanceDemo ();
+    D_AdvanceDemo (doom);
 }
 
 // Strings for dehacked replacements of the startup banner
@@ -1052,7 +1004,7 @@ void PrintGameVersion(void)
 
 // Function called at exit to display the ENDOOM screen
 
-static void D_Endoom(void)
+static void D_Endoom(doom_data_t* doom)
 {
     byte *endoom;
 
@@ -1060,7 +1012,7 @@ static void D_Endoom(void)
     // in screensaver or control test mode. Only show it once the
     // game has actually started.
 
-    if (!show_endoom || !main_loop_started
+    if (!doom->show_endoom || !doom->main_loop_started
      || screensaver_mode || M_CheckParm("-testcontrols") > 0)
     {
         return;
@@ -1165,7 +1117,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     // Disable monsters.
     //
 	
-    nomonsters = M_CheckParm ("-nomonsters");
+    doom->nomonsters = M_CheckParm ("-nomonsters");
 
     //!
     // @vanilla
@@ -1173,7 +1125,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     // Monsters respawn after being killed.
     //
 
-    respawnparm = M_CheckParm ("-respawn");
+    doom->respawnparm = M_CheckParm ("-respawn");
 
     //!
     // @vanilla
@@ -1181,7 +1133,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     // Monsters move faster.
     //
 
-    fastparm = M_CheckParm ("-fast");
+    doom->fastparm = M_CheckParm ("-fast");
 
     //! 
     // @vanilla
@@ -1190,9 +1142,9 @@ void D_DoomMain (struct doom_data_t_* doom)
     // directory.
     //
 
-    devparm = M_CheckParm ("-devparm");
+    doom->devparm = M_CheckParm ("-devparm");
 
-    I_DisplayFPSDots(devparm);
+    I_DisplayFPSDots(doom->devparm);
 
     //!
     // @category net
@@ -1215,7 +1167,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     if (M_CheckParm ("-altdeath"))
 	deathmatch = 2;
 
-    if (devparm)
+    if (doom->devparm)
 	d_printf(D_DEVSTR);
     
     // find which dir to use for config files
@@ -1278,18 +1230,15 @@ void D_DoomMain (struct doom_data_t_* doom)
     // Load configuration files before initialising other subsystems.
     d_printf("M_LoadDefaults: Load system defaults.\n");
     M_SetConfigFilenames("default.cfg", PROGRAM_PREFIX "doom.cfg");
-    D_BindVariables();
+    D_BindVariables(doom);
     M_LoadDefaults();
 
-    // Save configuration at exit.
-    I_AtExit(M_SaveDefaults, false);
-
     // Find main IWAD file and load it.
-    iwadfile = D_FindIWAD();
+    doom->iwadfile = D_FindIWAD();
 
     // None found?
 
-    if (iwadfile == NULL)
+    if (doom->iwadfile == NULL)
     {
         I_Error("Game mode indeterminate.  No IWAD file was found.  Try\n"
                 "specifying one with the '-iwad' command line parameter.\n");
@@ -1298,7 +1247,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     modifiedgame = false;
 
     d_printf("W_Init: Init WADfiles.\n");
-    D_AddFile((char*)iwadfile);
+    D_AddFile((char*)doom->iwadfile);
 #if ORIGCODE
     numiwadlumps = numlumps;
 #endif
@@ -1336,7 +1285,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     if (W_CheckNumForName("dmenupic") >= 0)
     {
         d_printf("BFG Edition: Using workarounds as needed.\n");
-        bfgedition = true;
+        doom->bfgedition = true;
 
         // BFG Edition changes the names of the secret levels to
         // censor the Wolfenstein references. It also has an extra
@@ -1477,7 +1426,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     else
 #endif
     {
-        savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(gamemission));
+        doom->savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(gamemission));
     }
 
     // Check for -file in shareware
@@ -1543,10 +1492,10 @@ void D_DoomMain (struct doom_data_t_* doom)
     D_ConnectNetGame(doom);
 
     // get skill / episode / map from parms
-    startskill = sk_medium;
-    startepisode = 1;
-    startmap = 1;
-    autostart = false;
+    doom->startskill = sk_medium;
+    doom->startepisode = 1;
+    doom->startmap = 1;
+    doom->autostart = false;
 
     //!
     // @arg <skill>
@@ -1560,8 +1509,8 @@ void D_DoomMain (struct doom_data_t_* doom)
 
     if (p)
     {
-	startskill = myargv[p+1][0]-'1';
-	autostart = true;
+	doom->startskill = myargv[p+1][0]-'1';
+	doom->autostart = true;
     }
 
     //!
@@ -1575,9 +1524,9 @@ void D_DoomMain (struct doom_data_t_* doom)
 
     if (p)
     {
-	startepisode = myargv[p+1][0]-'0';
-	startmap = 1;
-	autostart = true;
+	doom->startepisode = myargv[p+1][0]-'0';
+	doom->startmap = 1;
+	doom->autostart = true;
     }
 	
     timelimit = 0;
@@ -1624,21 +1573,21 @@ void D_DoomMain (struct doom_data_t_* doom)
     if (p)
     {
         if (gamemode == commercial)
-            startmap = d_atoi (myargv[p+1]);
+            doom->startmap = d_atoi (myargv[p+1]);
         else
         {
-            startepisode = myargv[p+1][0]-'0';
+            doom->startepisode = myargv[p+1][0]-'0';
 
             if (p + 2 < myargc)
             {
-                startmap = myargv[p+2][0]-'0';
+                doom->startmap = myargv[p+2][0]-'0';
             }
             else
             {
-                startmap = 1;
+                doom->startmap = 1;
             }
         }
-        autostart = true;
+        doom->autostart = true;
     }
 
     // Undocumented:
@@ -1648,9 +1597,9 @@ void D_DoomMain (struct doom_data_t_* doom)
 
     if (p > 0)
     {
-        startepisode = 1;
-        startmap = 1;
-        autostart = true;
+        doom->startepisode = 1;
+        doom->startmap = 1;
+        doom->autostart = true;
         testcontrols = true;
     }
 
@@ -1669,12 +1618,12 @@ void D_DoomMain (struct doom_data_t_* doom)
     
     if (p)
     {
-        startloadgame = d_atoi(myargv[p+1]);
+        doom->startloadgame = d_atoi(myargv[p+1]);
     }
     else
     {
         // Not loading a game
-        startloadgame = -1;
+        doom->startloadgame = -1;
     }
 
     d_printf("M_Init: Init miscellaneous info.\n");
@@ -1705,13 +1654,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     // in the main loop.
 
     if (gamemode == commercial && W_CheckNumForName("map01") < 0)
-        storedemo = true;
-
-    if (M_CheckParmWithArgs("-statdump", 1))
-    {
-        I_AtExit(StatDump, true);
-        d_printf("External statistics registered.\n");
-    }
+        doom->storedemo = true;
 
     //!
     // @arg <x>
@@ -1726,7 +1669,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     if (p)
     {
 		G_RecordDemo (myargv[p+1]);
-		autostart = true;
+		doom->autostart = true;
     }
 
     p = M_CheckParmWithArgs("-playdemo", 1);
@@ -1746,18 +1689,18 @@ void D_DoomMain (struct doom_data_t_* doom)
         return;
     }
 
-    if (startloadgame >= 0)
+    if (doom->startloadgame >= 0)
     {
-        M_StringCopy(file, P_SaveGameFile(startloadgame), sizeof(file));
+        M_StringCopy(file, P_SaveGameFile(doom, doom->startloadgame), sizeof(file));
         G_LoadGame(file);
     }
 
     if (gameaction != ga_loadgame )
     {
-		if (autostart || netgame)
-			G_InitNew (doom, startskill, startepisode, startmap);
+		if (doom->autostart || netgame)
+			G_InitNew (doom, doom->startskill, doom->startepisode, doom->startmap);
 		else
-			D_StartTitle ();                // start up intro loop
+			D_StartTitle (doom);                // start up intro loop
     }
 
     D_DoomLoop (doom);

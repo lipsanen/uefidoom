@@ -141,7 +141,7 @@ void S_Init(int sfxVolume, int musicVolume)
     I_AtExit(S_Shutdown, true);
 }
 
-void S_Shutdown(void)
+void S_Shutdown(doom_data_t* doom)
 {
     I_ShutdownSound();
     I_ShutdownMusic();

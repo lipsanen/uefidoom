@@ -635,8 +635,8 @@ void G_DoLoadLevel (doom_data_t* doom)
 
     levelstarttic = doom->gametic;        // for time calculation
     
-    if (wipegamestate == GS_LEVEL) 
-	wipegamestate = -1;             // force a wipe 
+    if (doom->wipegamestate == GS_LEVEL) 
+	doom->wipegamestate = -1;             // force a wipe 
 
     gamestate = GS_LEVEL; 
 
@@ -1016,7 +1016,7 @@ void G_Ticker (doom_data_t* doom)
 	break; 
  
       case GS_DEMOSCREEN: 
-	D_PageTicker (); 
+	D_PageTicker (doom); 
 	break;
     }        
 } 
@@ -1639,9 +1639,9 @@ void G_DoNewGame (doom_data_t* doom)
     netgame = false;
     deathmatch = false;
     playeringame[1] = playeringame[2] = playeringame[3] = 0;
-    respawnparm = false;
-    fastparm = false;
-    nomonsters = false;
+    doom->respawnparm = false;
+    doom->fastparm = false;
+    doom->nomonsters = false;
     consoleplayer = 0;
     G_InitNew (doom, d_skill, d_episode, d_map); 
     gameaction = ga_nothing; 
@@ -1730,12 +1730,12 @@ G_InitNew
 
     M_ClearRandom ();
 
-    if (skill == sk_nightmare || respawnparm )
+    if (skill == sk_nightmare || doom->respawnparm )
 	respawnmonsters = true;
     else
 	respawnmonsters = false;
 
-    if (fastparm || (skill == sk_nightmare && gameskill != sk_nightmare) )
+    if (doom->fastparm || (skill == sk_nightmare && gameskill != sk_nightmare) )
     {
 	for (i=S_SARG_RUN1 ; i<=S_SARG_PAIN2 ; i++)
 	    states[i].tics >>= 1;
@@ -1981,7 +1981,7 @@ int G_VanillaVersionCode(void)
     }
 }
 
-void G_BeginRecording (void) 
+void G_BeginRecording (doom_data_t* doom) 
 { 
     int             i; 
 
@@ -2014,9 +2014,9 @@ void G_BeginRecording (void)
     *demo_p++ = gameepisode; 
     *demo_p++ = gamemap; 
     *demo_p++ = deathmatch; 
-    *demo_p++ = respawnparm;
-    *demo_p++ = fastparm;
-    *demo_p++ = nomonsters;
+    *demo_p++ = doom->respawnparm;
+    *demo_p++ = doom->fastparm;
+    *demo_p++ = doom->nomonsters;
     *demo_p++ = consoleplayer;
 	 
     for (i=0 ; i<MAXPLAYERS ; i++) 
@@ -2115,9 +2115,9 @@ void G_DoPlayDemo (doom_data_t* doom)
     episode = *demo_p++; 
     map = *demo_p++; 
     deathmatch = *demo_p++;
-    respawnparm = *demo_p++;
-    fastparm = *demo_p++;
-    nomonsters = *demo_p++;
+    doom->respawnparm = *demo_p++;
+    doom->fastparm = *demo_p++;
+    doom->nomonsters = *demo_p++;
     consoleplayer = *demo_p++;
 	
     for (i=0 ; i<MAXPLAYERS ; i++) 
@@ -2182,15 +2182,15 @@ boolean G_CheckDemoStatus (doom_data_t* doom)
 	netgame = false;
 	deathmatch = false;
 	playeringame[1] = playeringame[2] = playeringame[3] = 0;
-	respawnparm = false;
-	fastparm = false;
-	nomonsters = false;
+	doom->respawnparm = false;
+	doom->fastparm = false;
+	doom->nomonsters = false;
 	consoleplayer = 0;
         
         if (singledemo) 
             I_Quit (doom); 
         else 
-            D_AdvanceDemo (); 
+            D_AdvanceDemo (doom); 
 
 	return true; 
     } 

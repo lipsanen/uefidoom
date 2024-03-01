@@ -805,7 +805,7 @@ void P_SpawnMapThing (doom_data_t* doom, mapthing_t* mthing)
 	return;
 		
     // don't spawn any monsters if -nomonsters
-    if (nomonsters
+    if (doom->nomonsters
 	&& ( i == MT_SKULL
 	     || (mobjinfo[i].flags & MF_COUNTKILL)) )
     {

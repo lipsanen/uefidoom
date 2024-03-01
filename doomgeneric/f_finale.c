@@ -95,7 +95,7 @@ static textscreen_t textscreens[] =
 char*	finaletext;
 char*	finaleflat;
 
-void	F_StartCast (void);
+void	F_StartCast (doom_data_t* doom);
 void	F_CastTicker (void);
 boolean F_CastResponder (event_t *ev);
 void	F_CastDrawer (void);
@@ -167,7 +167,7 @@ boolean F_Responder (event_t *event)
 //
 // F_Ticker
 //
-void F_Ticker (void)
+void F_Ticker (doom_data_t* doom)
 {
     size_t		i;
     
@@ -183,7 +183,7 @@ void F_Ticker (void)
       if (i < MAXPLAYERS)
       {	
 	if (gamemap == 30)
-	  F_StartCast ();
+	  F_StartCast (doom);
 	else
 	  gameaction = ga_worlddone;
       }
@@ -206,7 +206,7 @@ void F_Ticker (void)
     {
 	finalecount = 0;
 	finalestage = F_STAGE_ARTSCREEN;
-	wipegamestate = -1;		// force a wipe
+	doom->wipegamestate = -1;		// force a wipe
 	if (gameepisode == 3)
 	    S_StartMusic (mus_bunny);
     }
@@ -335,9 +335,9 @@ boolean		castattacking;
 //
 // F_StartCast
 //
-void F_StartCast (void)
+void F_StartCast (doom_data_t* doom)
 {
-    wipegamestate = -1;		// force a screen wipe
+    doom->wipegamestate = -1;		// force a screen wipe
     castnum = 0;
     caststate = &states[mobjinfo[castorder[castnum].type].seestate];
     casttics = caststate->tics;

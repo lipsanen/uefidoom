@@ -34,7 +34,7 @@ void S_Init(int sfxVolume, int musicVolume);
 
 // Shut down sound 
 
-void S_Shutdown(void);
+void S_Shutdown(doom_data_t* doom);
 
 
 
