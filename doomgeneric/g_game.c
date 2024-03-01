@@ -907,7 +907,7 @@ void G_Ticker (doom_data_t* doom)
 	{ 
 	    cmd = &players[i].cmd; 
 
-	    d_memcpy(cmd, &netcmds[i], sizeof(ticcmd_t));
+	    d_memcpy(cmd, &doom->netcmds[i], sizeof(ticcmd_t));
 
 	    if (demoplayback) 
 		G_ReadDemoTiccmd (doom, cmd); 

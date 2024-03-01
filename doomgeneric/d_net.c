@@ -37,8 +37,6 @@
 
 #include "d_loop.h"
 
-ticcmd_t *netcmds;
-
 // Called when a player leaves the game
 
 static void PlayerQuitGame(doom_data_t* doom, player_t *player)
@@ -81,7 +79,7 @@ static void RunTic(doom_data_t* doom, ticcmd_t *cmds, boolean *ingame)
         }
     }
 
-    netcmds = cmds;
+    doom->netcmds = cmds;
 
     // check that there are players in the game.  if not, we cannot
     // run a tic.

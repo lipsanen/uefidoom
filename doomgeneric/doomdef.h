@@ -269,6 +269,7 @@ struct doom_data_t_ {
     boolean		fullscreen;
     gamestate_t		oldgamestate;
     int	borderdrawcount;
+    ticcmd_t *netcmds;
 };
 
 typedef struct doom_data_t_ doom_data_t;

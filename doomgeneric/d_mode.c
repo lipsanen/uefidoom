@@ -23,7 +23,7 @@
 // Valid game mode/mission combinations, with the number of
 // episodes/maps for each.
 
-static struct
+static const struct
 {
     GameMission_t mission;
     GameMode_t mode;
@@ -116,7 +116,7 @@ int D_GetNumEpisodes(GameMission_t mission, GameMode_t mode)
 
 // Table of valid versions
 
-static struct {
+static const struct {
     GameMission_t mission;
     GameVersion_t version;
 } valid_versions[] = {
