@@ -1400,17 +1400,8 @@ void D_DoomMain (struct doom_data_t_* doom)
     // we've finished loading Dehacked patches.
     D_SetGameDescription(doom);
 
-#ifdef _WIN32
-    // In -cdrom mode, we write savegames to c:\doomdata as well as configs.
-    if (M_ParmExists("-cdrom"))
-    {
-        savegamedir = configdir;
-    }
-    else
-#endif
-    {
-        doom->savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(doom->gamemission));
-    }
+
+    doom->savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(doom->gamemission));
 
     // Check for -file in shareware
     if (doom->modifiedgame)

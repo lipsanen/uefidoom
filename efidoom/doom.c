@@ -16,6 +16,7 @@ static size_t WIDTH;
 static size_t HEIGHT;
 static uint8_t keyStateMap[258];
 static uint8_t mouse_detected = 0;
+doom_data_t doom;
 
 void doomgeneric_Res(uint32_t *width, uint32_t *height)
 {
@@ -135,7 +136,7 @@ static void ReadMouse()
 	d_memset(&event, 0, sizeof(event_t));
 	event.type = ev_mouse;
 	event.data2 = state.RelativeMovementX / mouse_lowest_dx;
-	D_PostEvent(&event);
+	D_PostEvent(&doom, &event);
 	pressDoomKey(state.LeftButton, 256);
 	pressDoomKey(state.RightButton, 257);
 }
@@ -174,9 +175,8 @@ EFI_STATUS efi_main(
 
 	int argc = 1;
 	char *argv[] = {"efidoom"};
-	doom_data_t doom;
 	doomdata_init(&doom);
-	doomgeneric_Create(argc, argv);
+	doomgeneric_Create(&doom, argc, argv);
 	d_memset(keyStateMap, 0, sizeof(keyStateMap));
 
 	for (int i = 0;; i++)
