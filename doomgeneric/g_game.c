@@ -1606,79 +1606,7 @@ G_SaveGame
 
 void G_DoSaveGame (void) 
 { 
-    char *savegame_file;
-    char *temp_savegame_file;
-    char *recovery_savegame_file;
-
-    recovery_savegame_file = NULL;
-    temp_savegame_file = P_TempSaveGameFile();
-    savegame_file = P_SaveGameFile(savegameslot);
-
-    // Open the savegame file for writing.  We write to a temporary file
-    // and then rename it at the end if it was successfully written.
-    // This prevents an existing savegame from being overwritten by 
-    // a corrupted one, or if a savegame buffer overrun occurs.
-    save_stream = d_fopen(temp_savegame_file, "wb");
-
-    if (save_stream == NULL)
-    {
-        // Failed to save the game, so we're going to have to abort. But
-        // to be nice, save to somewhere else before we call I_Error().
-        recovery_savegame_file = M_TempFile("recovery.dsg");
-        save_stream = d_fopen(recovery_savegame_file, "wb");
-        if (save_stream == NULL)
-        {
-            I_Error("Failed to open either '%s' or '%s' to write savegame.",
-                    temp_savegame_file, recovery_savegame_file);
-        }
-    }
-
-    savegame_error = false;
-
-    P_WriteSaveGameHeader(savedescription);
- 
-    P_ArchivePlayers (); 
-    P_ArchiveWorld (); 
-    P_ArchiveThinkers (); 
-    P_ArchiveSpecials (); 
-	 
-    P_WriteSaveGameEOF();
-	 
-    // Enforce the same savegame size limit as in Vanilla Doom, 
-    // except if the vanilla_savegame_limit setting is turned off.
-
-    if (vanilla_savegame_limit && d_ftell(save_stream) > SAVEGAMESIZE)
-    {
-        I_Error ("Savegame buffer overrun");
-    }
-    
-    // Finish up, close the savegame file.
-
-    d_fclose(save_stream);
-
-    if (recovery_savegame_file != NULL)
-    {
-        // We failed to save to the normal location, but we wrote a
-        // recovery file to the temp directory. Now we can bomb out
-        // with an error.
-        I_Error("Failed to open savegame file '%s' for writing.\n"
-                "But your game has been saved to '%s' for recovery.",
-                temp_savegame_file, recovery_savegame_file);
-    }
-
-    // Now rename the temporary savegame file to the actual savegame
-    // file, overwriting the old savegame if there was one there.
-
-    d_remove(savegame_file);
-    d_rename(temp_savegame_file, savegame_file);
-    
     gameaction = ga_nothing;
-    M_StringCopy(savedescription, "", sizeof(savedescription));
-
-    players[consoleplayer].message = DEH_String(GGSAVED);
-
-    // draw the pattern into the back screen
-    R_FillBackScreen ();	
 } 
  
 

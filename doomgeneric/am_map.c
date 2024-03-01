@@ -257,7 +257,8 @@ static boolean stopped = true;
 
 void
 AM_getIslope
-( mline_t*	ml,
+( doom_data_t* doom,
+  mline_t*	ml,
   islope_t*	is )
 {
     int dx, dy;
@@ -274,7 +275,7 @@ AM_getIslope
 //
 //
 //
-void AM_activateNewScale(void)
+void AM_activateNewScale(doom_data_t* doom)
 {
     m_x += m_w/2;
     m_y += m_h/2;
@@ -289,7 +290,7 @@ void AM_activateNewScale(void)
 //
 //
 //
-void AM_saveScaleAndLoc(void)
+void AM_saveScaleAndLoc(doom_data_t* doom)
 {
     old_m_x = m_x;
     old_m_y = m_y;
@@ -300,7 +301,7 @@ void AM_saveScaleAndLoc(void)
 //
 //
 //
-void AM_restoreScaleAndLoc(void)
+void AM_restoreScaleAndLoc(doom_data_t* doom)
 {
 
     m_w = old_m_w;
@@ -324,7 +325,7 @@ void AM_restoreScaleAndLoc(void)
 //
 // adds a marker at the current location
 //
-void AM_addMark(void)
+void AM_addMark(doom_data_t* doom)
 {
     markpoints[markpointnum].x = m_x + m_w/2;
     markpoints[markpointnum].y = m_y + m_h/2;
@@ -474,7 +475,7 @@ void AM_loadPics(doom_data_t* doom)
 
 }
 
-void AM_unloadPics(void)
+void AM_unloadPics(doom_data_t* doom)
 {
     int i;
     char namebuf[9];
@@ -486,7 +487,7 @@ void AM_unloadPics(void)
     }
 }
 
-void AM_clearMarks(void)
+void AM_clearMarks(doom_data_t* doom)
 {
     int i;
 
@@ -507,7 +508,7 @@ void AM_LevelInit(doom_data_t* doom)
     f_w = SCREENWIDTH;
     f_h = SCREENHEIGHT - 32;
 
-    AM_clearMarks();
+    AM_clearMarks(doom);
 
     AM_findMinMaxBoundaries(doom);
     scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
@@ -526,7 +527,7 @@ void AM_Stop (doom_data_t* doom)
 {
     static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED, 0 };
 
-    AM_unloadPics();
+    AM_unloadPics(doom);
     automapactive = false;
     ST_Responder(&st_notify);
     stopped = true;
@@ -554,21 +555,21 @@ void AM_Start (doom_data_t* doom)
 //
 // set the window scale to the maximum size
 //
-static void AM_minOutWindowScale(void)
+static void AM_minOutWindowScale(doom_data_t* doom)
 {
     scale_mtof = min_scale_mtof;
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
-    AM_activateNewScale();
+    AM_activateNewScale(doom);
 }
 
 //
 // set the window scale to the minimum size
 //
-static void AM_maxOutWindowScale(void)
+static void AM_maxOutWindowScale(doom_data_t* doom)
 {
     scale_mtof = max_scale_mtof;
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
-    AM_activateNewScale();
+    AM_activateNewScale(doom);
 }
 
 
@@ -642,10 +643,10 @@ AM_Responder
             bigstate = !bigstate;
             if (bigstate)
             {
-                AM_saveScaleAndLoc();
-                AM_minOutWindowScale();
+                AM_saveScaleAndLoc(doom);
+                AM_minOutWindowScale(doom);
             }
-            else AM_restoreScaleAndLoc();
+            else AM_restoreScaleAndLoc(doom);
         }
         else if (key == key_map_follow)
         {
@@ -669,11 +670,11 @@ AM_Responder
             d_snprintf(buffer, sizeof(buffer), "%s %d",
                        DEH_String(AMSTR_MARKEDSPOT), markpointnum);
             plr->message = buffer;
-            AM_addMark();
+            AM_addMark(doom);
         }
         else if (key == key_map_clearmark)
         {
-            AM_clearMarks();
+            AM_clearMarks(doom);
             plr->message = DEH_String(AMSTR_MARKSCLEARED);
         }
         else
@@ -723,7 +724,7 @@ AM_Responder
 //
 // Zooming
 //
-static void AM_changeWindowScale(void)
+static void AM_changeWindowScale(doom_data_t* doom)
 {
 
     // Change the scaling multipliers
@@ -731,18 +732,18 @@ static void AM_changeWindowScale(void)
     scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
 
     if (scale_mtof < min_scale_mtof)
-	AM_minOutWindowScale();
+	AM_minOutWindowScale(doom);
     else if (scale_mtof > max_scale_mtof)
-	AM_maxOutWindowScale();
+	AM_maxOutWindowScale(doom);
     else
-	AM_activateNewScale();
+	AM_activateNewScale(doom);
 }
 
 
 //
 //
 //
-static void AM_doFollowPlayer(void)
+static void AM_doFollowPlayer(doom_data_t* doom)
 {
 
     if (f_oldloc.x != plr->mo->x || f_oldloc.y != plr->mo->y)
@@ -766,7 +767,7 @@ static void AM_doFollowPlayer(void)
 //
 //
 //
-static void AM_updateLightLev(void)
+static void AM_updateLightLev(doom_data_t* doom)
 {
     static int nexttic = 0;
     //static int litelevels[] = { 0, 3, 5, 6, 6, 7, 7, 7 };
@@ -796,11 +797,11 @@ void AM_Ticker (doom_data_t* doom)
     amclock++;
 
     if (followplayer)
-	AM_doFollowPlayer();
+	AM_doFollowPlayer(doom);
 
     // Change the zoom if necessary
     if (ftom_zoommul != FRACUNIT)
-	AM_changeWindowScale();
+	AM_changeWindowScale(doom);
 
     // Change x,y location
     if (doom->m_paninc.x || doom->m_paninc.y)
@@ -830,7 +831,8 @@ static void AM_clearFB(doom_data_t* doom, int color)
 //
 static boolean
 AM_clipMline
-( mline_t*	ml,
+( doom_data_t* doom,
+  mline_t*	ml,
   fline_t*	fl )
 {
     enum
@@ -1051,7 +1053,7 @@ AM_drawMline
 {
     static fline_t fl;
 
-    if (AM_clipMline(ml, &fl))
+    if (AM_clipMline(doom, ml, &fl))
 	AM_drawFline(doom, &fl, color); // draws it on frame buffer using fb coords
 }
 
@@ -1163,7 +1165,8 @@ static void AM_drawWalls(doom_data_t* doom)
 //
 static void
 AM_rotate
-( fixed_t*	x,
+( doom_data_t* doom,
+  fixed_t*	x,
   fixed_t*	y,
   angle_t	a )
 {
@@ -1206,7 +1209,7 @@ AM_drawLineCharacter
 	}
 
 	if (angle)
-	    AM_rotate(&l.a.x, &l.a.y, angle);
+	    AM_rotate(doom, &l.a.x, &l.a.y, angle);
 
 	l.a.x += x;
 	l.a.y += y;
@@ -1221,7 +1224,7 @@ AM_drawLineCharacter
 	}
 
 	if (angle)
-	    AM_rotate(&l.b.x, &l.b.y, angle);
+	    AM_rotate(doom, &l.b.x, &l.b.y, angle);
 	
 	l.b.x += x;
 	l.b.y += y;
