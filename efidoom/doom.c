@@ -23,11 +23,6 @@ void doomgeneric_Res(uint32_t *width, uint32_t *height)
 	*height = HEIGHT;
 }
 
-void DG_SleepMs(uint32_t ms)
-{
-	g_pSystemTable->BootServices->Stall(1000 * ms);
-}
-
 uint32_t DG_GetTicksMs()
 {
 	return clock_msec();

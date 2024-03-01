@@ -159,6 +159,26 @@ gamestate_t     wipegamestate = GS_DEMOSCREEN;
 extern  boolean setsizeneeded;
 extern  int             showMessages;
 void R_ExecuteSetViewSize (void);
+static boolean			wipe = false;
+
+static void Do_Wipe()
+{
+    // wipe update
+    int				nowtime;
+    int				tics;
+    boolean			done;
+
+    tics = 1;
+	done = wipe_ScreenWipe(wipe_Melt
+			       , 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
+	I_UpdateNoBlit ();
+	M_Drawer ();                            // menu is drawn even on top of wipes
+	I_FinishUpdate ();                      // page flip or blit buffer
+    
+    if (done) {
+        wipe = false;
+    }
+}
 
 void D_Display (struct doom_data_t_* doom)
 {
@@ -168,13 +188,13 @@ void D_Display (struct doom_data_t_* doom)
     static  boolean		fullscreen = false;
     static  gamestate_t		oldgamestate = -1;
     static  int			borderdrawcount;
-    int				nowtime;
-    int				tics;
-    int				wipestart;
     int				y;
-    boolean			done;
-    boolean			wipe;
     boolean			redrawsbar;
+
+    if (wipe) {
+        Do_Wipe();
+        return;
+    }
 
     if (nodrawers)
     	return;                    // for comparative timing / profiling
@@ -191,7 +211,7 @@ void D_Display (struct doom_data_t_* doom)
 
     // save the current screen if about to wipe
     if (gamestate != wipegamestate)
-		{
+	{
 		wipe = true;
 		wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
     }
@@ -299,27 +319,7 @@ void D_Display (struct doom_data_t_* doom)
 	return;
     }
     
-    // wipe update
     wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
-
-    wipestart = I_GetTime () - 1;
-
-    do
-    {
-	do
-	{
-	    nowtime = I_GetTime ();
-	    tics = nowtime - wipestart;
-            I_Sleep(1);
-	} while (tics <= 0);
-        
-	wipestart = nowtime;
-	done = wipe_ScreenWipe(wipe_Melt
-			       , 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
-	I_UpdateNoBlit ();
-	M_Drawer ();                            // menu is drawn even on top of wipes
-	I_FinishUpdate ();                      // page flip or blit buffer
-    } while (!done);
 }
 
 //
@@ -1537,7 +1537,6 @@ void D_DoomMain (struct doom_data_t_* doom)
 
     d_printf("I_Init: Setting up machine state.\n");
     I_CheckIsScreensaver();
-    I_InitTimer();
     I_InitSound(true);
     I_InitMusic();
 

@@ -183,7 +183,6 @@ boolean I_ConsoleStdout(void)
 void I_Init (void)
 {
     I_CheckIsScreensaver();
-    I_InitTimer();
     I_InitJoystick();
 }
 void I_BindVariables(void)

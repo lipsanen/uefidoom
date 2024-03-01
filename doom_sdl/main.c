@@ -163,14 +163,11 @@ void DG_DrawFrame()
   handleKeyInput();
 }
 
-void DG_SleepMs(uint32_t ms)
-{
-  SDL_Delay(ms);
-}
+static uint64_t frame = 0;
 
 uint32_t DG_GetTicksMs()
 {
-  return SDL_GetTicks();
+  return (frame * 100000) / 2857;
 }
 
 int d_putchar(int c) { return putchar(c); }
@@ -205,9 +202,19 @@ int main(int argc, char **argv)
 
   doomgeneric_Create(argc, argv);
 
-  for (int i = 0; ; i++)
+  uint64_t startTick = SDL_GetTicks64();
+
+  for (int i = 1; ; i++)
   {
-      doomgeneric_Tick(&doom);
+    uint64_t ticks_needed = (i * 1000) / 35;
+    uint64_t current_tick = SDL_GetTicks64();
+    while(current_tick < ticks_needed) {
+      current_tick = SDL_GetTicks64();
+      SDL_Delay(1);
+    }
+    ++frame;
+
+    doomgeneric_Tick(&doom);
   }
   
 

@@ -28,7 +28,6 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/i_input.c
     doomgeneric/i_sound.c
     doomgeneric/i_system.c
-    doomgeneric/i_timer.c
     doomgeneric/i_video.c
     doomgeneric/icon.c
     doomgeneric/info.c

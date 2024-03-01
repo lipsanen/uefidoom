@@ -113,24 +113,6 @@ static boolean local_playeringame[NET_MAXPLAYERS];
 static int player_class;
 
 
-// 35 fps clock adjusted by offsetms milliseconds
-
-static int GetAdjustedTime(void)
-{
-    int time_ms;
-
-    time_ms = I_GetTimeMS();
-
-    if (new_sync)
-    {
-	// Use the adjustments from net_client.c only if we are
-	// using the new sync mode.
-
-        time_ms += (offsetms / FRACUNIT);
-    }
-
-    return (time_ms * TICRATE) / 1000;
-}
 
 static boolean BuildNewTic(struct doom_data_t_* doom)
 {
@@ -197,55 +179,10 @@ static boolean BuildNewTic(struct doom_data_t_* doom)
 // Builds ticcmds for console player,
 // sends out a packet
 //
-int      lasttime;
 
 void NetUpdate (struct doom_data_t_* doom)
 {
-    int nowtime;
-    int newtics;
-    int	i;
-
-    // If we are running with singletics (timing a demo), this
-    // is all done separately.
-
-    if (singletics)
-        return;
-
-#ifdef FEATURE_MULTIPLAYER
-
-    // Run network subsystems
-
-    NET_CL_Run();
-    NET_SV_Run();
-
-#endif
-
-    // check time
-    nowtime = GetAdjustedTime() / ticdup;
-    newtics = nowtime - lasttime;
-
-    lasttime = nowtime;
-
-    if (skiptics <= newtics)
-    {
-        newtics -= skiptics;
-        skiptics = 0;
-    }
-    else
-    {
-        skiptics -= newtics;
-        newtics = 0;
-    }
-
-    // build new ticcmds for console player
-
-    for (i=0 ; i<newtics ; i++)
-    {
-        if (!BuildNewTic(doom))
-        {
-            break;
-        }
-    }
+    BuildNewTic(doom);
 }
 
 static void D_Disconnected(void)
@@ -303,139 +240,11 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
 
 void D_StartGameLoop(void)
 {
-    lasttime = GetAdjustedTime() / ticdup;
 }
-
-#if ORIGCODE
-//
-// Block until the game start message is received from the server.
-//
-
-static void BlockUntilStart(net_gamesettings_t *settings,
-                            netgame_startup_callback_t callback)
-{
-    while (!NET_CL_GetSettings(settings))
-    {
-        NET_CL_Run();
-        NET_SV_Run();
-
-        if (!net_client_connected)
-        {
-            I_Error("Lost connection to server");
-        }
-
-        if (callback != NULL && !callback(net_client_wait_data.ready_players,
-                                          net_client_wait_data.num_players))
-        {
-            I_Error("Netgame startup aborted.");
-        }
-
-        I_Sleep(100);
-    }
-}
-
-#endif
 
 void D_StartNetGame(net_gamesettings_t *settings,
                     netgame_startup_callback_t callback)
 {
-#if ORIGCODE
-    int i;
-
-    offsetms = 0;
-    recvtic = 0;
-
-    settings->consoleplayer = 0;
-    settings->num_players = 1;
-    settings->player_classes[0] = player_class;
-
-    //!
-    // @category net
-    //
-    // Use new network client sync code rather than the classic
-    // sync code. This is currently disabled by default because it
-    // has some bugs.
-    //
-    if (M_CheckParm("-newsync") > 0)
-        settings->new_sync = 1;
-    else
-        settings->new_sync = 0;
-
-    // TODO: New sync code is not enabled by default because it's
-    // currently broken. 
-    //if (M_CheckParm("-oldsync") > 0)
-    //    settings->new_sync = 0;
-    //else
-    //    settings->new_sync = 1;
-
-    //!
-    // @category net
-    // @arg <n>
-    //
-    // Send n extra tics in every packet as insurance against dropped
-    // packets.
-    //
-
-    i = M_CheckParmWithArgs("-extratics", 1);
-
-    if (i > 0)
-        settings->extratics = d_atoi(myargv[i+1]);
-    else
-        settings->extratics = 1;
-
-    //!
-    // @category net
-    // @arg <n>
-    //
-    // Reduce the resolution of the game by a factor of n, reducing
-    // the amount of network bandwidth needed.
-    //
-
-    i = M_CheckParmWithArgs("-dup", 1);
-
-    if (i > 0)
-        settings->ticdup = d_atoi(myargv[i+1]);
-    else
-        settings->ticdup = 1;
-
-    if (net_client_connected)
-    {
-        // Send our game settings and block until game start is received
-        // from the server.
-
-        NET_CL_StartGame(settings);
-        BlockUntilStart(settings, callback);
-
-        // Read the game settings that were received.
-
-        NET_CL_GetSettings(settings);
-    }
-
-    if (drone)
-    {
-        settings->consoleplayer = 0;
-    }
-
-    // Set the local player and playeringame[] values.
-
-    localplayer = settings->consoleplayer;
-
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
-    {
-        local_playeringame[i] = i < settings->num_players;
-    }
-
-    // Copy settings to global variables.
-
-    ticdup = settings->ticdup;
-    new_sync = settings->new_sync;
-
-    // TODO: Message disabled until we fix new_sync.
-    //if (!new_sync)
-    //{
-    //    d_printf("Syncing netgames like Vanilla Doom.\n");
-    //}
-#else
     settings->consoleplayer = 0;
 	settings->num_players = 1;
 	settings->player_classes[0] = player_class;
@@ -445,7 +254,6 @@ void D_StartNetGame(net_gamesettings_t *settings,
 
 	ticdup = settings->ticdup;
 	new_sync = settings->new_sync;
-#endif
 }
 
 boolean D_InitNetGame(net_connect_data_t *connect_data)
@@ -621,7 +429,6 @@ static void OldNetSync(void)
     {
         if (maketic <= recvtic)
         {
-            lasttime--;
             // d_printf ("-");
         }
 
@@ -705,105 +512,25 @@ static void SinglePlayerClear(ticcmd_set_t *set)
 void TryRunTics (struct doom_data_t_* doom)
 {
     int	i;
-    int	lowtic;
-    int	entertic;
-    static int oldentertics;
-    int realtics;
-    int	availabletics;
     int	counts;
 
-    // get real tics
-    entertic = I_GetTime() / ticdup;
-    realtics = entertic - oldentertics;
-    oldentertics = entertic;
+    BuildNewTic(doom); 
+    ticcmd_set_t *set;
 
-    // in singletics mode, run a single tic every time this function
-    // is called.
-
-    if (singletics)
+    if (!PlayersInGame())
     {
-        BuildNewTic(doom);
-    }
-    else
-    {
-        NetUpdate (doom);
+        return;
     }
 
-    lowtic = GetLowTic();
+    set = &ticdata[(gametic / ticdup) % BACKUPTICS];
 
-    availabletics = lowtic - gametic/ticdup;
-
-    // decide how many tics to run
-
-    if (new_sync)
+    if (!net_client_connected)
     {
-	counts = availabletics;
+        SinglePlayerClear(set);
     }
-    else
-    {
-        // decide how many tics to run
-        if (realtics < availabletics-1)
-            counts = realtics+1;
-        else if (realtics < availabletics)
-            counts = realtics;
-        else
-            counts = availabletics;
-
-        if (counts < 1)
-            counts = 1;
-
-        if (net_client_connected)
-        {
-            OldNetSync();
-        }
-    }
-
-    if (counts < 1)
-	counts = 1;
-
-    // wait for new tics if needed
-
-    while (!PlayersInGame() || lowtic < gametic/ticdup + counts)
-    {
-	NetUpdate (doom);
-
-        lowtic = GetLowTic();
-
-	if (lowtic < gametic/ticdup)
-	    I_Error ("TryRunTics: lowtic < gametic");
-
-        // Don't stay in this loop forever.  The menu is still running,
-        // so return to update the screen
-
-	if (I_GetTime() / ticdup - entertic > 0)
-	{
-	    return;
-	}
-
-        I_Sleep(1);
-    }
-
-    // run the count * ticdup dics
-    while (counts--)
-    {
-        ticcmd_set_t *set;
-
-        if (!PlayersInGame())
-        {
-            return;
-        }
-
-        set = &ticdata[(gametic / ticdup) % BACKUPTICS];
-
-        if (!net_client_connected)
-        {
-            SinglePlayerClear(set);
-        }
 
 	for (i=0 ; i<ticdup ; i++)
 	{
-            if (gametic/ticdup > lowtic)
-                I_Error ("gametic>lowtic");
 
             d_memcpy(local_playeringame, set->ingame, sizeof(local_playeringame));
 
@@ -816,7 +543,6 @@ void TryRunTics (struct doom_data_t_* doom)
 	}
 
 	NetUpdate (doom);	// check for new console commands
-    }
 }
 
 void D_RegisterLoopCallbacks(loop_interface_t *i)

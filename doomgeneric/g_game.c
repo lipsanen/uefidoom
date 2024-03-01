@@ -108,7 +108,6 @@ boolean         usergame;               // ok to save / end game
  
 boolean         timingdemo;             // if true, exit with report on completion 
 boolean         nodrawers;              // for comparative timing purposes 
-int             starttime;          	// for comparative timing purposes  	 
  
 boolean         viewactive; 
  
@@ -2207,7 +2206,6 @@ void G_DoPlayDemo (doom_data_t* doom)
     precache = false;
     G_InitNew (doom, skill, episode, map); 
     precache = true; 
-    starttime = I_GetTime (); 
 
     usergame = false; 
     demoplayback = true; 
@@ -2247,22 +2245,7 @@ void G_TimeDemo (char* name)
 boolean G_CheckDemoStatus (void) 
 { 
     int             endtime; 
-	 
-    if (timingdemo) 
-    { 
-        int realtics;
-
-	endtime = I_GetTime (); 
-        realtics = endtime - starttime;
-
-        // Prevent recursive calls
-        timingdemo = false;
-        demoplayback = false;
-
-	I_Error ("timed %i gametics in %i realtics",
-                 gametic, realtics);
-    } 
-	 
+	  
     if (demoplayback) 
     { 
         W_ReleaseLumpName(defdemoname);
