@@ -46,7 +46,6 @@
 #include "hu_stuff.h"
 #include "st_stuff.h"
 #include "am_map.h"
-#include "statdump.h"
 
 // Needs access to LFB.
 #include "v_video.h"
@@ -1478,8 +1477,6 @@ void G_DoCompleted (doom_data_t* doom)
     gamestate = GS_INTERMISSION; 
     viewactive = false; 
     doom->automapactive = false; 
-
-    StatCopy(&wminfo);
  
     WI_Start (doom, &wminfo); 
 } 

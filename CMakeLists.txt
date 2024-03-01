@@ -75,7 +75,6 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/sounds.c
     doomgeneric/st_lib.c
     doomgeneric/st_stuff.c
-    doomgeneric/statdump.c
     doomgeneric/tables.c
     doomgeneric/utils.c
     doomgeneric/v_video.c
