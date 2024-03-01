@@ -56,6 +56,8 @@ typedef struct
 
 #define AM_NUMMARKPOINTS 10
 
+struct player_s;
+
 struct doom_data_t_ {
     // location of window on screen
     int f_x;
@@ -76,7 +78,13 @@ struct doom_data_t_ {
     int markpointnum; // next point to be assigned
     int followplayer; // specifies whether to follow the player around
     boolean stopped;
+    int grid;
+    struct player_s *plr; // the player represented by an arrow
 
+    // used by MTOF to scale from map-to-frame-buffer coords
+    fixed_t scale_mtof;
+    // used by FTOM to scale from frame-buffer-to-map coords (=1/scale_mtof)
+    fixed_t scale_ftom;
 };
 
 typedef struct doom_data_t_ doom_data_t;

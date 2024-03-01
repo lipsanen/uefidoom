@@ -20,6 +20,9 @@
 #include "dlibc.h"
 #include "doomdef.h"
 
+// scale on entry
+#define INITSCALEMTOF (.2*FRACUNIT)
+
 void doomdata_init(doom_data_t* doom) {
     d_memset(doom, 0, sizeof(doom_data_t));
     d_strcpy(doom->cheat_amap.sequence, "iddt");
@@ -29,6 +32,7 @@ void doomdata_init(doom_data_t* doom) {
     doom->markpointnum = 0; // next point to be assigned
     doom->followplayer = 1; // specifies whether to follow the player around
     doom->stopped = true;
+    doom->scale_mtof = (fixed_t)INITSCALEMTOF;
 }
 
 // Location for any defines turned variables.

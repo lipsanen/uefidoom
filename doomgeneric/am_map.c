@@ -84,8 +84,6 @@
 
 // drawing stuff
 
-// scale on entry
-#define INITSCALEMTOF (.2*FRACUNIT)
 // how much the automap moves window per tic in frame-buffer coordinates
 // moves 140 pixels in 1 second
 #define F_PANINC	4
@@ -97,8 +95,8 @@
 #define M_ZOOMOUT       ((int) (FRACUNIT/1.02))
 
 // translates between frame-buffer and map distances
-#define FTOM(x) FixedMul(((x)<<16),scale_ftom)
-#define MTOF(x) (FixedMul((x),scale_mtof)>>16)
+#define FTOM(x) FixedMul(((x)<<16),doom->scale_ftom)
+#define MTOF(x) (FixedMul((x),doom->scale_mtof)>>16)
 // translates between frame-buffer and map coordinates
 #define CXMTOF(x)  (f_x + MTOF((x)-m_x))
 #define CYMTOF(y)  (f_y + (f_h - MTOF((y)-m_y)))
@@ -114,7 +112,7 @@
 //   starting from the middle.
 //
 #define R ((8*PLAYERRADIUS)/7)
-mline_t player_arrow[] = {
+static const mline_t player_arrow[] = {
     { { -R+R/8, 0 }, { R, 0 } }, // -----
     { { R, 0 }, { R-R/2, R/4 } },  // ----->
     { { R, 0 }, { R-R/2, -R/4 } },
@@ -126,7 +124,7 @@ mline_t player_arrow[] = {
 #undef R
 
 #define R ((8*PLAYERRADIUS)/7)
-mline_t cheat_player_arrow[] = {
+static const mline_t cheat_player_arrow[] = {
     { { -R+R/8, 0 }, { R, 0 } }, // -----
     { { R, 0 }, { R-R/2, R/6 } },  // ----->
     { { R, 0 }, { R-R/2, -R/6 } },
@@ -147,7 +145,7 @@ mline_t cheat_player_arrow[] = {
 #undef R
 
 #define R (FRACUNIT)
-mline_t triangle_guy[] = {
+static const mline_t triangle_guy[] = {
     { { (fixed_t)(-.867*R), (fixed_t)(-.5*R) }, { (fixed_t)(.867*R ), (fixed_t)(-.5*R) } },
     { { (fixed_t)(.867*R ), (fixed_t)(-.5*R) }, { (fixed_t)(0      ), (fixed_t)(R    ) } },
     { { (fixed_t)(0      ), (fixed_t)(R    ) }, { (fixed_t)(-.867*R), (fixed_t)(-.5*R) } }
@@ -155,14 +153,12 @@ mline_t triangle_guy[] = {
 #undef R
 
 #define R (FRACUNIT)
-mline_t thintriangle_guy[] = {
+static const mline_t thintriangle_guy[] = {
     { { (fixed_t)(-.5*R), (fixed_t)(-.7*R) }, { (fixed_t)(R    ), (fixed_t)(0    ) } },
     { { (fixed_t)(R    ), (fixed_t)(0    ) }, { (fixed_t)(-.5*R), (fixed_t)(.7*R ) } },
     { { (fixed_t)(-.5*R), (fixed_t)(.7*R ) }, { (fixed_t)(-.5*R), (fixed_t)(-.7*R) } }
 };
 #undef R
-
-static int 	grid = 0;
 
 boolean    	automapactive = false;
 
@@ -213,12 +209,6 @@ static fixed_t old_m_x, old_m_y;
 // old location used by the Follower routine
 static mpoint_t f_oldloc;
 
-// used by MTOF to scale from map-to-frame-buffer coords
-static fixed_t scale_mtof = (fixed_t)INITSCALEMTOF;
-// used by FTOM to scale from frame-buffer-to-map coords (=1/scale_mtof)
-static fixed_t scale_ftom;
-
-static player_t *plr; // the player represented by an arrow
 
 // Calculates the slope and slope according to the x-axis of a line
 // segment in map coordinates (with the upright y-axis n' all) so
@@ -280,15 +270,15 @@ void AM_restoreScaleAndLoc(doom_data_t* doom)
 	m_x = old_m_x;
 	m_y = old_m_y;
     } else {
-	m_x = plr->mo->x - m_w/2;
-	m_y = plr->mo->y - m_h/2;
+	m_x = doom->plr->mo->x - m_w/2;
+	m_y = doom->plr->mo->y - m_h/2;
     }
     m_x2 = m_x + m_w;
     m_y2 = m_y + m_h;
 
     // Change the scaling multipliers
-    scale_mtof = FixedDiv(f_w<<FRACBITS, m_w);
-    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+    doom->scale_mtof = FixedDiv(f_w<<FRACBITS, m_w);
+    doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
 }
 
 //
@@ -397,24 +387,24 @@ void AM_initVariables(doom_data_t* doom)
     // find player to center on initially
     if (playeringame[consoleplayer])
     {
-        plr = &players[consoleplayer];
+        doom->plr = &players[consoleplayer];
     }
     else
     {
-        plr = &players[0];
+        doom->plr = &players[0];
 
 	for (pnum=0;pnum<MAXPLAYERS;pnum++)
         {
 	    if (playeringame[pnum])
             {
-                plr = &players[pnum];
+                doom->plr = &players[pnum];
 		break;
             }
         }
     }
 
-    m_x = plr->mo->x - m_w/2;
-    m_y = plr->mo->y - m_h/2;
+    m_x = doom->plr->mo->x - m_w/2;
+    m_y = doom->plr->mo->y - m_h/2;
     AM_changeWindowLoc(doom);
 
     // for saving & restoring
@@ -480,10 +470,10 @@ void AM_LevelInit(doom_data_t* doom)
     AM_clearMarks(doom);
 
     AM_findMinMaxBoundaries(doom);
-    scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
-    if (scale_mtof > max_scale_mtof)
-	scale_mtof = min_scale_mtof;
-    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+    doom->scale_mtof = FixedDiv(min_scale_mtof, (int) (0.7*FRACUNIT));
+    if (doom->scale_mtof > max_scale_mtof)
+        doom->scale_mtof = min_scale_mtof;
+    doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
 }
 
 
@@ -526,8 +516,8 @@ void AM_Start (doom_data_t* doom)
 //
 static void AM_minOutWindowScale(doom_data_t* doom)
 {
-    scale_mtof = min_scale_mtof;
-    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+    doom->scale_mtof = min_scale_mtof;
+    doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
     AM_activateNewScale(doom);
 }
 
@@ -536,8 +526,8 @@ static void AM_minOutWindowScale(doom_data_t* doom)
 //
 static void AM_maxOutWindowScale(doom_data_t* doom)
 {
-    scale_mtof = max_scale_mtof;
-    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+    doom->scale_mtof = max_scale_mtof;
+    doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
     AM_activateNewScale(doom);
 }
 
@@ -622,29 +612,29 @@ AM_Responder
             doom->followplayer = !doom->followplayer;
             f_oldloc.x = INT_MAX;
             if (doom->followplayer)
-                plr->message = DEH_String(AMSTR_FOLLOWON);
+                doom->plr->message = DEH_String(AMSTR_FOLLOWON);
             else
-                plr->message = DEH_String(AMSTR_FOLLOWOFF);
+                doom->plr->message = DEH_String(AMSTR_FOLLOWOFF);
         }
         else if (key == key_map_grid)
         {
-            grid = !grid;
-            if (grid)
-                plr->message = DEH_String(AMSTR_GRIDON);
+            doom->grid = !doom->grid;
+            if (doom->grid)
+                doom->plr->message = DEH_String(AMSTR_GRIDON);
             else
-                plr->message = DEH_String(AMSTR_GRIDOFF);
+                doom->plr->message = DEH_String(AMSTR_GRIDOFF);
         }
         else if (key == key_map_mark)
         {
             d_snprintf(buffer, sizeof(buffer), "%s %d",
                        DEH_String(AMSTR_MARKEDSPOT), doom->markpointnum);
-            plr->message = buffer;
+            doom->plr->message = buffer;
             AM_addMark(doom);
         }
         else if (key == key_map_clearmark)
         {
             AM_clearMarks(doom);
-            plr->message = DEH_String(AMSTR_MARKSCLEARED);
+            doom->plr->message = DEH_String(AMSTR_MARKSCLEARED);
         }
         else
         {
@@ -697,12 +687,12 @@ static void AM_changeWindowScale(doom_data_t* doom)
 {
 
     // Change the scaling multipliers
-    scale_mtof = FixedMul(scale_mtof, mtof_zoommul);
-    scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
+    doom->scale_mtof = FixedMul(doom->scale_mtof, mtof_zoommul);
+    doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
 
-    if (scale_mtof < min_scale_mtof)
+    if (doom->scale_mtof < min_scale_mtof)
 	AM_minOutWindowScale(doom);
-    else if (scale_mtof > max_scale_mtof)
+    else if (doom->scale_mtof > max_scale_mtof)
 	AM_maxOutWindowScale(doom);
     else
 	AM_activateNewScale(doom);
@@ -715,14 +705,14 @@ static void AM_changeWindowScale(doom_data_t* doom)
 static void AM_doFollowPlayer(doom_data_t* doom)
 {
 
-    if (f_oldloc.x != plr->mo->x || f_oldloc.y != plr->mo->y)
+    if (f_oldloc.x != doom->plr->mo->x || f_oldloc.y != doom->plr->mo->y)
     {
-	m_x = FTOM(MTOF(plr->mo->x)) - m_w/2;
-	m_y = FTOM(MTOF(plr->mo->y)) - m_h/2;
+	m_x = FTOM(MTOF(doom->plr->mo->x)) - m_w/2;
+	m_y = FTOM(MTOF(doom->plr->mo->y)) - m_h/2;
 	m_x2 = m_x + m_w;
 	m_y2 = m_y + m_h;
-	f_oldloc.x = plr->mo->x;
-	f_oldloc.y = plr->mo->y;
+	f_oldloc.x = doom->plr->mo->x;
+	f_oldloc.y = doom->plr->mo->y;
 
 	//  m_x = FTOM(MTOF(plr->mo->x - m_w/2));
 	//  m_y = FTOM(MTOF(plr->mo->y - m_h/2));
@@ -1120,7 +1110,7 @@ static void AM_drawWalls(doom_data_t* doom)
 		}
 	    }
 	}
-	else if (plr->powers[pw_allmap])
+	else if (doom->plr->powers[pw_allmap])
 	{
 	    if (!(lines[i].flags & LINE_NEVERSEE)) AM_drawMline(doom, &l, GRAYS+3);
 	}
@@ -1155,7 +1145,7 @@ AM_rotate
 static void
 AM_drawLineCharacter
 ( doom_data_t* doom,
-  mline_t*	lineguy,
+  const mline_t*	lineguy,
   int		lineguylines,
   fixed_t	scale,
   angle_t	angle,
@@ -1215,11 +1205,11 @@ static void AM_drawPlayers(doom_data_t* doom)
 	if (doom->cheating)
 	    AM_drawLineCharacter
 		(doom, cheat_player_arrow, arrlen(cheat_player_arrow), 0,
-		 plr->mo->angle, WHITE, plr->mo->x, plr->mo->y);
+		 doom->plr->mo->angle, WHITE, doom->plr->mo->x, doom->plr->mo->y);
 	else
 	    AM_drawLineCharacter
-		(doom, player_arrow, arrlen(player_arrow), 0, plr->mo->angle,
-		 WHITE, plr->mo->x, plr->mo->y);
+		(doom, player_arrow, arrlen(player_arrow), 0, doom->plr->mo->angle,
+		 WHITE, doom->plr->mo->x, doom->plr->mo->y);
 	return;
     }
 
@@ -1228,7 +1218,7 @@ static void AM_drawPlayers(doom_data_t* doom)
 	their_color++;
 	p = &players[i];
 
-	if ( (deathmatch && !singledemo) && p != plr)
+	if ( (deathmatch && !singledemo) && p != doom->plr)
 	    continue;
 
 	if (!playeringame[i])
@@ -1300,8 +1290,8 @@ void AM_Drawer (doom_data_t* doom)
     if (!automapactive) return;
 
     AM_clearFB(doom, BACKGROUND);
-    if (grid)
-	AM_drawGrid(doom, GRIDCOLORS);
+    if (doom->grid)
+        AM_drawGrid(doom, GRIDCOLORS);
     AM_drawWalls(doom);
     AM_drawPlayers(doom);
     if (doom->cheating==2)
