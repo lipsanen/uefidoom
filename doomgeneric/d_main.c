@@ -219,7 +219,7 @@ void D_Display (struct doom_data_t_* doom)
     	wipe = false;
 
     if (gamestate == GS_LEVEL && gametic)
-    	HU_Erase();
+    	HU_Erase(doom);
     
     // do buffered drawing
     switch (gamestate)
@@ -227,13 +227,13 @@ void D_Display (struct doom_data_t_* doom)
       case GS_LEVEL:
 		if (!gametic)
 			break;
-		if (automapactive)
+		if (doom->automapactive)
 			AM_Drawer (doom);
 		if (wipe || (viewheight != 200 && fullscreen) )
 			redrawsbar = true;
 		if (inhelpscreensstate && !inhelpscreens)
 			redrawsbar = true;              // just put away the help screen
-		ST_Drawer (viewheight == 200, redrawsbar );
+		ST_Drawer (doom, viewheight == 200, redrawsbar );
 		fullscreen = viewheight == 200;
 		break;
 
@@ -254,11 +254,11 @@ void D_Display (struct doom_data_t_* doom)
     I_UpdateNoBlit ();
     
     // draw the view directly
-    if (gamestate == GS_LEVEL && !automapactive && gametic)
+    if (gamestate == GS_LEVEL && !doom->automapactive && gametic)
     	R_RenderPlayerView (doom, &players[displayplayer]);
 
     if (gamestate == GS_LEVEL && gametic)
-    	HU_Drawer ();
+    	HU_Drawer (doom);
     
     // clean up border stuff
     if (gamestate != oldgamestate && gamestate != GS_LEVEL)
@@ -272,7 +272,7 @@ void D_Display (struct doom_data_t_* doom)
     }
 
     // see if the border needs to be updated to the screen
-    if (gamestate == GS_LEVEL && !automapactive && scaledviewwidth != SCREENWIDTH)
+    if (gamestate == GS_LEVEL && !doom->automapactive && scaledviewwidth != SCREENWIDTH)
     {
 		if (menuactive || menuactivestate || !viewactivestate)
 			borderdrawcount = 3;
@@ -298,7 +298,7 @@ void D_Display (struct doom_data_t_* doom)
     // draw pause pic
     if (paused)
     {
-		if (automapactive)
+		if (doom->automapactive)
 			y = 4;
 		else
 			y = viewwindowy+4;

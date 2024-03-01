@@ -1616,7 +1616,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
     {
 	if (key == key_menu_decscreen)      // Screen size down
         {
-	    if (automapactive || chat_on)
+	    if (doom->automapactive || chat_on)
 		return false;
 	    M_SizeDisplay(0);
 	    S_StartSound(NULL,sfx_stnmov);
@@ -1624,7 +1624,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 	}
         else if (key == key_menu_incscreen) // Screen size up
         {
-	    if (automapactive || chat_on)
+	    if (doom->automapactive || chat_on)
 		return false;
 	    M_SizeDisplay(1);
 	    S_StartSound(NULL,sfx_stnmov);

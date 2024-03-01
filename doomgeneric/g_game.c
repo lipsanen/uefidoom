@@ -1350,7 +1350,7 @@ void G_DoCompleted (doom_data_t* doom)
 	if (playeringame[i]) 
 	    G_PlayerFinishLevel (i);        // take away cards and stuff 
 	 
-    if (automapactive) 
+    if (doom->automapactive) 
 	AM_Stop (doom); 
 	
     if (gamemode != commercial)
@@ -1477,7 +1477,7 @@ void G_DoCompleted (doom_data_t* doom)
  
     gamestate = GS_INTERMISSION; 
     viewactive = false; 
-    automapactive = false; 
+    doom->automapactive = false; 
 
     StatCopy(&wminfo);
  
@@ -1759,7 +1759,7 @@ G_InitNew
     usergame = true;                // will be set false if a demo
     paused = false;
     demoplayback = false;
-    automapactive = false;
+    doom->automapactive = false;
     viewactive = true;
     gameepisode = episode;
     gamemap = map;

@@ -706,7 +706,7 @@ P_KillMobj
 	P_DropWeapon (doom, target->player);
 
 	if (target->player == &players[consoleplayer]
-	    && automapactive)
+	    && doom->automapactive)
 	{
 	    // don't die in auto map,
 	    // switch view prior to dying

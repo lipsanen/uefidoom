@@ -103,14 +103,14 @@ void	F_CastDrawer (void);
 //
 // F_StartFinale
 //
-void F_StartFinale (void)
+void F_StartFinale (doom_data_t* doom)
 {
     size_t i;
 
     gameaction = ga_nothing;
     gamestate = GS_FINALE;
     viewactive = false;
-    automapactive = false;
+    doom->automapactive = false;
 
     if (logical_gamemission == doom1)
     {

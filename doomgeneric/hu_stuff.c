@@ -379,23 +379,22 @@ void HU_Start(void)
 
 }
 
-void HU_Drawer(void)
+void HU_Drawer(doom_data_t* doom)
 {
 
     HUlib_drawSText(&w_message);
     HUlib_drawIText(&w_chat);
-    if (automapactive)
+    if (doom->automapactive)
 	HUlib_drawTextLine(&w_title, false);
 
 }
 
-void HU_Erase(void)
+void HU_Erase(doom_data_t* doom)
 {
 
-    HUlib_eraseSText(&w_message);
-    HUlib_eraseIText(&w_chat);
-    HUlib_eraseTextLine(&w_title);
-
+    HUlib_eraseSText(doom, &w_message);
+    HUlib_eraseIText(doom, &w_chat);
+    HUlib_eraseTextLine(doom, &w_title);
 }
 
 void HU_Ticker(void)

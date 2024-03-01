@@ -1049,10 +1049,10 @@ void ST_diffDraw(void)
     ST_drawWidgets(false);
 }
 
-void ST_Drawer (boolean fullscreen, boolean refresh)
+void ST_Drawer (doom_data_t* doom, boolean fullscreen, boolean refresh)
 {
   
-    st_statusbaron = (!fullscreen) || automapactive;
+    st_statusbaron = (!fullscreen) || doom->automapactive;
     st_firsttime = st_firsttime || refresh;
 
     // Do red-/gold-shifts from damage/items

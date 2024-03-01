@@ -124,6 +124,7 @@ struct doom_data_t_ {
 
     // old location used by the Follower routine
     mpoint_t f_oldloc;
+    boolean automapactive;
 };
 
 typedef struct doom_data_t_ doom_data_t;

@@ -160,8 +160,6 @@ static const mline_t thintriangle_guy[] = {
 };
 #undef R
 
-boolean    	automapactive = false;
-
 
 // Calculates the slope and slope according to the x-axis of a line
 // segment in map coordinates (with the upright y-axis n' all) so
@@ -323,7 +321,7 @@ void AM_initVariables(doom_data_t* doom)
     int pnum;
     static event_t st_notify = { ev_keyup, AM_MSGENTERED, 0, 0 };
 
-    automapactive = true;
+    doom->automapactive = true;
     doom->fb = I_VideoBuffer;
 
     doom->f_oldloc.x = INT_MAX;
@@ -440,7 +438,7 @@ void AM_Stop (doom_data_t* doom)
     static event_t st_notify = { 0, ev_keyup, AM_MSGEXITED, 0 };
 
     AM_unloadPics(doom);
-    automapactive = false;
+    doom->automapactive = false;
     ST_Responder(&st_notify);
     doom->stopped = true;
 }
@@ -500,7 +498,7 @@ AM_Responder
 
     rc = false;
 
-    if (!automapactive)
+    if (!doom->automapactive)
     {
 	if (ev->type == ev_keydown && ev->data1 == key_map_toggle)
 	{
@@ -703,7 +701,7 @@ static void AM_updatelightlev(doom_data_t* doom)
 void AM_Ticker (doom_data_t* doom)
 {
 
-    if (!automapactive)
+    if (!doom->automapactive)
 	return;
 
     doom->amclock++;
@@ -1240,7 +1238,7 @@ static void AM_drawCrosshair(doom_data_t* doom, int color)
 
 void AM_Drawer (doom_data_t* doom)
 {
-    if (!automapactive) return;
+    if (!doom->automapactive) return;
 
     AM_clearFB(doom, BACKGROUND);
     if (doom->grid)

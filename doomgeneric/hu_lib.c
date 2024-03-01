@@ -30,8 +30,6 @@
 // boolean : whether the screen is always erased
 #define noterased viewwindowx
 
-extern boolean	automapactive;	// in AM_map.c
-
 void HUlib_init(void)
 {
 }
@@ -133,7 +131,7 @@ HUlib_drawTextLine
 
 
 // sorta called by HU_Erase and just better darn get things straight
-void HUlib_eraseTextLine(hu_textline_t* l)
+void HUlib_eraseTextLine(doom_data_t* doom, hu_textline_t* l)
 {
     int			lh;
     int			y;
@@ -143,7 +141,7 @@ void HUlib_eraseTextLine(hu_textline_t* l)
     // and the text must either need updating or refreshing
     // (because of a recent change back from the automap)
 
-    if (!automapactive &&
+    if (!doom->automapactive &&
 	viewwindowx && l->needsupdate)
     {
 	lh = SHORT(l->f[0]->height) + 1;
@@ -242,7 +240,7 @@ void HUlib_drawSText(hu_stext_t* s)
 
 }
 
-void HUlib_eraseSText(hu_stext_t* s)
+void HUlib_eraseSText(doom_data_t* doom, hu_stext_t* s)
 {
 
     int i;
@@ -251,7 +249,7 @@ void HUlib_eraseSText(hu_stext_t* s)
     {
 	if (s->laston && !*s->on)
 	    s->l[i].needsupdate = 4;
-	HUlib_eraseTextLine(&s->l[i]);
+	HUlib_eraseTextLine(doom, &s->l[i]);
     }
     s->laston = *s->on;
 
@@ -336,11 +334,11 @@ void HUlib_drawIText(hu_itext_t* it)
 
 }
 
-void HUlib_eraseIText(hu_itext_t* it)
+void HUlib_eraseIText(doom_data_t* doom, hu_itext_t* it)
 {
     if (it->laston && !*it->on)
 	it->l.needsupdate = 4;
-    HUlib_eraseTextLine(&it->l);
+    HUlib_eraseTextLine(doom, &it->l);
     it->laston = *it->on;
 }
 
