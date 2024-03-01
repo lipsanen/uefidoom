@@ -130,6 +130,7 @@ static void handleKeyInput(){
 }
 
 static bool mouse_active = false;
+static doom_data_t doom;
 
 void HandleMouse()
 {
@@ -148,7 +149,7 @@ void HandleMouse()
       d_memset(&event, 0, sizeof(event_t));
       event.type = ev_mouse;
       event.data2 = x;
-      D_PostEvent(&event);
+      D_PostEvent(&doom, &event);
   }
 }
 
@@ -167,7 +168,6 @@ int d_putchar(int c) { return putchar(c); }
 
 int main(int argc, char **argv)
 {
-  doom_data_t doom;
   doomdata_init(&doom);
   window = SDL_CreateWindow("DOOM",
                             SDL_WINDOWPOS_UNDEFINED,

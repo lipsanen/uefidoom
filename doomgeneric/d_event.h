@@ -22,6 +22,7 @@
 
 
 #include "doomtype.h"
+#include "doomdef.h"
 
 
 //
@@ -126,11 +127,11 @@ typedef enum
 
 
 // Called by IO functions when input is detected.
-void D_PostEvent (event_t *ev);
+void D_PostEvent (doom_data_t* doom, event_t *ev);
 
 // Read an event from the event queue
 
-event_t *D_PopEvent(void);
+event_t *D_PopEvent(doom_data_t* doom);
 
 
 #endif

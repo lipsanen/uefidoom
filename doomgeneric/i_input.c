@@ -269,7 +269,7 @@ static void UpdateShiftStatus(int pressed, unsigned char key)
 }
 
 
-void I_GetEvent(void)
+void I_GetEvent(doom_data_t* doom)
 {
     event_t event;
     int pressed;
@@ -292,7 +292,7 @@ void I_GetEvent(void)
 
             if (event.data1 != 0)
             {
-                D_PostEvent(&event);
+                D_PostEvent(doom, &event);
             }
         }
         else
@@ -310,7 +310,7 @@ void I_GetEvent(void)
 
             if (event.data1 != 0)
             {
-                D_PostEvent(&event);
+                D_PostEvent(doom, &event);
             }
             break;
         }

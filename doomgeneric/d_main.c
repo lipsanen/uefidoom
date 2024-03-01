@@ -138,7 +138,7 @@ void D_ProcessEvents (doom_data_t* data)
     if (storedemo)
         return;
 	
-    while ((ev = D_PopEvent()) != NULL)
+    while ((ev = D_PopEvent(data)) != NULL)
     {
 	if (M_Responder (data, ev))
 	    continue;               // menu ate the event

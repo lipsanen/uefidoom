@@ -32,7 +32,7 @@ static int eventtail;
 // D_PostEvent
 // Called by the I/O functions when input is detected
 //
-void D_PostEvent (event_t* ev)
+void D_PostEvent (doom_data_t* doom, event_t* ev)
 {
     events[eventhead] = *ev;
     eventhead = (eventhead + 1) % MAXEVENTS;
@@ -40,7 +40,7 @@ void D_PostEvent (event_t* ev)
 
 // Read an event from the queue.
 
-event_t *D_PopEvent(void)
+event_t *D_PopEvent(doom_data_t* doom)
 {
     event_t *result;
 
