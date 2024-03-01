@@ -39,13 +39,6 @@
 #include "net_defs.h"
 
 
-// -----------------------------------------------------
-// Game Mode - identify IWAD as shareware, retail etc.
-//
-extern GameMode_t	gamemode;
-extern GameMission_t	gamemission;
-extern GameVersion_t    gameversion;
-extern char            *gamedescription;
 
 // Convenience macro.
 // 'gamemission' can be equal to pack_chex or pack_hacx, but these are
@@ -53,11 +46,8 @@ extern char            *gamedescription;
 // as the same most of the time.
 
 #define logical_gamemission                             \
-    (gamemission == pack_chex ? doom1 :                  \
-     gamemission == pack_hacx ? doom2 : gamemission)
-
-// Set if homebrew PWAD stuff has been added.
-extern  boolean	modifiedgame;
+    (doom->gamemission == pack_chex ? doom1 :                  \
+     doom->gamemission == pack_hacx ? doom2 : doom->gamemission)
 
 
 // -------------------------------------------

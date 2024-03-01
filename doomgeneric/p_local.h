@@ -281,7 +281,8 @@ extern int		clipammo[NUMAMMO];
 
 void
 P_TouchSpecialThing
-( mobj_t*	special,
+( struct doom_data_t_* doom,
+  mobj_t*	special,
   mobj_t*	toucher );
 
 void

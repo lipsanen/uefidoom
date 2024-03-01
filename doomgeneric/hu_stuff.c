@@ -304,7 +304,7 @@ void HU_Stop(void)
     headsupactive = false;
 }
 
-void HU_Start(void)
+void HU_Start(struct doom_data_t_* doom)
 {
 
     int		i;
@@ -353,7 +353,7 @@ void HU_Start(void)
     // Chex.exe always uses the episode 1 level title
     // eg. E2M1 gives the title for E1M1
 
-    if (gameversion == exe_chex)
+    if (doom->gameversion == exe_chex)
     {
         s = HU_TITLE_CHEX;
     }
@@ -397,7 +397,7 @@ void HU_Erase(doom_data_t* doom)
     HUlib_eraseTextLine(doom, &w_title);
 }
 
-void HU_Ticker(void)
+void HU_Ticker(struct doom_data_t_* doom)
 {
 
     int i, rc;
@@ -455,7 +455,7 @@ void HU_Ticker(void)
 			    message_nottobefuckedwith = true;
 			    message_on = true;
 			    message_counter = HU_MSGTIMEOUT;
-			    if ( gamemode == commercial )
+			    if ( doom->gamemode == commercial )
 			      S_StartSound(0, sfx_radio);
 			    else
 			      S_StartSound(0, sfx_tink);

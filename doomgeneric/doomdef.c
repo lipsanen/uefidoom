@@ -38,6 +38,11 @@ void doomdata_init(doom_data_t* doom) {
     doom->show_endoom = 1;
     doom->wipegamestate = GS_DEMOSCREEN;
     doom->oldgamestate = -1;
+
+    // Game Mode - identify IWAD as shareware, retail etc.
+    doom->gamemode = indetermined;
+    doom->gamemission = doom1;
+    doom->gameversion = exe_final2;
 }
 
 // Location for any defines turned variables.

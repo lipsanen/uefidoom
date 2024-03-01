@@ -433,7 +433,7 @@ void ST_refreshBackground(void)
 // Respond to keyboard input events,
 //  intercept cheats.
 boolean
-ST_Responder (event_t* ev)
+ST_Responder (doom_data_t* doom, event_t* ev)
 {
   int		i;
     
@@ -521,7 +521,7 @@ ST_Responder (event_t* ev)
         // in the Ultimate Doom executable so that it would work for
         // the Doom 1 music as well.
 
-	if (gamemode == commercial || gameversion < exe_ultimate)
+	if (doom->gamemode == commercial || doom->gameversion < exe_ultimate)
 	{
 	  musnum = mus_runnin + (buf[0]-'0')*10 + buf[1]-'0' - 1;
 	  
@@ -605,7 +605,7 @@ ST_Responder (event_t* ev)
       
       cht_GetParam(&cheat_clev, buf);
       
-      if (gamemode == commercial)
+      if (doom->gamemode == commercial)
       {
 	epsd = 1;
 	map = (buf[0] - '0')*10 + buf[1] - '0';
@@ -618,7 +618,7 @@ ST_Responder (event_t* ev)
 
       // Chex.exe always warps to episode 1.
 
-      if (gameversion == exe_chex)
+      if (doom->gameversion == exe_chex)
       {
         epsd = 1;
       }
@@ -631,21 +631,21 @@ ST_Responder (event_t* ev)
 	return false;
 
       // Ohmygod - this is not going to work.
-      if ((gamemode == retail)
+      if ((doom->gamemode == retail)
 	  && ((epsd > 4) || (map > 9)))
 	return false;
 
-      if ((gamemode == registered)
+      if ((doom->gamemode == registered)
 	  && ((epsd > 3) || (map > 9)))
 	return false;
 
-      if ((gamemode == shareware)
+      if ((doom->gamemode == shareware)
 	  && ((epsd > 1) || (map > 9)))
 	return false;
 
       // The source release has this check as map > 34. However, Vanilla
       // Doom allows IDCLEV up to MAP40 even though it normally crashes.
-      if ((gamemode == commercial)
+      if ((doom->gamemode == commercial)
 	&& (( epsd > 1) || (map > 40)))
 	return false;
 
@@ -930,7 +930,7 @@ void ST_Ticker (void)
 
 static int st_palette = 0;
 
-void ST_doPaletteStuff(void)
+void ST_doPaletteStuff(doom_data_t* doom)
 {
 
     int		palette;
@@ -980,7 +980,7 @@ void ST_doPaletteStuff(void)
     // as though the player is being covered in goo by an
     // attacking flemoid.
 
-    if (gameversion == exe_chex
+    if (doom->gameversion == exe_chex
      && palette >= STARTREDPALS && palette < STARTREDPALS + NUMREDPALS)
     {
         palette = RADIATIONPAL;
@@ -1056,7 +1056,7 @@ void ST_Drawer (doom_data_t* doom, boolean fullscreen, boolean refresh)
     st_firsttime = st_firsttime || refresh;
 
     // Do red-/gold-shifts from damage/items
-    ST_doPaletteStuff();
+    ST_doPaletteStuff(doom);
 
     // If just after ST_Start(), refresh all
     if (st_firsttime) ST_doRefresh();

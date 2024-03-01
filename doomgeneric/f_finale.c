@@ -129,7 +129,7 @@ void F_StartFinale (doom_data_t* doom)
 
         // Hack for Chex Quest
 
-        if (gameversion == exe_chex && screen->mission == doom1)
+        if (doom->gameversion == exe_chex && screen->mission == doom1)
         {
             screen->level = 5;
         }
@@ -172,7 +172,7 @@ void F_Ticker (doom_data_t* doom)
     size_t		i;
     
     // check for skipping
-    if ( (gamemode == commercial)
+    if ( (doom->gamemode == commercial)
       && ( finalecount > 50) )
     {
       // go on to the next level
@@ -198,7 +198,7 @@ void F_Ticker (doom_data_t* doom)
 	return;
     }
 	
-    if ( gamemode == commercial)
+    if ( doom->gamemode == commercial)
 	return;
 		
     if (finalestage == F_STAGE_TEXT
@@ -656,7 +656,7 @@ void F_BunnyScroll (void)
                 W_CacheLumpName (name,PU_CACHE));
 }
 
-static void F_ArtScreenDrawer(void)
+static void F_ArtScreenDrawer(struct doom_data_t_* doom)
 {
     char *lumpname;
     
@@ -669,7 +669,7 @@ static void F_ArtScreenDrawer(void)
         switch (gameepisode)
         {
             case 1:
-                if (gamemode == retail)
+                if (doom->gamemode == retail)
                 {
                     lumpname = "CREDIT";
                 }
@@ -697,7 +697,7 @@ static void F_ArtScreenDrawer(void)
 //
 // F_Drawer
 //
-void F_Drawer (void)
+void F_Drawer (struct doom_data_t_* doom)
 {
     switch (finalestage)
     {
@@ -708,7 +708,7 @@ void F_Drawer (void)
             F_TextWrite();
             break;
         case F_STAGE_ARTSCREEN:
-            F_ArtScreenDrawer();
+            F_ArtScreenDrawer(doom);
             break;
     }
 }

@@ -44,7 +44,7 @@ void S_Shutdown(doom_data_t* doom);
 //  determines music if any, changes music.
 //
 
-void S_Start(void);
+void S_Start(doom_data_t* doom);
 
 //
 // Start sound for thing at <origin>

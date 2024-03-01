@@ -42,6 +42,7 @@ extern fixed_t		sprtopscreen;
 extern fixed_t		pspritescale;
 extern fixed_t		pspriteiscale;
 
+struct doom_data_t_;
 
 void R_DrawMaskedColumn (column_t* column);
 
@@ -51,7 +52,7 @@ void R_SortVisSprites (void);
 void R_AddSprites (sector_t* sec);
 void R_AddPSprites (void);
 void R_DrawSprites (void);
-void R_InitSprites (char** namelist);
+void R_InitSprites (struct doom_data_t_* doom, char** namelist);
 void R_ClearSprites (void);
 void R_DrawMasked (void);
 

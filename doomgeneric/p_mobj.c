@@ -303,7 +303,7 @@ void P_ZMovement (doom_data_t* doom, mobj_t* mo)
         // So we need to check that this is either retail or commercial
         // (but not doom2)
 	
-	int correct_lost_soul_bounce = gameversion >= exe_ultimate;
+	int correct_lost_soul_bounce = doom->gameversion >= exe_ultimate;
 
 	if (correct_lost_soul_bounce && mo->flags & MF_SKULLFLY)
 	{
@@ -727,7 +727,7 @@ void P_SpawnPlayer (doom_data_t* doom, mapthing_t* mthing)
 	// wake up the status bar
 	ST_Start ();
 	// wake up the heads up text
-	HU_Start ();		
+	HU_Start (doom);		
     }
 }
 

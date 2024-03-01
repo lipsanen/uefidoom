@@ -1343,7 +1343,7 @@ static void saveg_write_glow_t(glow_t *str)
 // Write the header for a savegame
 //
 
-void P_WriteSaveGameHeader(char *description)
+void P_WriteSaveGameHeader(doom_data_t* doom, char *description)
 {
     char name[VERSIONSIZE]; 
     int i; 
@@ -1354,7 +1354,7 @@ void P_WriteSaveGameHeader(char *description)
         saveg_write8(0);
 
     d_memset(name, 0, sizeof(name));
-    d_snprintf(name, sizeof(name), "version %i", G_VanillaVersionCode());
+    d_snprintf(name, sizeof(name), "version %i", G_VanillaVersionCode(doom));
 
     for (i=0; i<VERSIONSIZE; ++i)
         saveg_write8(name[i]);
@@ -1375,7 +1375,7 @@ void P_WriteSaveGameHeader(char *description)
 // Read the header for a savegame
 //
 
-boolean P_ReadSaveGameHeader(void)
+boolean P_ReadSaveGameHeader(doom_data_t* doom)
 {
     int	 i; 
     byte a, b, c; 
@@ -1391,7 +1391,7 @@ boolean P_ReadSaveGameHeader(void)
         read_vcheck[i] = saveg_read8();
 
     d_memset(vcheck, 0, sizeof(vcheck));
-    d_snprintf(vcheck, sizeof(vcheck), "version %i", G_VanillaVersionCode());
+    d_snprintf(vcheck, sizeof(vcheck), "version %i", G_VanillaVersionCode(doom));
     if (d_strcmp(read_vcheck, vcheck) != 0)
 	return false;				// bad version 
 

@@ -349,7 +349,7 @@ void P_LoadThings (doom_data_t* doom, int lump)
 	spawn = true;
 
 	// Do not spawn cool, new monsters if !commercial
-	if (gamemode != commercial)
+	if (doom->gamemode != commercial)
 	{
 	    switch (SHORT(mt->type))
 	    {
@@ -764,7 +764,7 @@ P_SetupLevel
     players[consoleplayer].viewz = 1; 
 
     // Make sure all sounds are stopped before Z_FreeTags.
-    S_Start ();			
+    S_Start (doom);			
 
     Z_FreeTags (PU_LEVEL, PU_PURGELEVEL-1);
 
@@ -772,7 +772,7 @@ P_SetupLevel
     P_InitThinkers ();
 	   
     // find map name
-    if ( gamemode == commercial)
+    if ( doom->gamemode == commercial)
     {
 	if (map<10)
 	    d_snprintf(lumpname, 9, "map0%i", map);
@@ -846,9 +846,9 @@ P_SetupLevel
 //
 void P_Init (doom_data_t* doom)
 {
-    P_InitSwitchList ();
+    P_InitSwitchList (doom);
     P_InitPicAnims (doom);
-    R_InitSprites (sprnames);
+    R_InitSprites (doom, sprnames);
 }
 
 

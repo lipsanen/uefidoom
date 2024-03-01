@@ -270,6 +270,16 @@ struct doom_data_t_ {
     gamestate_t		oldgamestate;
     int	borderdrawcount;
     ticcmd_t *netcmds;
+
+    // Game Mode - identify IWAD as shareware, retail etc.
+    GameMode_t gamemode;
+    GameMission_t	gamemission;
+    GameVersion_t   gameversion;
+    char *gamedescription;
+
+    // Set if homebrew PWAD stuff has been added.
+    boolean	modifiedgame;
+
 };
 
 typedef struct doom_data_t_ doom_data_t;

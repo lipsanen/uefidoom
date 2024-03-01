@@ -44,11 +44,12 @@
 //
 
 void HU_Init(void);
-void HU_Start(void);
+void HU_Start(struct doom_data_t_* doom);
+struct doom_data_t_;
 
 boolean HU_Responder(event_t* ev);
 
-void HU_Ticker(void);
+void HU_Ticker(struct doom_data_t_* doom);
 void HU_Drawer(doom_data_t* doom);
 char HU_dequeueChatChar(void);
 void HU_Erase(doom_data_t* doom);

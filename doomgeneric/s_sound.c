@@ -199,7 +199,7 @@ static const int spmus[]=
     mus_e1m9,        // Tim          e4m9
 };
 
-void S_Start(void)
+void S_Start(doom_data_t* doom)
 {
     int cnum;
     int mnum;
@@ -217,7 +217,7 @@ void S_Start(void)
     // start new music for the level
     mus_paused = 0;
 
-    if (gamemode == commercial)
+    if (doom->gamemode == commercial)
     {
         mnum = mus_runnin + gamemap - 1;
     }

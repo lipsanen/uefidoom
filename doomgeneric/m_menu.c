@@ -199,7 +199,7 @@ void M_QuickSave(doom_data_t* doom);
 void M_QuickLoad(void);
 
 void M_DrawMainMenu(void);
-void M_DrawReadThis1(void);
+void M_DrawReadThis1(doom_data_t* doom);
 void M_DrawReadThis2(void);
 void M_DrawNewGame(void);
 void M_DrawEpisode(void);
@@ -738,7 +738,7 @@ void M_QuickLoad(void)
 // Read This Menus
 // Had a "quick hack to fix romero bug"
 //
-void M_DrawReadThis1(void)
+void M_DrawReadThis1(doom_data_t* doom)
 {
     char *lumpname = "CREDIT";
     int skullx = 330, skully = 175;
@@ -747,7 +747,7 @@ void M_DrawReadThis1(void)
     
     // Different versions of Doom 1.9 work differently
 
-    switch (gameversion)
+    switch (doom->gameversion)
     {
         case exe_doom_1_666:
         case exe_doom_1_7:
@@ -755,7 +755,7 @@ void M_DrawReadThis1(void)
         case exe_doom_1_9:
         case exe_hacx:
 
-            if (gamemode == commercial)
+            if (doom->gamemode == commercial)
             {
                 // Doom 2
 
@@ -913,7 +913,7 @@ void M_NewGame(doom_data_t* doom, int choice)
 	
     // Chex Quest disabled the episode select screen, as did Doom II.
 
-    if (gamemode == commercial || gameversion == exe_chex)
+    if (doom->gamemode == commercial || doom->gameversion == exe_chex)
 	M_SetupNextMenu(&NewDef);
     else
 	M_SetupNextMenu(&EpiDef);
@@ -953,7 +953,7 @@ void M_ChooseSkill(doom_data_t* doom, int choice)
 
 void M_Episode(doom_data_t* doom, int choice)
 {
-    if ( (gamemode == shareware)
+    if ( (doom->gamemode == shareware)
 	 && choice)
     {
 	M_StartMessage(DEH_String(SWSTRING),NULL,false);
@@ -962,7 +962,7 @@ void M_Episode(doom_data_t* doom, int choice)
     }
 
     // Yet another hack...
-    if ( (gamemode == registered)
+    if ( (doom->gamemode == registered)
 	 && (choice > 2))
     {
       d_printf(
@@ -1075,7 +1075,7 @@ void M_ReadThis2(doom_data_t* doom, int choice)
     // Doom 1.9 had two menus when playing Doom 1
     // All others had only one
 
-    if (gameversion <= exe_doom_1_9 && gamemode != commercial)
+    if (doom->gameversion <= exe_doom_1_9 && doom->gamemode != commercial)
     {
         choice = 0;
         M_SetupNextMenu(&ReadDef2);
@@ -1132,7 +1132,7 @@ void M_QuitResponse(doom_data_t* doom, int key)
 	return;
     if (!netgame)
     {
-	if (gamemode == commercial)
+	if (doom->gamemode == commercial)
 	    S_StartSound(NULL,quitsounds2[(doom->gametic>>2)&7]);
 	else
 	    S_StartSound(NULL,quitsounds[(doom->gametic>>2)&7]);
@@ -1634,7 +1634,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
         {
 	    M_StartControlPanel ();
 
-	    if ( gamemode == retail )
+	    if ( doom->gamemode == retail )
 	      currentMenu = &ReadDef2;
 	    else
 	      currentMenu = &ReadDef1;
@@ -2035,7 +2035,7 @@ void M_Ticker (void)
 //
 // M_Init
 //
-void M_Init (void)
+void M_Init (doom_data_t* doom)
 {
     currentMenu = &MainDef;
     menuactive = 0;
@@ -2052,7 +2052,7 @@ void M_Init (void)
     //  like HELP1/2, and four episodes.
 
   
-    switch ( gamemode )
+    switch ( doom->gamemode )
     {
       case commercial:
         // Commercial has no "read this" entry.
@@ -2076,7 +2076,7 @@ void M_Init (void)
     // three episodes; if we're emulating one of those then don't try
     // to show episode four. If we are, then do show episode four
     // (should crash if missing).
-    if (gameversion < exe_ultimate)
+    if (doom->gameversion < exe_ultimate)
     {
 	EpiDef.numitems--;
     }

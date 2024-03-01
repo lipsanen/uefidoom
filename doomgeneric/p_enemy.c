@@ -1602,9 +1602,9 @@ void A_Explode (doom_data_t* doom, mobj_t* thingy)
 // This behavior changed in v1.9, the most notable effect of which
 // was to break uac_dead.wad
 
-static boolean CheckBossEnd(mobjtype_t motype)
+static boolean CheckBossEnd(doom_data_t* doom, mobjtype_t motype)
 {
-    if (gameversion < exe_ultimate)
+    if (doom->gameversion < exe_ultimate)
     {
         if (gamemap != 8)
         {
@@ -1660,7 +1660,7 @@ void A_BossDeath (doom_data_t* doom, mobj_t* mo)
     line_t	junk;
     int		i;
 		
-    if ( gamemode == commercial)
+    if ( doom->gamemode == commercial)
     {
 	if (gamemap != 7)
 	    return;
@@ -1671,7 +1671,7 @@ void A_BossDeath (doom_data_t* doom, mobj_t* mo)
     }
     else
     {
-        if (!CheckBossEnd(mo->type))
+        if (!CheckBossEnd(doom, mo->type))
         {
             return;
         }
@@ -1703,7 +1703,7 @@ void A_BossDeath (doom_data_t* doom, mobj_t* mo)
     }
 	
     // victory!
-    if ( gamemode == commercial)
+    if ( doom->gamemode == commercial)
     {
 	if (gamemap == 7)
 	{
@@ -1998,7 +1998,7 @@ void A_PlayerScream (doom_data_t* doom, mobj_t* mo)
     // Default death sound.
     int		sound = sfx_pldeth;
 	
-    if ( (gamemode == commercial)
+    if ( (doom->gamemode == commercial)
 	&& 	(mo->health < -50))
     {
 	// IF THE PLAYER DIES

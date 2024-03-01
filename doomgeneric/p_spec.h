@@ -261,8 +261,9 @@ void
 P_ChangeSwitchTexture
 ( line_t*	line,
   int		useAgain );
-
-void P_InitSwitchList(void);
+  
+struct doom_data_t_;
+void P_InitSwitchList(struct doom_data_t_* doom);
 
 
 //

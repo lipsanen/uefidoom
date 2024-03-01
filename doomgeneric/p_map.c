@@ -361,7 +361,7 @@ boolean PIT_CheckThing (doom_data_t* doom, mobj_t* thing)
 	if (tmflags&MF_PICKUP)
 	{
 	    // can remove thing
-	    P_TouchSpecialThing (thing, tmthing);
+	    P_TouchSpecialThing (doom, thing, tmthing);
 	}
 	return !solid;
     }

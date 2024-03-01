@@ -92,9 +92,9 @@ R_InitBuffer
 void	R_InitTranslationTables (void);
 
 
-
+struct doom_data_t_;
 // Rendering function.
-void R_FillBackScreen (void);
+void R_FillBackScreen (struct doom_data_t_* doom);
 
 // If the view size is not full screen, draws a border around it.
 void R_DrawViewBorder (void);

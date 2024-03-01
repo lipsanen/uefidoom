@@ -97,7 +97,7 @@ button_t        buttonlist[MAXBUTTONS];
 // P_InitSwitchList
 // Only called at game initialization.
 //
-void P_InitSwitchList(void)
+void P_InitSwitchList(struct doom_data_t_* doom)
 {
     int		i;
     int		index;
@@ -105,10 +105,10 @@ void P_InitSwitchList(void)
 	
     episode = 1;
 
-    if (gamemode == registered || gamemode == retail)
+    if (doom->gamemode == registered || doom->gamemode == retail)
 	episode = 2;
     else
-	if ( gamemode == commercial )
+	if ( doom->gamemode == commercial )
 	    episode = 3;
 		
     for (index = 0,i = 0;i < MAXSWITCHES;i++)
@@ -425,7 +425,7 @@ P_UseSpecialLine
       case 51:
 	// Secret EXIT
 	P_ChangeSwitchTexture(line,0);
-	G_SecretExitLevel ();
+	G_SecretExitLevel (doom);
 	break;
 	
       case 55:

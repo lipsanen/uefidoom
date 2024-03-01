@@ -38,8 +38,8 @@ char *P_SaveGameFile(struct doom_data_t_* doom, int slot);
 
 // Savegame file header read/write functions
 
-boolean P_ReadSaveGameHeader(void);
-void P_WriteSaveGameHeader(char *description);
+boolean P_ReadSaveGameHeader(doom_data_t* doom);
+void P_WriteSaveGameHeader(doom_data_t* doom, char *description);
 
 // Savegame end-of-file read/write functions
 

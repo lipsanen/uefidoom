@@ -331,7 +331,8 @@ P_GivePower
 //
 void
 P_TouchSpecialThing
-( mobj_t*	special,
+( struct doom_data_t_* doom,
+  mobj_t*	special,
   mobj_t*	toucher )
 {
     player_t*	player;
@@ -403,7 +404,7 @@ P_TouchSpecialThing
 	break;
 	
       case SPR_MEGA:
-	if (gamemode != commercial)
+	if (doom->gamemode != commercial)
 	    return;
 	player->health = deh_megasphere_health;
 	player->mo->health = player->health;
@@ -731,7 +732,7 @@ P_KillMobj
 
     // In Chex Quest, monsters don't drop items.
 
-    if (gameversion == exe_chex)
+    if (doom->gameversion == exe_chex)
     {
         return;
     }

@@ -58,9 +58,9 @@ void G_TimeDemo (doom_data_t* doom, char* name);
 boolean G_CheckDemoStatus (doom_data_t* doom);
 
 void G_ExitLevel (void);
-void G_SecretExitLevel (void);
+void G_SecretExitLevel (doom_data_t* doom);
 
-void G_WorldDone (void);
+void G_WorldDone (doom_data_t* doom);
 
 // Read current data from inputs and build a player movement command.
 
@@ -72,7 +72,7 @@ boolean G_Responder (doom_data_t* data, event_t*	ev);
 void G_ScreenShot (void);
 
 void G_DrawMouseSpeedBox(void);
-int G_VanillaVersionCode(void);
+int G_VanillaVersionCode(doom_data_t* doom);
 
 extern int vanilla_savegame_limit;
 extern int vanilla_demo_limit;

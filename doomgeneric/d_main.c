@@ -180,7 +180,7 @@ void D_Display (struct doom_data_t_* doom)
 		break;
 
       case GS_INTERMISSION:
-		WI_Drawer ();
+		WI_Drawer (doom);
 		break;
 
       case GS_FINALE:
@@ -210,7 +210,7 @@ void D_Display (struct doom_data_t_* doom)
     if (gamestate == GS_LEVEL && doom->oldgamestate != GS_LEVEL)
     {
 		doom->viewactivestate = false;        // view was not active
-		R_FillBackScreen ();    // draw the pattern into the back screen
+		R_FillBackScreen (doom);    // draw the pattern into the back screen
     }
 
     // see if the border needs to be updated to the screen
@@ -444,7 +444,7 @@ void D_DoAdvanceDemo (doom_data_t* doom)
     // However! There is an alternate version of Final Doom that
     // includes a fixed executable.
 
-    if (gameversion == exe_ultimate || gameversion == exe_final)
+    if (doom->gameversion == exe_ultimate || doom->gameversion == exe_final)
       doom->demosequence = (doom->demosequence+1)%7;
     else
       doom->demosequence = (doom->demosequence+1)%6;
@@ -452,13 +452,13 @@ void D_DoAdvanceDemo (doom_data_t* doom)
     switch (doom->demosequence)
     {
       case 0:
-	if ( gamemode == commercial )
+	if ( doom->gamemode == commercial )
 	    doom->pagetic = TICRATE * 11;
 	else
 	    doom->pagetic = 170;
 	gamestate = GS_DEMOSCREEN;
 	doom->pagename = DEH_String("TITLEPIC");
-	if ( gamemode == commercial )
+	if ( doom->gamemode == commercial )
 	  S_StartMusic(mus_dm2ttl);
 	else
 	  S_StartMusic (mus_intro);
@@ -476,7 +476,7 @@ void D_DoAdvanceDemo (doom_data_t* doom)
 	break;
       case 4:
 	gamestate = GS_DEMOSCREEN;
-	if ( gamemode == commercial)
+	if ( doom->gamemode == commercial)
 	{
 	    doom->pagetic = TICRATE * 11;
 	    doom->pagename = DEH_String("TITLEPIC");
@@ -486,7 +486,7 @@ void D_DoAdvanceDemo (doom_data_t* doom)
 	{
 	    doom->pagetic = 200;
 
-	    if ( gamemode == retail )
+	    if ( doom->gamemode == retail )
 	      doom->pagename = DEH_String("CREDIT");
 	    else
 	      doom->pagename = DEH_String("HELP2");
@@ -564,7 +564,7 @@ static char *banners[] =
 // Otherwise, use the name given
 // 
 
-static char *GetGameName(char *gamename)
+static char *GetGameName(doom_data_t* doom, char *gamename)
 {
     size_t i;
     char *deh_sub;
@@ -586,7 +586,7 @@ static char *GetGameName(char *gamename)
 
             gamename_size = d_strlen(deh_sub) + 10;
             gamename = Z_Malloc(gamename_size, PU_STATIC, 0);
-            version = G_VanillaVersionCode();
+            version = G_VanillaVersionCode(doom);
             d_snprintf(gamename, gamename_size, deh_sub,
                        version / 100, version % 100);
 
@@ -607,7 +607,7 @@ static char *GetGameName(char *gamename)
     return gamename;
 }
 
-static void SetMissionForPackName(char *pack_name)
+static void SetMissionForPackName(doom_data_t* doom, char *pack_name)
 {
     int i;
     static const struct
@@ -624,7 +624,7 @@ static void SetMissionForPackName(char *pack_name)
     {
         if (!d_stricmp(pack_name, packs[i].name))
         {
-            gamemission = packs[i].mission;
+            doom->gamemission = packs[i].mission;
             return;
         }
     }
@@ -643,7 +643,7 @@ static void SetMissionForPackName(char *pack_name)
 // Find out what version of Doom is playing.
 //
 
-void D_IdentifyVersion(void)
+void D_IdentifyVersion(doom_data_t* doom)
 {
     // gamemission is set up by the D_FindIWAD function.  But if 
     // we specify '-iwad', we have to identify using 
@@ -651,7 +651,7 @@ void D_IdentifyVersion(void)
     // any known IWAD name, we may have a dilemma.  Try to 
     // identify by its contents.
 
-    if (gamemission == none)
+    if (doom->gamemission == none)
     {
         unsigned int i;
 
@@ -659,17 +659,17 @@ void D_IdentifyVersion(void)
         {
             if (!d_strnicmp(lumpinfo[i].name, "MAP01", 8))
             {
-                gamemission = doom2;
+                doom->gamemission = doom2;
                 break;
             } 
             else if (!d_strnicmp(lumpinfo[i].name, "E1M1", 8))
             {
-                gamemission = doom1;
+                doom->gamemission = doom1;
                 break;
             }
         }
 
-        if (gamemission == none)
+        if (doom->gamemission == none)
         {
             // Still no idea.  I don't think this is going to work.
 
@@ -687,15 +687,15 @@ void D_IdentifyVersion(void)
         {
             // Ultimate Doom
 
-            gamemode = retail;
+            doom->gamemode = retail;
         } 
         else if (W_CheckNumForName("E3M1") > 0)
         {
-            gamemode = registered;
+            doom->gamemode = registered;
         }
         else
         {
-            gamemode = shareware;
+            doom->gamemode = shareware;
         }
     }
     else
@@ -703,7 +703,7 @@ void D_IdentifyVersion(void)
         int p;
 
         // Doom 2 of some kind.
-        gamemode = commercial;
+        doom->gamemode = commercial;
 
         // We can manually override the gamemission that we got from the
         // IWAD detection code. This allows us to eg. play Plutonia 2
@@ -719,19 +719,19 @@ void D_IdentifyVersion(void)
         p = M_CheckParmWithArgs("-pack", 1);
         if (p > 0)
         {
-            SetMissionForPackName(myargv[p + 1]);
+            SetMissionForPackName(doom, myargv[p + 1]);
         }
     }
 }
 
 // Set the gamedescription string
 
-void D_SetGameDescription(void)
+void D_SetGameDescription(doom_data_t* doom)
 {
     boolean is_freedoom = W_CheckNumForName("FREEDOOM") >= 0,
             is_freedm = W_CheckNumForName("FREEDM") >= 0;
 
-    gamedescription = "Unknown";
+    doom->gamedescription = "Unknown";
 
     if (logical_gamemission == doom1)
     {
@@ -739,21 +739,21 @@ void D_SetGameDescription(void)
 
         if (is_freedoom)
         {
-            gamedescription = GetGameName("Freedoom: Phase 1");
+            doom->gamedescription = GetGameName(doom, "Freedoom: Phase 1");
         }
-        else if (gamemode == retail)
+        else if (doom->gamemode == retail)
         {
             // Ultimate Doom
 
-            gamedescription = GetGameName("The Ultimate DOOM");
+            doom->gamedescription = GetGameName(doom, "The Ultimate DOOM");
         }
-        else if (gamemode == registered)
+        else if (doom->gamemode == registered)
         {
-            gamedescription = GetGameName("DOOM Registered");
+            doom->gamedescription = GetGameName(doom, "DOOM Registered");
         }
-        else if (gamemode == shareware)
+        else if (doom->gamemode == shareware)
         {
-            gamedescription = GetGameName("DOOM Shareware");
+            doom->gamedescription = GetGameName(doom, "DOOM Shareware");
         }
     }
     else
@@ -764,24 +764,24 @@ void D_SetGameDescription(void)
         {
             if (is_freedm)
             {
-                gamedescription = GetGameName("FreeDM");
+                doom->gamedescription = GetGameName(doom, "FreeDM");
             }
             else
             {
-                gamedescription = GetGameName("Freedoom: Phase 2");
+                doom->gamedescription = GetGameName(doom, "Freedoom: Phase 2");
             }
         }
         else if (logical_gamemission == doom2)
         {
-            gamedescription = GetGameName("DOOM 2: Hell on Earth");
+            doom->gamedescription = GetGameName(doom, "DOOM 2: Hell on Earth");
         }
         else if (logical_gamemission == pack_plut)
         {
-            gamedescription = GetGameName("DOOM 2: Plutonia Experiment"); 
+            doom->gamedescription = GetGameName(doom, "DOOM 2: Plutonia Experiment"); 
         }
         else if (logical_gamemission == pack_tnt)
         {
-            gamedescription = GetGameName("DOOM 2: TNT - Evilution");
+            doom->gamedescription = GetGameName(doom, "DOOM 2: TNT - Evilution");
         }
     }
 }
@@ -869,7 +869,7 @@ static struct
 
 // Initialize the game version
 
-static void InitGameVersion(void)
+static void InitGameVersion(doom_data_t* doom)
 {
     int p;
     int i;
@@ -890,7 +890,7 @@ static void InitGameVersion(void)
         {
             if (!d_strcmp(myargv[p+1], gameversions[i].cmdline))
             {
-                gameversion = gameversions[i].version;
+                doom->gameversion = gameversions[i].version;
                 break;
             }
         }
@@ -912,35 +912,35 @@ static void InitGameVersion(void)
     {
         // Determine automatically
 
-        if (gamemission == pack_chex)
+        if (doom->gamemission == pack_chex)
         {
             // chex.exe - identified by iwad filename
 
-            gameversion = exe_chex;
+            doom->gameversion = exe_chex;
         }
-        else if (gamemission == pack_hacx)
+        else if (doom->gamemission == pack_hacx)
         {
             // hacx.exe: identified by iwad filename
 
-            gameversion = exe_hacx;
+            doom->gameversion = exe_hacx;
         }
-        else if (gamemode == shareware || gamemode == registered)
+        else if (doom->gamemode == shareware || doom->gamemode == registered)
         {
             // original
 
-            gameversion = exe_doom_1_9;
+            doom->gameversion = exe_doom_1_9;
 
             // TODO: Detect IWADs earlier than Doom v1.9.
         }
-        else if (gamemode == retail)
+        else if (doom->gamemode == retail)
         {
-            gameversion = exe_ultimate;
+            doom->gameversion = exe_ultimate;
         }
-        else if (gamemode == commercial)
+        else if (doom->gamemode == commercial)
         {
-            if (gamemission == doom2)
+            if (doom->gamemission == doom2)
             {
-                gameversion = exe_doom_1_9;
+                doom->gameversion = exe_doom_1_9;
             }
             else
             {
@@ -950,34 +950,34 @@ static void InitGameVersion(void)
                 // this as the default should mean that it plays back
                 // most demos correctly.
 
-                gameversion = exe_final;
+                doom->gameversion = exe_final;
             }
         }
     }
     
     // The original exe does not support retail - 4th episode not supported
 
-    if (gameversion < exe_ultimate && gamemode == retail)
+    if (doom->gameversion < exe_ultimate && doom->gamemode == retail)
     {
-        gamemode = registered;
+        doom->gamemode = registered;
     }
 
     // EXEs prior to the Final Doom exes do not support Final Doom.
 
-    if (gameversion < exe_final && gamemode == commercial
-     && (gamemission == pack_tnt || gamemission == pack_plut))
+    if (doom->gameversion < exe_final && doom->gamemode == commercial
+     && (doom->gamemission == pack_tnt || doom->gamemission == pack_plut))
     {
-        gamemission = doom2;
+        doom->gamemission = doom2;
     }
 }
 
-void PrintGameVersion(void)
+void PrintGameVersion(doom_data_t* doom)
 {
     int i;
 
     for (i=0; gameversions[i].description != NULL; ++i)
     {
-        if (gameversions[i].version == gameversion)
+        if (gameversions[i].version == doom->gameversion)
         {
             d_printf("Emulating the behavior of the "
                    "'%s' executable.\n", gameversions[i].description);
@@ -1228,7 +1228,7 @@ void D_DoomMain (struct doom_data_t_* doom)
                 "specifying one with the '-iwad' command line parameter.\n");
     }
 
-    modifiedgame = false;
+    doom->modifiedgame = false;
 
     d_printf("W_Init: Init WADfiles.\n");
     D_AddFile((char*)doom->iwadfile);
@@ -1240,8 +1240,8 @@ void D_DoomMain (struct doom_data_t_* doom)
 
     // Now that we've loaded the IWAD, we can figure out what gamemission
     // we're playing and which version of Vanilla Doom we need to emulate.
-    D_IdentifyVersion();
-    InitGameVersion();
+    D_IdentifyVersion(doom);
+    InitGameVersion(doom);
 
 #if ORIGCODE
     //!
@@ -1306,7 +1306,7 @@ void D_DoomMain (struct doom_data_t_* doom)
 #endif
 
     // Load PWAD files.
-    modifiedgame = false;
+    doom->modifiedgame = false;
 
     // Debug:
 //    W_PrintDirectory();
@@ -1399,7 +1399,7 @@ void D_DoomMain (struct doom_data_t_* doom)
 
     // Set the gamedescription string. This is only possible now that
     // we've finished loading Dehacked patches.
-    D_SetGameDescription();
+    D_SetGameDescription(doom);
 
 #ifdef _WIN32
     // In -cdrom mode, we write savegames to c:\doomdata as well as configs.
@@ -1410,11 +1410,11 @@ void D_DoomMain (struct doom_data_t_* doom)
     else
 #endif
     {
-        doom->savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(gamemission));
+        doom->savegamedir = M_GetSaveGameDir(D_SaveGameIWADName(doom->gamemission));
     }
 
     // Check for -file in shareware
-    if (modifiedgame)
+    if (doom->modifiedgame)
     {
 	// These are the lumps that will be checked in IWAD,
 	// if any one is not present, execution will be aborted.
@@ -1426,13 +1426,13 @@ void D_DoomMain (struct doom_data_t_* doom)
 	};
 	int i;
 	
-	if ( gamemode == shareware)
+	if ( doom->gamemode == shareware)
 	    I_Error(DEH_String("\nYou cannot -file with the shareware "
 			       "version. Register!"));
 
 	// Check for fake IWAD with right name,
 	// but w/o all the lumps of the registered version. 
-	if (gamemode == registered)
+	if (doom->gamemode == registered)
 	    for (i = 0;i < 23; i++)
 		if (W_CheckNumForName(name[i])<0)
 		    I_Error(DEH_String("\nThis is not the registered version."));
@@ -1447,7 +1447,7 @@ void D_DoomMain (struct doom_data_t_* doom)
                " line option instead of '-file'.\n");
     }
 
-    I_PrintStartupBanner(gamedescription);
+    I_PrintStartupBanner(doom->gamedescription);
     PrintDehackedBanners();
 
     // Freedoom's IWADs are Boom-compatible, which means they usually
@@ -1556,7 +1556,7 @@ void D_DoomMain (struct doom_data_t_* doom)
 
     if (p)
     {
-        if (gamemode == commercial)
+        if (doom->gamemode == commercial)
             doom->startmap = d_atoi (myargv[p+1]);
         else
         {
@@ -1611,7 +1611,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     }
 
     d_printf("M_Init: Init miscellaneous info.\n");
-    M_Init ();
+    M_Init (doom);
 
     d_printf("R_Init: Init DOOM refresh daemon - ");
     R_Init ();
@@ -1625,7 +1625,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     d_printf("D_CheckNetGame: Checking network game status.\n");
     D_CheckNetGame (doom);
 
-    PrintGameVersion();
+    PrintGameVersion(doom);
 
     d_printf("HU_Init: Setting up heads up display.\n");
     HU_Init ();
@@ -1637,7 +1637,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     // Moved this here so that MAP01 isn't constantly looked up
     // in the main loop.
 
-    if (gamemode == commercial && W_CheckNumForName("map01") < 0)
+    if (doom->gamemode == commercial && W_CheckNumForName("map01") < 0)
         doom->storedemo = true;
 
     //!

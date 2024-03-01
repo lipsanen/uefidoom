@@ -142,7 +142,7 @@ static void SaveGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
     settings->map = doom->startmap;
     settings->skill = doom->startskill;
     settings->loadgame = doom->startloadgame;
-    settings->gameversion = gameversion;
+    settings->gameversion = doom->gameversion;
     settings->nomonsters = doom->nomonsters;
     settings->fast_monsters = doom->fastparm;
     settings->respawn_monsters = doom->respawnparm;
@@ -152,7 +152,7 @@ static void SaveGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
                          && M_CheckParm("-longtics") == 0;
 }
 
-static void InitConnectData(net_connect_data_t *connect_data)
+static void InitConnectData(doom_data_t* doom, net_connect_data_t *connect_data)
 {
     connect_data->max_players = MAXPLAYERS;
     connect_data->drone = false;
@@ -187,8 +187,8 @@ static void InitConnectData(net_connect_data_t *connect_data)
 
     // Game type fields:
 
-    connect_data->gamemode = gamemode;
-    connect_data->gamemission = gamemission;
+    connect_data->gamemode = doom->gamemode;
+    connect_data->gamemission = doom->gamemission;
 
     // Are we recording a demo? Possibly set lowres turn mode
 
@@ -212,7 +212,7 @@ void D_ConnectNetGame(struct doom_data_t_* doom)
 {
     net_connect_data_t connect_data;
 
-    InitConnectData(&connect_data);
+    InitConnectData(doom, &connect_data);
     netgame = D_InitNetGame(doom, &connect_data);
 
     //!

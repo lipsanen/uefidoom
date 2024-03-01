@@ -237,7 +237,7 @@ int G_CmdChecksum (ticcmd_t* cmd)
     return sum; 
 } 
 
-static boolean WeaponSelectable(weapontype_t weapon)
+static boolean WeaponSelectable(doom_data_t* doom, weapontype_t weapon)
 {
     // Can't select the super shotgun in Doom 1.
 
@@ -249,7 +249,7 @@ static boolean WeaponSelectable(weapontype_t weapon)
     // These weapons aren't available in shareware.
 
     if ((weapon == wp_plasma || weapon == wp_bfg)
-     && gamemission == doom1 && gamemode == shareware)
+     && doom->gamemission == doom1 && doom->gamemode == shareware)
     {
         return false;
     }
@@ -274,7 +274,7 @@ static boolean WeaponSelectable(weapontype_t weapon)
     return true;
 }
 
-static int G_NextWeapon(int direction)
+static int G_NextWeapon(doom_data_t* doom, int direction)
 {
     weapontype_t weapon;
     int start_i, i;
@@ -304,7 +304,7 @@ static int G_NextWeapon(int direction)
     {
         i += direction;
         i = (i + arrlen(weapon_order_table)) % arrlen(weapon_order_table);
-    } while (i != start_i && !WeaponSelectable(weapon_order_table[i].weapon));
+    } while (i != start_i && !WeaponSelectable(doom, weapon_order_table[i].weapon));
 
     return weapon_order_table[i].weapon_num;
 }
@@ -443,7 +443,7 @@ void G_BuildTiccmd (doom_data_t* doom, ticcmd_t* cmd, int maketic)
 
     if (gamestate == GS_LEVEL && next_weapon != 0)
     {
-        i = G_NextWeapon(next_weapon);
+        i = G_NextWeapon(doom, next_weapon);
         cmd->buttons |= BT_CHANGE;
         cmd->buttons |= i << BT_WEAPONSHIFT;
     }
@@ -610,8 +610,8 @@ void G_DoLoadLevel (doom_data_t* doom)
 
     // The "Sky never changes in Doom II" bug was fixed in
     // the id Anthology version of doom2.exe for Final Doom.
-    if ((gamemode == commercial)
-     && (gameversion == exe_final2 || gameversion == exe_chex))
+    if ((doom->gamemode == commercial)
+     && (doom->gameversion == exe_final2 || doom->gameversion == exe_chex))
     {
         char *skytexturename;
 
@@ -768,7 +768,7 @@ boolean G_Responder (doom_data_t* doom, event_t* ev)
 #endif 
 	if (HU_Responder (ev)) 
 	    return true;	// chat ate the event 
-	if (ST_Responder (ev)) 
+	if (ST_Responder (doom, ev)) 
 	    return true;	// status window ate it 
 	if (AM_Responder (doom, ev)) 
 	    return true;	// automap ate it 
@@ -992,7 +992,7 @@ void G_Ticker (doom_data_t* doom)
 
     if (oldgamestate == GS_INTERMISSION && gamestate != GS_INTERMISSION)
     {
-        WI_End();
+        WI_End(doom);
     }
 
     oldgamestate = gamestate;
@@ -1004,11 +1004,11 @@ void G_Ticker (doom_data_t* doom)
 	P_Ticker (); 
 	ST_Ticker (); 
 	AM_Ticker (doom); 
-	HU_Ticker ();            
+	HU_Ticker (doom);            
 	break; 
 	 
       case GS_INTERMISSION: 
-	WI_Ticker (); 
+	WI_Ticker (doom); 
 	break; 
 			 
       case GS_FINALE: 
@@ -1329,10 +1329,10 @@ void G_ExitLevel (void)
 } 
 
 // Here's for the german edition.
-void G_SecretExitLevel (void) 
+void G_SecretExitLevel (doom_data_t* doom) 
 { 
     // IF NO WOLF3D LEVELS, NO SECRET EXIT!
-    if ( (gamemode == commercial)
+    if ( (doom->gamemode == commercial)
       && (W_CheckNumForName("map31")<0))
 	secretexit = false;
     else
@@ -1353,11 +1353,11 @@ void G_DoCompleted (doom_data_t* doom)
     if (doom->automapactive) 
 	AM_Stop (doom); 
 	
-    if (gamemode != commercial)
+    if (doom->gamemode != commercial)
     {
         // Chex Quest ends after 5 levels, rather than 8.
 
-        if (gameversion == exe_chex)
+        if (doom->gameversion == exe_chex)
         {
             if (gamemap == 5)
             {
@@ -1382,7 +1382,7 @@ void G_DoCompleted (doom_data_t* doom)
 
 //#if 0  Hmmm - why?
     if ( (gamemap == 8)
-	 && (gamemode != commercial) ) 
+	 && (doom->gamemode != commercial) ) 
     {
 	// victory 
 	gameaction = ga_victory; 
@@ -1390,7 +1390,7 @@ void G_DoCompleted (doom_data_t* doom)
     } 
 	 
     if ( (gamemap == 9)
-	 && (gamemode != commercial) ) 
+	 && (doom->gamemode != commercial) ) 
     {
 	// exit secret level 
 	for (i=0 ; i<MAXPLAYERS ; i++) 
@@ -1404,7 +1404,7 @@ void G_DoCompleted (doom_data_t* doom)
     wminfo.last = gamemap -1;
     
     // wminfo.next is 0 biased, unlike gamemap
-    if ( gamemode == commercial)
+    if ( doom->gamemode == commercial)
     {
 	if (secretexit)
 	    switch(gamemap)
@@ -1455,7 +1455,7 @@ void G_DoCompleted (doom_data_t* doom)
     // Set par time. Doom episode 4 doesn't have a par time, so this
     // overflows into the cpars array. It's necessary to emulate this
     // for statcheck regression testing.
-    if (gamemode == commercial)
+    if (doom->gamemode == commercial)
 	wminfo.partime = TICRATE*cpars[gamemap-1];
     else if (gameepisode < 4)
 	wminfo.partime = TICRATE*pars[gameepisode][gamemap];
@@ -1481,21 +1481,21 @@ void G_DoCompleted (doom_data_t* doom)
 
     StatCopy(&wminfo);
  
-    WI_Start (&wminfo); 
+    WI_Start (doom, &wminfo); 
 } 
 
 
 //
 // G_WorldDone 
 //
-void G_WorldDone (void) 
+void G_WorldDone (doom_data_t* doom) 
 { 
     gameaction = ga_worlddone; 
 
     if (secretexit) 
 	players[consoleplayer].didsecret = true; 
 
-    if ( gamemode == commercial )
+    if ( doom->gamemode == commercial )
     {
 	switch (gamemap)
 	{
@@ -1557,7 +1557,7 @@ void G_DoLoadGame (doom_data_t* doom)
 
     savegame_error = false;
 
-    if (!P_ReadSaveGameHeader())
+    if (!P_ReadSaveGameHeader(doom))
     {
         d_fclose(save_stream);
         return;
@@ -1585,7 +1585,7 @@ void G_DoLoadGame (doom_data_t* doom)
     	R_ExecuteSetViewSize ();
     
     // draw the pattern into the back screen
-    R_FillBackScreen (); 
+    R_FillBackScreen (doom); 
 } 
  
 
@@ -1697,7 +1697,7 @@ G_InitNew
     if (skill > sk_nightmare)
 	skill = sk_nightmare;
 
-    if (gameversion >= exe_ultimate)
+    if (doom->gameversion >= exe_ultimate)
     {
         if (episode == 0)
         {
@@ -1716,7 +1716,7 @@ G_InitNew
         }
     }
 
-    if (episode > 1 && gamemode == shareware)
+    if (episode > 1 && doom->gamemode == shareware)
     {
         episode = 1;
     }
@@ -1725,7 +1725,7 @@ G_InitNew
 	map = 1;
 
     if ( (map > 9)
-	 && ( gamemode != commercial) )
+	 && ( doom->gamemode != commercial) )
       map = 9;
 
     M_ClearRandom ();
@@ -1777,7 +1777,7 @@ G_InitNew
     // restore from a saved game.  This was fixed before the Doom
     // source release, but this IS the way Vanilla DOS Doom behaves.
 
-    if (gamemode == commercial)
+    if (doom->gamemode == commercial)
     {
         if (gamemap < 12)
             skytexturename = "SKY1";
@@ -1963,9 +1963,9 @@ void G_RecordDemo (char *name)
 } 
 
 // Get the demo version code appropriate for the version set in gameversion.
-int G_VanillaVersionCode(void)
+int G_VanillaVersionCode(doom_data_t* doom)
 {
-    switch (gameversion)
+    switch (doom->gameversion)
     {
         case exe_doom_1_2:
             I_Error("Doom 1.2 does not have a version code!");
@@ -2007,7 +2007,7 @@ void G_BeginRecording (doom_data_t* doom)
     }
     else
     {
-        *demo_p++ = G_VanillaVersionCode();
+        *demo_p++ = G_VanillaVersionCode(doom);
     }
 
     *demo_p++ = gameskill; 
@@ -2086,7 +2086,7 @@ void G_DoPlayDemo (doom_data_t* doom)
 
     demoversion = *demo_p++;
 
-    if (demoversion == G_VanillaVersionCode())
+    if (demoversion == G_VanillaVersionCode(doom))
     {
         longtics = false;
     }
@@ -2107,7 +2107,7 @@ void G_DoPlayDemo (doom_data_t* doom)
                         "    This appears to be %s.";
 
         //I_Error(message, demoversion, G_VanillaVersionCode(),
-        d_printf(message, demoversion, G_VanillaVersionCode(),
+        d_printf(message, demoversion, G_VanillaVersionCode(doom),
                          DemoVersionDescription(demoversion));
     }
     

@@ -365,7 +365,7 @@ void AM_initVariables(doom_data_t* doom)
     doom->old_m_h = doom->m_h;
 
     // inform the status bar of the change
-    ST_Responder(&st_notify);
+    ST_Responder(doom, &st_notify);
 
 }
 
@@ -439,7 +439,7 @@ void AM_Stop (doom_data_t* doom)
 
     AM_unloadPics(doom);
     doom->automapactive = false;
-    ST_Responder(&st_notify);
+    ST_Responder(doom, &st_notify);
     doom->stopped = true;
 }
 

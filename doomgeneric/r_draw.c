@@ -809,7 +809,7 @@ R_InitBuffer
 //  for variable screen sizes
 // Also draws a beveled edge.
 //
-void R_FillBackScreen (void) 
+void R_FillBackScreen (struct doom_data_t_* doom) 
 { 
     byte*	src;
     byte*	dest; 
@@ -847,7 +847,7 @@ void R_FillBackScreen (void)
                                      PU_STATIC, NULL);
     }
 
-    if (gamemode == commercial)
+    if (doom->gamemode == commercial)
 	name = name2;
     else
 	name = name1;
