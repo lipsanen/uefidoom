@@ -17,6 +17,7 @@
 //
 
 #include "dlibc.h"
+#include "d_loop.h"
 #include <stddef.h>
 #include "doomfeatures.h"
 
@@ -39,94 +40,20 @@
 #include "net_sdl.h"
 #include "net_loop.h"
 
-// The complete set of data for a particular tic.
-
-typedef struct
-{
-    ticcmd_t cmds[NET_MAXPLAYERS];
-    boolean ingame[NET_MAXPLAYERS];
-} ticcmd_set_t;
-
-//
-// gametic is the tic about to (or currently being) run
-// maketic is the tic that hasn't had control made for it yet
-// recvtic is the latest tic received from the server.
-//
-// a gametic cannot be run until ticcmds are received for it
-// from all players.
-//
-
-static ticcmd_set_t ticdata[BACKUPTICS];
-
-// The index of the next tic to be made (with a call to BuildTiccmd).
-
-static int maketic;
-
-// The number of complete tics received from the server so far.
-
-static int recvtic;
-
-// The number of tics that have been run (using RunTic) so far.
-
-int gametic;
-
-// When set to true, a single tic is run each time TryRunTics() is called.
-// This is used for -timedemo mode.
-
-boolean singletics = false;
-
-// Index of the local player.
-
-static int localplayer;
-
-// Used for original sync code.
-
-static int      skiptics = 0;
-
-// Reduce the bandwidth needed by sampling game input less and transmitting
-// less.  If ticdup is 2, sample half normal, 3 = one third normal, etc.
-
-int		ticdup;
-
-// Amount to offset the timer for game sync.
-
-fixed_t         offsetms;
-
-// Use new client syncronisation code
-
-static boolean  new_sync = true;
-
-// Callback functions for loop code.
-
-static loop_interface_t *loop_interface = NULL;
-
-// Current players in the multiplayer game.
-// This is distinct from playeringame[] used by the game code, which may
-// modify playeringame[] when playing back multiplayer demos.
-
-static boolean local_playeringame[NET_MAXPLAYERS];
-
-// Requested player class "sent" to the server on connect.
-// If we are only doing a single player game then this needs to be remembered
-// and saved in the game settings.
-
-static int player_class;
-
-
 
 static boolean BuildNewTic(struct doom_data_t_* doom)
 {
     int	gameticdiv;
     ticcmd_t cmd;
 
-    gameticdiv = gametic/ticdup;
+    gameticdiv = doom->gametic/doom->ticdup;
 
     I_StartTic (doom);
-    loop_interface->ProcessEvents(doom);
+    doom->loop_interface->ProcessEvents(doom);
 
     // Always run the menu
 
-    loop_interface->RunMenu();
+    doom->loop_interface->RunMenu();
 
     if (drone)
     {
@@ -135,28 +62,28 @@ static boolean BuildNewTic(struct doom_data_t_* doom)
         return false;
     }
 
-    if (new_sync)
+    if (doom->new_sync)
     {
        // If playing single player, do not allow tics to buffer
        // up very far
 
-       if (!net_client_connected && maketic - gameticdiv > 2)
+       if (!net_client_connected && doom->maketic - gameticdiv > 2)
            return false;
 
        // Never go more than ~200ms ahead
 
-       if (maketic - gameticdiv > 8)
+       if (doom->maketic - gameticdiv > 8)
            return false;
     }
     else
     {
-       if (maketic - gameticdiv >= 5)
+       if (doom->maketic - gameticdiv >= 5)
            return false;
     }
 
     //d_printf ("mk:%i ",maketic);
     d_memset(&cmd, 0, sizeof(ticcmd_t));
-    loop_interface->BuildTiccmd(&cmd, maketic);
+    doom->loop_interface->BuildTiccmd(doom, &cmd, doom->maketic);
 
 #ifdef FEATURE_MULTIPLAYER
 
@@ -166,10 +93,10 @@ static boolean BuildNewTic(struct doom_data_t_* doom)
     }
 
 #endif
-    ticdata[maketic % BACKUPTICS].cmds[localplayer] = cmd;
-    ticdata[maketic % BACKUPTICS].ingame[localplayer] = true;
+    doom->ticdata[doom->maketic % BACKUPTICS].cmds[doom->localplayer] = cmd;
+    doom->ticdata[doom->maketic % BACKUPTICS].ingame[doom->localplayer] = true;
 
-    ++maketic;
+    ++doom->maketic;
 
     return true;
 }
@@ -204,7 +131,7 @@ static void D_Disconnected(void)
 // available.
 //
 
-void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
+void D_ReceiveTic(doom_data_t* doom, ticcmd_t *ticcmds, boolean *players_mask)
 {
     int i;
 
@@ -218,18 +145,18 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
 
     for (i = 0; i < NET_MAXPLAYERS; ++i)
     {
-        if (!drone && i == localplayer)
+        if (!drone && i == doom->localplayer)
         {
             // This is us.  Don't overwrite it.
         }
         else
         {
-            ticdata[recvtic % BACKUPTICS].cmds[i] = ticcmds[i];
-            ticdata[recvtic % BACKUPTICS].ingame[i] = players_mask[i];
+            doom->ticdata[doom->recvtic % BACKUPTICS].cmds[i] = ticcmds[i];
+            doom->ticdata[doom->recvtic % BACKUPTICS].ingame[i] = players_mask[i];
         }
     }
 
-    ++recvtic;
+    ++doom->recvtic;
 }
 
 //
@@ -242,21 +169,21 @@ void D_StartGameLoop(void)
 {
 }
 
-void D_StartNetGame(net_gamesettings_t *settings,
+void D_StartNetGame(doom_data_t* doom, net_gamesettings_t *settings,
                     netgame_startup_callback_t callback)
 {
     settings->consoleplayer = 0;
 	settings->num_players = 1;
-	settings->player_classes[0] = player_class;
+	settings->player_classes[0] = doom->player_class;
 	settings->new_sync = 0;
 	settings->extratics = 1;
 	settings->ticdup = 1;
 
-	ticdup = settings->ticdup;
-	new_sync = settings->new_sync;
+	doom->ticdup = settings->ticdup;
+	doom->new_sync = settings->new_sync;
 }
 
-boolean D_InitNetGame(net_connect_data_t *connect_data)
+boolean D_InitNetGame(doom_data_t* doom, net_connect_data_t *connect_data)
 {
     boolean result = false;
 #ifdef FEATURE_MULTIPLAYER
@@ -268,7 +195,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
     I_AtExit(D_QuitNetGame, true);
 
-    player_class = connect_data->player_class;
+    doom->player_class = connect_data->player_class;
 
 #ifdef FEATURE_MULTIPLAYER
 
@@ -372,11 +299,11 @@ void D_QuitNetGame (void)
 #endif
 }
 
-static int GetLowTic(void)
+static int GetLowTic(doom_data_t* doom)
 {
     int lowtic;
 
-    lowtic = maketic;
+    lowtic = doom->maketic;
 
 #ifdef FEATURE_MULTIPLAYER
     if (net_client_connected)
@@ -395,7 +322,7 @@ static int frameon;
 static int frameskip[4];
 static int oldnettics;
 
-static void OldNetSync(void)
+static void OldNetSync(doom_data_t* doom)
 {
     unsigned int i;
     int keyplayer = -1;
@@ -407,7 +334,7 @@ static void OldNetSync(void)
 
     for (i=0 ; i<NET_MAXPLAYERS ; i++)
     {
-        if (local_playeringame[i])
+        if (doom->local_playeringame[i])
         {
             keyplayer = i;
             break;
@@ -421,23 +348,23 @@ static void OldNetSync(void)
         return;
     }
 
-    if (localplayer == keyplayer)
+    if (doom->localplayer == keyplayer)
     {
         // the key player does not adapt
     }
     else
     {
-        if (maketic <= recvtic)
+        if (doom->maketic <= doom->recvtic)
         {
             // d_printf ("-");
         }
 
-        frameskip[frameon & 3] = oldnettics > recvtic;
-        oldnettics = maketic;
+        frameskip[frameon & 3] = oldnettics > doom->recvtic;
+        oldnettics = doom->maketic;
 
         if (frameskip[0] && frameskip[1] && frameskip[2] && frameskip[3])
         {
-            skiptics = 1;
+            doom->skiptics = 1;
             // d_printf ("+");
         }
     }
@@ -445,7 +372,7 @@ static void OldNetSync(void)
 
 // Returns true if there are players in the game:
 
-static boolean PlayersInGame(void)
+static boolean PlayersInGame(doom_data_t* doom)
 {
     boolean result = false;
     unsigned int i;
@@ -457,7 +384,7 @@ static boolean PlayersInGame(void)
     {
         for (i = 0; i < NET_MAXPLAYERS; ++i)
         {
-            result = result || local_playeringame[i];
+            result = result || doom->local_playeringame[i];
         }
     }
 
@@ -492,13 +419,13 @@ static void TicdupSquash(ticcmd_set_t *set)
 // When running in single player mode, clear all the ingame[] array
 // except the local player.
 
-static void SinglePlayerClear(ticcmd_set_t *set)
+static void SinglePlayerClear(doom_data_t* doom, ticcmd_set_t *set)
 {
     unsigned int i;
 
     for (i = 0; i < NET_MAXPLAYERS; ++i)
     {
-        if (i != localplayer)
+        if (i != doom->localplayer)
         {
             set->ingame[i] = false;
         }
@@ -517,25 +444,25 @@ void TryRunTics (struct doom_data_t_* doom)
     BuildNewTic(doom); 
     ticcmd_set_t *set;
 
-    if (!PlayersInGame())
+    if (!PlayersInGame(doom))
     {
         return;
     }
 
-    set = &ticdata[(gametic / ticdup) % BACKUPTICS];
+    set = &doom->ticdata[(doom->gametic / doom->ticdup) % BACKUPTICS];
 
     if (!net_client_connected)
     {
-        SinglePlayerClear(set);
+        SinglePlayerClear(doom, set);
     }
 
-	for (i=0 ; i<ticdup ; i++)
+	for (i=0 ; i<doom->ticdup ; i++)
 	{
 
-            d_memcpy(local_playeringame, set->ingame, sizeof(local_playeringame));
+            d_memcpy(doom->local_playeringame, set->ingame, sizeof(doom->local_playeringame));
 
-            loop_interface->RunTic(doom, set->cmds, set->ingame);
-	    gametic++;
+            doom->loop_interface->RunTic(doom, set->cmds, set->ingame);
+	    doom->gametic++;
 
 	    // modify command for duplicated tics
 
@@ -545,7 +472,7 @@ void TryRunTics (struct doom_data_t_* doom)
 	NetUpdate (doom);	// check for new console commands
 }
 
-void D_RegisterLoopCallbacks(loop_interface_t *i)
+void D_RegisterLoopCallbacks(doom_data_t* doom, loop_interface_t *i)
 {
-    loop_interface = i;
+    doom->loop_interface = i;
 }

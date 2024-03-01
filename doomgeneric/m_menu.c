@@ -138,7 +138,7 @@ typedef struct
     // choice = menu item #.
     // if status = 2,
     //   choice=0:leftarrow,1:rightarrow
-    void	(*routine)(int choice);
+    void	(*routine)(doom_data_t* doom, int choice);
     
     // hotkey in menu
     char	alphaKey;			
@@ -171,29 +171,29 @@ menu_t*	currentMenu;
 //
 // PROTOTYPES
 //
-void M_NewGame(int choice);
-void M_Episode(int choice);
-void M_ChooseSkill(int choice);
-void M_LoadGame(int choice);
-void M_SaveGame(int choice);
-void M_Options(int choice);
-void M_EndGame(int choice);
-void M_ReadThis(int choice);
-void M_ReadThis2(int choice);
-void M_QuitDOOM(int choice);
+void M_NewGame(doom_data_t* doom, int choice);
+void M_Episode(doom_data_t* doom, int choice);
+void M_ChooseSkill(doom_data_t* doom, int choice);
+void M_LoadGame(doom_data_t* doom, int choice);
+void M_SaveGame(doom_data_t* doom, int choice);
+void M_Options(doom_data_t* doom, int choice);
+void M_EndGame(doom_data_t* doom, int choice);
+void M_ReadThis(doom_data_t* doom, int choice);
+void M_ReadThis2(doom_data_t* doom, int choice);
+void M_QuitDOOM(doom_data_t* doom, int choice);
 
-void M_ChangeMessages(int choice);
-void M_ChangeSensitivity(int choice);
-void M_SfxVol(int choice);
-void M_MusicVol(int choice);
-void M_ChangeDetail(int choice);
-void M_SizeDisplay(int choice);
-void M_StartGame(int choice);
-void M_Sound(int choice);
+void M_ChangeMessages(doom_data_t* doom, int choice);
+void M_ChangeSensitivity(doom_data_t* doom, int choice);
+void M_SfxVol(doom_data_t* doom, int choice);
+void M_MusicVol(doom_data_t* doom, int choice);
+void M_ChangeDetail(doom_data_t* doom, int choice);
+void M_SizeDisplay(doom_data_t* doom, int choice);
+void M_StartGame(doom_data_t* doom, int choice);
+void M_Sound(doom_data_t* doom, int choice);
 
-void M_FinishReadThis(int choice);
-void M_LoadSelect(int choice);
-void M_SaveSelect(int choice);
+void M_FinishReadThis(doom_data_t* doom, int choice);
+void M_LoadSelect(doom_data_t* doom, int choice);
+void M_SaveSelect(doom_data_t* doom, int choice);
 void M_ReadSaveStrings(void);
 void M_QuickSave(void);
 void M_QuickLoad(void);
@@ -567,7 +567,7 @@ void M_DrawSaveLoadBorder(int x,int y)
 //
 // User wants to load this game
 //
-void M_LoadSelect(int choice)
+void M_LoadSelect(doom_data_t* doom, int choice)
 {
     char    name[256];
 	
@@ -580,7 +580,7 @@ void M_LoadSelect(int choice)
 //
 // Selected from DOOM menu
 //
-void M_LoadGame (int choice)
+void M_LoadGame (doom_data_t* doom, int choice)
 {
     if (netgame)
     {
@@ -630,7 +630,7 @@ void M_DoSave(int slot)
 //
 // User wants to save. Start string input for M_Responder
 //
-void M_SaveSelect(int choice)
+void M_SaveSelect(doom_data_t* doom, int choice)
 {
     // we are going to be intercepting all chars
     saveStringEnter = 1;
@@ -645,7 +645,7 @@ void M_SaveSelect(int choice)
 //
 // Selected from DOOM menu
 //
-void M_SaveGame (int choice)
+void M_SaveGame (doom_data_t* doom, int choice)
 {
     if (!usergame)
     {
@@ -704,11 +704,11 @@ void M_QuickSave(void)
 //
 // M_QuickLoad
 //
-void M_QuickLoadResponse(int key)
+void M_QuickLoadResponse(doom_data_t* doom, int key)
 {
     if (key == key_menu_confirm)
     {
-	M_LoadSelect(quickSaveSlot);
+	M_LoadSelect(doom, quickSaveSlot);
 	S_StartSound(NULL,sfx_swtchx);
     }
 }
@@ -840,12 +840,12 @@ void M_DrawSound(void)
 		 16,musicVolume);
 }
 
-void M_Sound(int choice)
+void M_Sound(doom_data_t* doom, int choice)
 {
     M_SetupNextMenu(&SoundDef);
 }
 
-void M_SfxVol(int choice)
+void M_SfxVol(doom_data_t* doom, int choice)
 {
     switch(choice)
     {
@@ -862,7 +862,7 @@ void M_SfxVol(int choice)
     S_SetSfxVolume(sfxVolume * 8);
 }
 
-void M_MusicVol(int choice)
+void M_MusicVol(doom_data_t* doom, int choice)
 {
     switch(choice)
     {
@@ -903,7 +903,7 @@ void M_DrawNewGame(void)
     V_DrawPatchDirect(54, 38, W_CacheLumpName(DEH_String("M_SKILL"), PU_CACHE));
 }
 
-void M_NewGame(int choice)
+void M_NewGame(doom_data_t* doom, int choice)
 {
     if (netgame && !demoplayback)
     {
@@ -939,7 +939,7 @@ void M_VerifyNightmare(int key)
     M_ClearMenus ();
 }
 
-void M_ChooseSkill(int choice)
+void M_ChooseSkill(doom_data_t* doom, int choice)
 {
     if (choice == nightmare)
     {
@@ -951,7 +951,7 @@ void M_ChooseSkill(int choice)
     M_ClearMenus ();
 }
 
-void M_Episode(int choice)
+void M_Episode(doom_data_t* doom, int choice)
 {
     if ( (gamemode == shareware)
 	 && choice)
@@ -1002,7 +1002,7 @@ void M_DrawOptions(void)
 		 9,screenSize);
 }
 
-void M_Options(int choice)
+void M_Options(doom_data_t* doom, int choice)
 {
     M_SetupNextMenu(&OptionsDef);
 }
@@ -1012,7 +1012,7 @@ void M_Options(int choice)
 //
 //      Toggle messages on/off
 //
-void M_ChangeMessages(int choice)
+void M_ChangeMessages(doom_data_t* doom, int choice)
 {
     // warning: unused parameter `int choice'
     choice = 0;
@@ -1040,7 +1040,7 @@ void M_EndGameResponse(int key)
     D_StartTitle ();
 }
 
-void M_EndGame(int choice)
+void M_EndGame(doom_data_t* doom, int choice)
 {
     choice = 0;
     if (!usergame)
@@ -1064,13 +1064,13 @@ void M_EndGame(int choice)
 //
 // M_ReadThis
 //
-void M_ReadThis(int choice)
+void M_ReadThis(doom_data_t* doom, int choice)
 {
     choice = 0;
     M_SetupNextMenu(&ReadDef1);
 }
 
-void M_ReadThis2(int choice)
+void M_ReadThis2(doom_data_t* doom, int choice)
 {
     // Doom 1.9 had two menus when playing Doom 1
     // All others had only one
@@ -1084,11 +1084,11 @@ void M_ReadThis2(int choice)
     {
         // Close the menu
 
-        M_FinishReadThis(0);
+        M_FinishReadThis(doom, 0);
     }
 }
 
-void M_FinishReadThis(int choice)
+void M_FinishReadThis(doom_data_t* doom, int choice)
 {
     choice = 0;
     M_SetupNextMenu(&MainDef);
@@ -1133,15 +1133,15 @@ void M_QuitResponse(doom_data_t* doom, int key)
     if (!netgame)
     {
 	if (gamemode == commercial)
-	    S_StartSound(NULL,quitsounds2[(gametic>>2)&7]);
+	    S_StartSound(NULL,quitsounds2[(doom->gametic>>2)&7]);
 	else
-	    S_StartSound(NULL,quitsounds[(gametic>>2)&7]);
+	    S_StartSound(NULL,quitsounds[(doom->gametic>>2)&7]);
     }
     I_Quit (doom);
 }
 
 
-static char *M_SelectEndMessage(void)
+static char *M_SelectEndMessage(doom_data_t* doom)
 {
     char **endmsg;
 
@@ -1158,14 +1158,14 @@ static char *M_SelectEndMessage(void)
         endmsg = doom2_endmsg;
     }
 
-    return endmsg[gametic % NUM_QUITMESSAGES];
+    return endmsg[doom->gametic % NUM_QUITMESSAGES];
 }
 
 
-void M_QuitDOOM(int choice)
+void M_QuitDOOM(doom_data_t* doom, int choice)
 {
     d_snprintf(endstring, sizeof(endstring), "%s\n\n" DOSY,
-                 DEH_String(M_SelectEndMessage()));
+                 DEH_String(M_SelectEndMessage(doom)));
 
     M_StartMessage(endstring,M_QuitResponse,true);
 }
@@ -1173,7 +1173,7 @@ void M_QuitDOOM(int choice)
 
 
 
-void M_ChangeSensitivity(int choice)
+void M_ChangeSensitivity(doom_data_t* doom, int choice)
 {
     switch(choice)
     {
@@ -1191,7 +1191,7 @@ void M_ChangeSensitivity(int choice)
 
 
 
-void M_ChangeDetail(int choice)
+void M_ChangeDetail(doom_data_t* doom, int choice)
 {
     choice = 0;
     detailLevel = 1 - detailLevel;
@@ -1207,7 +1207,7 @@ void M_ChangeDetail(int choice)
 
 
 
-void M_SizeDisplay(int choice)
+void M_SizeDisplay(doom_data_t* doom, int choice)
 {
     switch(choice)
     {
@@ -1449,7 +1449,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
         else
         {
             S_StartSound(NULL,sfx_swtchn);
-            M_QuitDOOM(0);
+            M_QuitDOOM(doom, 0);
         }
 
         return true;
@@ -1618,7 +1618,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
         {
 	    if (doom->automapactive || chat_on)
 		return false;
-	    M_SizeDisplay(0);
+	    M_SizeDisplay(doom, 0);
 	    S_StartSound(NULL,sfx_stnmov);
 	    return true;
 	}
@@ -1626,7 +1626,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
         {
 	    if (doom->automapactive || chat_on)
 		return false;
-	    M_SizeDisplay(1);
+	    M_SizeDisplay(doom, 1);
 	    S_StartSound(NULL,sfx_stnmov);
 	    return true;
 	}
@@ -1647,14 +1647,14 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
         {
 	    M_StartControlPanel();
 	    S_StartSound(NULL,sfx_swtchn);
-	    M_SaveGame(0);
+	    M_SaveGame(doom, 0);
 	    return true;
         }
         else if (key == key_menu_load)     // Load
         {
 	    M_StartControlPanel();
 	    S_StartSound(NULL,sfx_swtchn);
-	    M_LoadGame(0);
+	    M_LoadGame(doom, 0);
 	    return true;
         }
         else if (key == key_menu_volume)   // Sound Volume
@@ -1667,7 +1667,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 	}
         else if (key == key_menu_detail)   // Detail toggle
         {
-	    M_ChangeDetail(0);
+	    M_ChangeDetail(doom, 0);
 	    S_StartSound(NULL,sfx_swtchn);
 	    return true;
         }
@@ -1680,12 +1680,12 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
         else if (key == key_menu_endgame)  // End game
         {
 	    S_StartSound(NULL,sfx_swtchn);
-	    M_EndGame(0);
+	    M_EndGame(doom, 0);
 	    return true;
         }
         else if (key == key_menu_messages) // Toggle messages
         {
-	    M_ChangeMessages(0);
+	    M_ChangeMessages(doom, 0);
 	    S_StartSound(NULL,sfx_swtchn);
 	    return true;
         }
@@ -1698,7 +1698,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
         else if (key == key_menu_quit)     // Quit DOOM
         {
 	    S_StartSound(NULL,sfx_swtchn);
-	    M_QuitDOOM(0);
+	    M_QuitDOOM(doom, 0);
 	    return true;
         }
         else if (key == key_menu_gamma)    // gamma toggle
@@ -1762,7 +1762,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 	    currentMenu->menuitems[itemOn].status == 2)
 	{
 	    S_StartSound(NULL,sfx_stnmov);
-	    currentMenu->menuitems[itemOn].routine(0);
+	    currentMenu->menuitems[itemOn].routine(doom, 0);
 	}
 	return true;
     }
@@ -1774,7 +1774,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 	    currentMenu->menuitems[itemOn].status == 2)
 	{
 	    S_StartSound(NULL,sfx_stnmov);
-	    currentMenu->menuitems[itemOn].routine(1);
+	    currentMenu->menuitems[itemOn].routine(doom, 1);
 	}
 	return true;
     }
@@ -1788,12 +1788,12 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 	    currentMenu->lastOn = itemOn;
 	    if (currentMenu->menuitems[itemOn].status == 2)
 	    {
-		currentMenu->menuitems[itemOn].routine(1);      // right arrow
+		currentMenu->menuitems[itemOn].routine(doom, 1);      // right arrow
 		S_StartSound(NULL,sfx_stnmov);
 	    }
 	    else
 	    {
-		currentMenu->menuitems[itemOn].routine(itemOn);
+		currentMenu->menuitems[itemOn].routine(doom, itemOn);
 		S_StartSound(NULL,sfx_pistol);
 	    }
 	}

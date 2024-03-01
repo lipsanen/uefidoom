@@ -315,7 +315,7 @@ static int G_NextWeapon(int direction)
 // or reads it from the demo buffer. 
 // If recording a demo, write it out 
 // 
-void G_BuildTiccmd (ticcmd_t* cmd, int maketic) 
+void G_BuildTiccmd (doom_data_t* doom, ticcmd_t* cmd, int maketic) 
 { 
     int		i; 
     boolean	strafe;
@@ -349,7 +349,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
 	|| joyxmove > 0  
 	|| gamekeydown[key_right]
 	|| gamekeydown[key_left]) 
-	turnheld += ticdup; 
+	turnheld += doom->ticdup; 
     else 
 	turnheld = 0; 
 
@@ -494,7 +494,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         } 
         else 
         { 
-            dclicktime += ticdup; 
+            dclicktime += doom->ticdup; 
             if (dclicktime > 20) 
             { 
                 dclicks = 0; 
@@ -521,7 +521,7 @@ void G_BuildTiccmd (ticcmd_t* cmd, int maketic)
         } 
         else 
         { 
-            dclicktime2 += ticdup; 
+            dclicktime2 += doom->ticdup; 
             if (dclicktime2 > 20) 
             { 
                 dclicks2 = 0; 
@@ -633,7 +633,7 @@ void G_DoLoadLevel (doom_data_t* doom)
         skytexture = R_TextureNumForName(skytexturename);
     }
 
-    levelstarttic = gametic;        // for time calculation
+    levelstarttic = doom->gametic;        // for time calculation
     
     if (wipegamestate == GS_LEVEL) 
 	wipegamestate = -1;             // force a wipe 
@@ -899,7 +899,7 @@ void G_Ticker (doom_data_t* doom)
     
     // get commands, check consistancy,
     // and build new consistancy check
-    buf = (gametic/ticdup)%BACKUPTICS; 
+    buf = (doom->gametic/doom->ticdup)%BACKUPTICS; 
  
     for (i=0 ; i<MAXPLAYERS ; i++)
     {
@@ -927,8 +927,8 @@ void G_Ticker (doom_data_t* doom)
                 turbodetected[i] = true;
             }
 
-            if ((gametic & 31) == 0 
-             && ((gametic >> 5) % MAXPLAYERS) == i
+            if ((doom->gametic & 31) == 0 
+             && ((doom->gametic >> 5) % MAXPLAYERS) == i
              && turbodetected[i])
             {
                 static char turbomessage[80];
@@ -939,9 +939,9 @@ void G_Ticker (doom_data_t* doom)
                 turbodetected[i] = false;
             }
 
-	    if (netgame && !netdemo && !(gametic%ticdup) ) 
+	    if (netgame && !netdemo && !(doom->gametic%doom->ticdup) ) 
 	    { 
-		if (gametic > BACKUPTICS 
+		if (doom->gametic > BACKUPTICS 
 		    && consistancy[i][buf] != cmd->consistancy) 
 		{ 
 		    I_Error ("consistency failure (%i should be %i)",
@@ -2142,7 +2142,7 @@ void G_DoPlayDemo (doom_data_t* doom)
 //
 // G_TimeDemo 
 //
-void G_TimeDemo (char* name) 
+void G_TimeDemo (doom_data_t* doom, char* name) 
 {
     //!
     // @vanilla 
@@ -2153,7 +2153,7 @@ void G_TimeDemo (char* name)
     nodrawers = M_CheckParm ("-nodraw"); 
 
     timingdemo = true; 
-    singletics = true; 
+    doom->singletics = true; 
 
     defdemoname = name; 
     gameaction = ga_playdemo; 

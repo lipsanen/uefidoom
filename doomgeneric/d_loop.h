@@ -30,7 +30,7 @@ struct doom_data_t_;
 typedef boolean (*netgame_startup_callback_t)(int ready_players,
                                               int num_players);
 
-typedef struct
+typedef struct loop_interface_t_
 {
     // Read events from the event queue, and process them.
 
@@ -39,7 +39,7 @@ typedef struct
     // Given the current input state, fill in the fields of the specified
     // ticcmd_t structure with data for a new tic.
 
-    void (*BuildTiccmd)(ticcmd_t *cmd, int maketic);
+    void (*BuildTiccmd)(struct doom_data_t_* doom, ticcmd_t *cmd, int maketic);
 
     // Advance the game forward one tic, using the specified player input.
 
@@ -51,7 +51,7 @@ typedef struct
 } loop_interface_t;
 
 // Register callback functions for the main loop code to use.
-void D_RegisterLoopCallbacks(loop_interface_t *i);
+void D_RegisterLoopCallbacks(struct doom_data_t_* doom, loop_interface_t *i);
 
 // Create any new ticcmds and broadcast to other players.
 void NetUpdate (struct doom_data_t_* doom);
@@ -68,16 +68,13 @@ void D_StartGameLoop(void);
 
 // Initialize networking code and connect to server.
 
-boolean D_InitNetGame(net_connect_data_t *connect_data);
+boolean D_InitNetGame(struct doom_data_t_* doom, net_connect_data_t *connect_data);
 
 // Start game with specified settings. The structure will be updated
 // with the actual settings for the game.
 
-void D_StartNetGame(net_gamesettings_t *settings,
+void D_StartNetGame(struct doom_data_t_* doom, net_gamesettings_t *settings,
                     netgame_startup_callback_t callback);
-
-extern boolean singletics;
-extern int gametic, ticdup;
 
 #endif
 

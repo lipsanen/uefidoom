@@ -1010,7 +1010,7 @@ void A_Tracer (doom_data_t* doom, mobj_t* actor)
     mobj_t*	dest;
     mobj_t*	th;
 		
-    if (gametic & 3)
+    if (doom->gametic & 3)
 	return;
     
     // spawn a puff of smoke behind the rocket		

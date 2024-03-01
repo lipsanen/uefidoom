@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include "doomtype.h"
+#include "net_defs.h"
 #include "d_event.h"
 #include "m_cheat.h"
 #include "m_fixed.h"
@@ -60,6 +61,15 @@ typedef struct
 
 
 struct player_s;
+
+
+typedef struct
+{
+    ticcmd_t cmds[NET_MAXPLAYERS];
+    boolean ingame[NET_MAXPLAYERS];
+} ticcmd_set_t;
+
+struct loop_interface_t_;
 
 struct doom_data_t_ {
     int leveljuststarted; 	// kluge until AM_LevelInit() is called
@@ -132,6 +142,61 @@ struct doom_data_t_ {
     event_t events[MAXEVENTS];
     int eventhead;
     int eventtail;
+
+
+    // The complete set of data for a particular tic.
+
+    //
+    // gametic is the tic about to (or currently being) run
+    // maketic is the tic that hasn't had control made for it yet
+    // recvtic is the latest tic received from the server.
+    //
+    // a gametic cannot be run until ticcmds are received for it
+    // from all players.
+    //
+    ticcmd_set_t ticdata[BACKUPTICS];
+
+    // The index of the next tic to be made (with a call to BuildTiccmd).
+    int maketic;
+
+    // The number of complete tics received from the server so far.
+    int recvtic;
+
+    // The number of tics that have been run (using RunTic) so far.
+    int gametic;
+
+    // When set to true, a single tic is run each time TryRunTics() is called.
+    // This is used for -timedemo mode.
+    boolean singletics;
+
+    // Index of the local player.
+    int localplayer;
+
+    // Used for original sync code.
+    int      skiptics;
+
+    // Reduce the bandwidth needed by sampling game input less and transmitting
+    // less.  If ticdup is 2, sample half normal, 3 = one third normal, etc.
+    int		ticdup;
+
+    // Amount to offset the timer for game sync.
+    fixed_t         offsetms;
+
+    // Use new client syncronisation code
+    boolean  new_sync;
+
+    // Callback functions for loop code.
+    struct loop_interface_t_ *loop_interface;
+
+    // Current players in the multiplayer game.
+    // This is distinct from playeringame[] used by the game code, which may
+    // modify playeringame[] when playing back multiplayer demos.
+    boolean local_playeringame[NET_MAXPLAYERS];
+
+    // Requested player class "sent" to the server on connect.
+    // If we are only doing a single player game then this needs to be remembered
+    // and saved in the game settings.
+    int player_class;
 };
 
 typedef struct doom_data_t_ doom_data_t;

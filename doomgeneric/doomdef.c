@@ -33,6 +33,8 @@ void doomdata_init(doom_data_t* doom) {
     doom->followplayer = 1; // specifies whether to follow the player around
     doom->stopped = true;
     doom->scale_mtof = (fixed_t)INITSCALEMTOF;
+    doom->new_sync = true;
+    doom->ticdup = 1;
 }
 
 // Location for any defines turned variables.

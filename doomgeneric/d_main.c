@@ -121,9 +121,20 @@ char		mapdir[1024];           // directory of development maps
 
 int             show_endoom = 1;
 
+// D_Display
+//  draw current display, possibly wiping it from the previous
+//
 
-void D_ConnectNetGame(void);
-void D_CheckNetGame(void);
+// wipegamestate can be set to -1 to force a wipe on the next draw
+gamestate_t     wipegamestate = GS_DEMOSCREEN;
+extern  boolean setsizeneeded;
+extern  int             showMessages;
+void R_ExecuteSetViewSize (void);
+static boolean			wipe = false;
+
+
+void D_ConnectNetGame(doom_data_t* doom);
+void D_CheckNetGame(doom_data_t* doom);
 
 
 //
@@ -145,21 +156,6 @@ void D_ProcessEvents (doom_data_t* data)
 	G_Responder (data, ev);
     }
 }
-
-
-
-
-//
-// D_Display
-//  draw current display, possibly wiping it from the previous
-//
-
-// wipegamestate can be set to -1 to force a wipe on the next draw
-gamestate_t     wipegamestate = GS_DEMOSCREEN;
-extern  boolean setsizeneeded;
-extern  int             showMessages;
-void R_ExecuteSetViewSize (void);
-static boolean			wipe = false;
 
 static void Do_Wipe()
 {
@@ -218,14 +214,14 @@ void D_Display (struct doom_data_t_* doom)
     else
     	wipe = false;
 
-    if (gamestate == GS_LEVEL && gametic)
+    if (gamestate == GS_LEVEL && doom->gametic)
     	HU_Erase(doom);
     
     // do buffered drawing
     switch (gamestate)
     {
       case GS_LEVEL:
-		if (!gametic)
+		if (!doom->gametic)
 			break;
 		if (doom->automapactive)
 			AM_Drawer (doom);
@@ -254,10 +250,10 @@ void D_Display (struct doom_data_t_* doom)
     I_UpdateNoBlit ();
     
     // draw the view directly
-    if (gamestate == GS_LEVEL && !doom->automapactive && gametic)
+    if (gamestate == GS_LEVEL && !doom->automapactive && doom->gametic)
     	R_RenderPlayerView (doom, &players[displayplayer]);
 
-    if (gamestate == GS_LEVEL && gametic)
+    if (gamestate == GS_LEVEL && doom->gametic)
     	HU_Drawer (doom);
     
     // clean up border stuff
@@ -1544,7 +1540,7 @@ void D_DoomMain (struct doom_data_t_* doom)
 #endif
 
     // Initial netgame startup. Connect to server etc.
-    D_ConnectNetGame();
+    D_ConnectNetGame(doom);
 
     // get skill / episode / map from parms
     startskill = sk_medium;
@@ -1694,7 +1690,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     S_Init (sfxVolume * 8, musicVolume * 8);
 
     d_printf("D_CheckNetGame: Checking network game status.\n");
-    D_CheckNetGame ();
+    D_CheckNetGame (doom);
 
     PrintGameVersion();
 
@@ -1745,7 +1741,7 @@ void D_DoomMain (struct doom_data_t_* doom)
     p = M_CheckParmWithArgs("-timedemo", 1);
     if (p)
     {
-		G_TimeDemo (demolumpname);
+		G_TimeDemo (doom, demolumpname);
 		D_DoomLoop (doom);
         return;
     }

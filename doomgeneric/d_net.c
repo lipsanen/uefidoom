@@ -211,12 +211,12 @@ static void InitConnectData(net_connect_data_t *connect_data)
     connect_data->is_freedoom = W_CheckNumForName("FREEDOOM") >= 0;
 }
 
-void D_ConnectNetGame(void)
+void D_ConnectNetGame(struct doom_data_t_* doom)
 {
     net_connect_data_t connect_data;
 
     InitConnectData(&connect_data);
-    netgame = D_InitNetGame(&connect_data);
+    netgame = D_InitNetGame(doom, &connect_data);
 
     //!
     // @category net
@@ -236,7 +236,7 @@ void D_ConnectNetGame(void)
 // D_CheckNetGame
 // Works out player numbers among the net participants
 //
-void D_CheckNetGame (void)
+void D_CheckNetGame (struct doom_data_t_* doom)
 {
     net_gamesettings_t settings;
 
@@ -245,10 +245,10 @@ void D_CheckNetGame (void)
         autostart = true;
     }
 
-    D_RegisterLoopCallbacks(&doom_loop_interface);
+    D_RegisterLoopCallbacks(doom, &doom_loop_interface);
 
     SaveGameSettings(&settings);
-    D_StartNetGame(&settings, NULL);
+    D_StartNetGame(doom, &settings, NULL);
     LoadGameSettings(&settings);
 
     d_printf("startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
