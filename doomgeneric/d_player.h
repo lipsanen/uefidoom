@@ -165,7 +165,7 @@ typedef struct player_s
 // INTERMISSION
 // Structure passed e.g. to WI_Start(wb)
 //
-typedef struct
+typedef struct wbplayerstruct_s
 {
     boolean	in;	// whether the player is in game
     
@@ -179,7 +179,7 @@ typedef struct
   
 } wbplayerstruct_t;
 
-typedef struct
+typedef struct wbstartstruct_s
 {
     int		epsd;	// episode # (0-2)
 

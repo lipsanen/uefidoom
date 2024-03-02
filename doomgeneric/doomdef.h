@@ -32,7 +32,7 @@
 
 typedef struct
 {
-    fixed_t		x,y;
+    fixed_t x, y;
 } mpoint_t;
 
 typedef struct
@@ -55,13 +55,10 @@ typedef struct
     fixed_t slp, islp;
 } islope_t;
 
-
 #define AM_NUMMARKPOINTS 10
 #define MAXEVENTS 64
 
-
 struct player_s;
-
 
 typedef struct
 {
@@ -71,7 +68,7 @@ typedef struct
 
 // The current state of the game: whether we are
 // playing, gazing at the intermission screen,
-// the game final animation, or a demo. 
+// the game final animation, or a demo.
 typedef enum
 {
     GS_LEVEL,
@@ -80,21 +77,33 @@ typedef enum
     GS_DEMOSCREEN,
 } gamestate_t;
 
-
 struct loop_interface_t_;
 struct lumpinfo_s;
+struct wbplayerstruct_s;
+struct wbstartstruct_s;
 
-struct doom_data_t_ {
-    int leveljuststarted; 	// kluge until AM_LevelInit() is called
+// The maximum number of players, multiplayer/networking.
+#define MAXPLAYERS 4
+
+typedef enum
+{
+    NoState = -1,
+    StatCount,
+    ShowNextLoc,
+} stateenum_t;
+
+struct doom_data_t_
+{
+    int leveljuststarted; // kluge until AM_LevelInit() is called
     cheatseq_t cheat_amap;
     int cheating;
     mpoint_t m_paninc;
     patch_t *marknums[10];
-    byte*	fb; // pseudo-frame buffer
+    byte *fb; // pseudo-frame buffer
     uint8_t should_quit;
     mpoint_t markpoints[AM_NUMMARKPOINTS]; // where the points are
-    int markpointnum; // next point to be assigned
-    int followplayer; // specifies whether to follow the player around
+    int markpointnum;                      // next point to be assigned
+    int followplayer;                      // specifies whether to follow the player around
     boolean stopped;
     int grid;
     struct player_s *plr; // the player represented by an arrow
@@ -105,44 +114,43 @@ struct doom_data_t_ {
     fixed_t scale_ftom;
 
     // location of window on screen
-    int 	f_x;
-    int	f_y;
+    int f_x;
+    int f_y;
 
     // size of window on screen
-    int 	f_w;
-    int	f_h;
+    int f_w;
+    int f_h;
 
-    int 	lightlev; 		// used for funky strobing effect
-    int 	amclock;
+    int lightlev; // used for funky strobing effect
+    int amclock;
 
-    fixed_t 	mtof_zoommul; // how far the window zooms in each tic (map coords)
-    fixed_t 	ftom_zoommul; // how far the window zooms in each tic (fb coords)
+    fixed_t mtof_zoommul; // how far the window zooms in each tic (map coords)
+    fixed_t ftom_zoommul; // how far the window zooms in each tic (fb coords)
 
-    fixed_t 	m_x, m_y;   // LL x,y where the window is on the map (map coords)
-    fixed_t 	m_x2, m_y2; // UR x,y where the window is on the map (map coords)
+    fixed_t m_x, m_y;   // LL x,y where the window is on the map (map coords)
+    fixed_t m_x2, m_y2; // UR x,y where the window is on the map (map coords)
 
     //
     // width/height of window on map (map coords)
     //
     fixed_t m_w;
-    fixed_t	m_h;
+    fixed_t m_h;
 
     // based on level size
-    fixed_t 	min_x;
-    fixed_t	min_y; 
-    fixed_t 	max_x;
-    fixed_t  max_y;
+    fixed_t min_x;
+    fixed_t min_y;
+    fixed_t max_x;
+    fixed_t max_y;
 
-    fixed_t 	max_w; // max_x-min_x,
-    fixed_t  max_h; // max_y-min_y
+    fixed_t max_w; // max_x-min_x,
+    fixed_t max_h; // max_y-min_y
 
     // based on player size
-    fixed_t 	min_w;
-    fixed_t  min_h;
+    fixed_t min_w;
+    fixed_t min_h;
 
-
-    fixed_t 	min_scale_mtof; // used to tell when to stop zooming out
-    fixed_t 	max_scale_mtof; // used to tell when to stop zooming in
+    fixed_t min_scale_mtof; // used to tell when to stop zooming out
+    fixed_t max_scale_mtof; // used to tell when to stop zooming in
 
     // old stuff for recovery later
     fixed_t old_m_w, old_m_h;
@@ -155,7 +163,6 @@ struct doom_data_t_ {
     event_t events[MAXEVENTS];
     int eventhead;
     int eventtail;
-
 
     // The complete set of data for a particular tic.
 
@@ -186,17 +193,17 @@ struct doom_data_t_ {
     int localplayer;
 
     // Used for original sync code.
-    int      skiptics;
+    int skiptics;
 
     // Reduce the bandwidth needed by sampling game input less and transmitting
     // less.  If ticdup is 2, sample half normal, 3 = one third normal, etc.
-    int		ticdup;
+    int ticdup;
 
     // Amount to offset the timer for game sync.
-    fixed_t         offsetms;
+    fixed_t offsetms;
 
     // Use new client syncronisation code
-    boolean  new_sync;
+    boolean new_sync;
 
     // Callback functions for loop code.
     struct loop_interface_t_ *loop_interface;
@@ -219,67 +226,64 @@ struct doom_data_t_ {
 
     const char *iwadfile;
 
+    boolean devparm;     // started game with -devparm
+    boolean nomonsters;  // checkparm of -nomonsters
+    boolean respawnparm; // checkparm of -respawn
+    boolean fastparm;    // checkparm of -fast
 
-    boolean devparm;	// started game with -devparm
-    boolean nomonsters;	// checkparm of -nomonsters
-    boolean respawnparm;	// checkparm of -respawn
-    boolean fastparm;	// checkparm of -fast
+    skill_t startskill;
+    int startepisode;
+    int startmap;
+    boolean autostart;
+    int startloadgame;
 
-
-    skill_t		startskill;
-    int             startepisode;
-    int		startmap;
-    boolean		autostart;
-    int             startloadgame;
-
-    boolean		advancedemo;
+    boolean advancedemo;
 
     // Store demo, do not accept any inputs
-    boolean         storedemo;
+    boolean storedemo;
 
     // "BFG Edition" version of doom2.wad does not include TITLEPIC.
-    boolean         bfgedition;
+    boolean bfgedition;
 
     // If true, the main game loop has started.
-    boolean         main_loop_started;
+    boolean main_loop_started;
 
-    char		wadfile[1024];		// primary wad file
-    char		mapdir[1024];           // directory of development maps
+    char wadfile[1024]; // primary wad file
+    char mapdir[1024];  // directory of development maps
 
-    int             show_endoom;
+    int show_endoom;
 
     // D_Display
     //  draw current display, possibly wiping it from the previous
     //
 
     // wipegamestate can be set to -1 to force a wipe on the next draw
-    gamestate_t     wipegamestate;
-    boolean			wipe;
+    gamestate_t wipegamestate;
+    boolean wipe;
 
     //
     //  DEMO LOOP
     //
-    int             demosequence;
-    int             pagetic;
-    char                    *pagename;
+    int demosequence;
+    int pagetic;
+    char *pagename;
 
-
-    boolean		viewactivestate;
-    boolean		menuactivestate;
-    boolean		inhelpscreensstate;
-    boolean		fullscreen;
-    gamestate_t		oldgamestate;
-    int	borderdrawcount;
+    boolean viewactivestate;
+    boolean menuactivestate;
+    boolean inhelpscreensstate;
+    boolean fullscreen;
+    gamestate_t oldgamestate;
+    int borderdrawcount;
     ticcmd_t *netcmds;
 
     // Game Mode - identify IWAD as shareware, retail etc.
     GameMode_t gamemode;
-    GameMission_t	gamemission;
-    GameVersion_t   gameversion;
+    GameMission_t gamemission;
+    GameVersion_t gameversion;
     char *gamedescription;
 
     // Set if homebrew PWAD stuff has been added.
-    boolean	modifiedgame;
+    boolean modifiedgame;
 
     int st_palette;
 
@@ -295,7 +299,7 @@ struct doom_data_t_ {
 
     struct lumpinfo_s **lumphash;
 
-    uint32_t* DG_ScreenBuffer;
+    uint32_t *DG_ScreenBuffer;
 
     int myargc;
     char **myargv;
@@ -307,10 +311,103 @@ struct doom_data_t_ {
     int nexttic;
     int litelevelscnt;
     char exitmsg[80];
+
+    int acceleratestage;
+
+    // wbs->pnum
+    int me;
+
+    // specifies current state
+    stateenum_t state;
+
+    // contains information passed into intermission
+    struct wbstartstruct_s *wbs;
+
+    struct wbplayerstruct_s *plrs; // wbs->plyr[]
+
+    // used for general timing
+    int cnt;
+
+    // used for timing of background animation
+    int bcnt;
+
+    // signals to refresh everything for one frame
+    int firstrefresh;
+
+    int cnt_kills[MAXPLAYERS];
+    int cnt_items[MAXPLAYERS];
+    int cnt_secret[MAXPLAYERS];
+    int cnt_time;
+    int cnt_par;
+    int cnt_pause;
+
+    // # of commercial levels
+    int NUMCMAPS;
+
+    //
+    //	GRAPHICS
+    //
+
+    // You Are Here graphic
+    patch_t *yah[3];
+
+    // splat
+    patch_t *splat[2];
+
+    // %, : graphics
+    patch_t *percent;
+    patch_t *colon;
+
+    // 0-9 graphic
+    patch_t *num[10];
+
+    // minus sign
+    patch_t *wiminus;
+
+    // "Finished!" graphics
+    patch_t *finished;
+
+    // "Entering" graphic
+    patch_t *entering;
+
+    // "secret"
+    patch_t *sp_secret;
+
+    // "Kills", "Scrt", "Items", "Frags"
+    patch_t *kills;
+    patch_t *secret;
+    patch_t *items;
+    patch_t *frags;
+
+    // Time sucks.
+    patch_t *timepatch;
+    patch_t *par;
+    patch_t *sucks;
+
+    // "killers", "victims"
+    patch_t *killers;
+    patch_t *victims;
+
+    // "Total", your face, your dead face
+    patch_t *total;
+    patch_t *star;
+    patch_t *bstar;
+
+    // "red P[1..MAXPLAYERS]"
+    patch_t *p[MAXPLAYERS];
+
+    // "gray P[1..MAXPLAYERS]"
+    patch_t *bp[MAXPLAYERS];
+
+    // Name graphics of each level (centered)
+    patch_t **lnames;
+
+    // Buffer storing the backdrop
+    patch_t *background;
 };
 
 typedef struct doom_data_t_ doom_data_t;
-void doomdata_init(doom_data_t* doom);
+void doomdata_init(doom_data_t *doom);
 
 //
 // Global parameters/defines.
@@ -321,14 +418,9 @@ void doomdata_init(doom_data_t* doom);
 // Version code for cph's longtics hack ("v1.91")
 #define DOOM_191_VERSION 111
 
-
 // If rangecheck is undefined,
 // most parameter validation debugging code will not be compiled
 #define RANGECHECK
-
-// The maximum number of players, multiplayer/networking.
-#define MAXPLAYERS 4
-
 
 typedef enum
 {
@@ -349,13 +441,12 @@ typedef enum
 //
 
 // Skill flags.
-#define	MTF_EASY		1
-#define	MTF_NORMAL		2
-#define	MTF_HARD		4
+#define MTF_EASY 1
+#define MTF_NORMAL 2
+#define MTF_HARD 4
 
 // Deaf monsters/do not react to sound.
-#define	MTF_AMBUSH		8
-
+#define MTF_AMBUSH 8
 
 //
 // Key cards.
@@ -368,12 +459,10 @@ typedef enum
     it_blueskull,
     it_yellowskull,
     it_redskull,
-    
+
     NUMCARDS
-    
+
 } card_t;
-
-
 
 // The defined weapons,
 //  including a marker indicating
@@ -391,25 +480,23 @@ typedef enum
     wp_supershotgun,
 
     NUMWEAPONS,
-    
+
     // No pending weapon change.
     wp_nochange
 
 } weapontype_t;
 
-
 // Ammunition types defined.
 typedef enum
 {
-    am_clip,	// Pistol / chaingun ammo.
-    am_shell,	// Shotgun / double barreled shotgun.
-    am_cell,	// Plasma rifle, BFG.
-    am_misl,	// Missile launcher.
+    am_clip,  // Pistol / chaingun ammo.
+    am_shell, // Shotgun / double barreled shotgun.
+    am_cell,  // Plasma rifle, BFG.
+    am_misl,  // Missile launcher.
     NUMAMMO,
-    am_noammo	// Unlimited for chainsaw / fist.	
+    am_noammo // Unlimited for chainsaw / fist.
 
 } ammotype_t;
-
 
 // Power up artifacts.
 typedef enum
@@ -421,10 +508,8 @@ typedef enum
     pw_allmap,
     pw_infrared,
     NUMPOWERS
-    
+
 } powertype_t;
-
-
 
 //
 // Power up durations,
@@ -433,11 +518,11 @@ typedef enum
 //
 typedef enum
 {
-    INVULNTICS	= (30*TICRATE),
-    INVISTICS	= (60*TICRATE),
-    INFRATICS	= (120*TICRATE),
-    IRONTICS	= (60*TICRATE)
-    
+    INVULNTICS = (30 * TICRATE),
+    INVISTICS = (60 * TICRATE),
+    INFRATICS = (120 * TICRATE),
+    IRONTICS = (60 * TICRATE)
+
 } powerduration_t;
 
-#endif          // __DOOMDEF__
+#endif // __DOOMDEF__
