@@ -1000,7 +1000,7 @@ void G_Ticker (doom_data_t* doom)
     switch (gamestate) 
     { 
       case GS_LEVEL: 
-	P_Ticker (); 
+	P_Ticker (doom); 
 	ST_Ticker (); 
 	AM_Ticker (doom); 
 	HU_Ticker (doom);            

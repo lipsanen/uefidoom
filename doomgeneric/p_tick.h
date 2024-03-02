@@ -21,12 +21,12 @@
 #define __P_TICK__
 
 
-
+struct doom_data_t_;
 
 // Called by C_Ticker,
 // can call G_PlayerExited.
 // Carries out all thinking of monsters and players.
-void P_Ticker (void);
+void P_Ticker (struct doom_data_t_* doom);
 
 
 

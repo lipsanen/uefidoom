@@ -1547,7 +1547,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 
 	  default:
 
-            int ch = key;
+            int ch = d_toupper(key);
 
             if (ch != ' '
              && (ch - HU_FONTSTART < 0 || ch - HU_FONTSTART >= HU_FONTSIZE))
