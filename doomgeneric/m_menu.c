@@ -1412,7 +1412,6 @@ static boolean IsNullKey(int key)
 //
 boolean M_Responder (doom_data_t* doom, event_t* ev)
 {
-    int             ch;
     int             key;
     int             i;
     static  int     mousey = 0;
@@ -1456,8 +1455,7 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
     }
 
     // key is the key pressed, ch is the actual character typed
-  
-    ch = 0;
+
     key = -1;
 	
     if (ev->type == ev_joystick)
@@ -1515,7 +1513,6 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 	    if (ev->type == ev_keydown)
 	    {
 		key = ev->data1;
-		ch = ev->data2;
 	    }
 	}
     }
@@ -1549,19 +1546,8 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
 	    break;
 
 	  default:
-            // This is complicated.
-            // Vanilla has a bug where the shift key is ignored when entering
-            // a savegame name. If vanilla_keyboard_mapping is on, we want
-            // to emulate this bug by using 'data1'. But if it's turned off,
-            // it implies the user doesn't care about Vanilla emulation: just
-            // use the correct 'data2'.
 
-            if (vanilla_keyboard_mapping)
-            {
-                ch = key;
-            }
-
-            ch = d_toupper(ch);
+            int ch = key;
 
             if (ch != ' '
              && (ch - HU_FONTSTART < 0 || ch - HU_FONTSTART >= HU_FONTSIZE))
@@ -1826,26 +1812,21 @@ boolean M_Responder (doom_data_t* doom, event_t* ev)
     // Vanilla Doom has a weird behavior where it jumps to the scroll bars
     // when the certain keys are pressed, so emulate this.
 
-    else if (ch != 0 || IsNullKey(key))
+    else if (IsNullKey(key))
     {
-	for (i = itemOn+1;i < currentMenu->numitems;i++)
+        for (i = itemOn+1;i < currentMenu->numitems;i++)
         {
-	    if (currentMenu->menuitems[i].alphaKey == ch)
-	    {
-		itemOn = i;
-		S_StartSound(NULL,sfx_pstop);
-		return true;
-	    }
+
+            itemOn = i;
+            S_StartSound(NULL,sfx_pstop);
+            return true;
         }
 
-	for (i = 0;i <= itemOn;i++)
+        for (i = 0;i <= itemOn;i++)
         {
-	    if (currentMenu->menuitems[i].alphaKey == ch)
-	    {
-		itemOn = i;
-		S_StartSound(NULL,sfx_pstop);
-		return true;
-	    }
+            itemOn = i;
+            S_StartSound(NULL,sfx_pstop);
+            return true;
         }
     }
 

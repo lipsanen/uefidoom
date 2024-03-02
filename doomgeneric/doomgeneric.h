@@ -9,7 +9,6 @@ struct doom_data_t_;
 void doomgeneric_Res(uint32_t* width, uint32_t* height);
 void doomgeneric_Create(struct doom_data_t_* doom, int argc, char **argv);
 void doomgeneric_Tick(struct doom_data_t_* doom);
-void DG_AddKeyToQueue(int pressed, unsigned int keyCode);
 
 
 //Implement below functions for your platform

@@ -29,6 +29,14 @@ uint32_t DG_GetTicksMs()
 	return clock_msec();
 }
 
+static void AddKey(int pressed, unsigned int key)
+{
+	event_t event;
+	event.type = pressed ? ev_keydown : ev_keyup;
+    event.data1 = key;
+	D_PostEvent(&doom, &event);
+}
+
 static void pressDoomKey(uint8_t pressed, unsigned int key)
 {
 	if(mouse_detected && keyStateMap[key] == pressed) {
@@ -43,26 +51,26 @@ static void pressDoomKey(uint8_t pressed, unsigned int key)
 	{
 	case 1:
 	case 256: // Mouse 1
-		DG_AddKeyToQueue(pressed, KEY_UPARROW);
+		AddKey(pressed, KEY_UPARROW);
 		break;
 	case 2:
 	case 257: // Mouse 2
-		DG_AddKeyToQueue(pressed, KEY_DOWNARROW);
+		AddKey(pressed, KEY_DOWNARROW);
 		break;
 	case 3:
-		DG_AddKeyToQueue(pressed, KEY_RIGHTARROW);
+		AddKey(pressed, KEY_RIGHTARROW);
 		break;
 	case 4:
-		DG_AddKeyToQueue(pressed, KEY_LEFTARROW);
+		AddKey(pressed, KEY_LEFTARROW);
 		break;
 	case 9:
-		DG_AddKeyToQueue(pressed, KEY_FIRE);
+		AddKey(pressed, KEY_FIRE);
 		break;
 	case 13:
-		DG_AddKeyToQueue(pressed, KEY_ENTER);
+		AddKey(pressed, KEY_ENTER);
 		break;
 	case 32:
-		DG_AddKeyToQueue(pressed, KEY_USE);
+		AddKey(pressed, KEY_USE);
 		break;
 	default:
 		break;

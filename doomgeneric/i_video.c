@@ -78,8 +78,6 @@ struct color {
 
 static struct color colors[256];
 
-void I_GetEvent(doom_data_t* doom);
-
 // The screen buffer; this is modified to draw things to the screen
 
 byte *I_VideoBuffer = NULL;
@@ -258,9 +256,6 @@ void I_InitGraphics (void)
 	I_VideoBuffer = (byte*)Z_Malloc (SCREENWIDTH * SCREENHEIGHT, PU_STATIC, NULL);  // For DOOM to draw on
 
 	screenvisible = true;
-
-    extern void I_InitInput(void);
-    I_InitInput();
 }
 
 void I_ShutdownGraphics (void)
@@ -275,7 +270,6 @@ void I_StartFrame (void)
 
 void I_StartTic (doom_data_t* doom)
 {
-	I_GetEvent(doom);
 }
 
 void I_UpdateNoBlit (void)

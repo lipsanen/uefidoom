@@ -113,6 +113,8 @@ static unsigned char convertToDoomKey(unsigned int key){
   return key;
 }
 
+static doom_data_t doom;
+
 static void handleKeyInput(){
   SDL_Event e;
   while (SDL_PollEvent(&e)){
@@ -121,16 +123,20 @@ static void handleKeyInput(){
       atexit(SDL_Quit);
       exit(1);
     }
+    event_t event;
     if (e.type == SDL_KEYDOWN) {
-      DG_AddKeyToQueue(1, convertToDoomKey(e.key.keysym.sym));
+      event.type = ev_keydown;
+      event.data1 = convertToDoomKey(e.key.keysym.sym);
+      D_PostEvent(&doom, &event);
     } else if (e.type == SDL_KEYUP) {
-      DG_AddKeyToQueue(0, convertToDoomKey(e.key.keysym.sym));
+      event.type = ev_keyup;
+      event.data1 = convertToDoomKey(e.key.keysym.sym);
+      D_PostEvent(&doom, &event);
     }
   }
 }
 
 static bool mouse_active = false;
-static doom_data_t doom;
 
 void HandleMouse()
 {
