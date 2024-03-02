@@ -17,7 +17,6 @@
 //      Miscellaneous.
 //
 
-
 #include "dlibc.h"
 
 #include "doomtype.h"
@@ -65,13 +64,13 @@ boolean M_FileExists(char *filename)
 //
 
 long M_FileLength(FILE *handle)
-{ 
+{
     long savedpos;
     long length;
 
     // save the current position in the file
     savedpos = d_ftell(handle);
-    
+
     // jump to the end and find the length
     d_fseek(handle, 0, SEEK_END);
     length = d_ftell(handle);
@@ -89,22 +88,21 @@ long M_FileLength(FILE *handle)
 boolean M_WriteFile(char *name, void *source, int length)
 {
     FILE *handle;
-    int	count;
-	
+    int count;
+
     handle = d_fopen(name, "wb");
 
     if (handle == NULL)
-	return false;
+        return false;
 
     count = d_fwrite(source, 1, length, handle);
     d_fclose(handle);
-	
+
     if (count < length)
-	return false;
-		
+        return false;
+
     return true;
 }
-
 
 //
 // M_ReadFile
@@ -113,25 +111,25 @@ boolean M_WriteFile(char *name, void *source, int length)
 int M_ReadFile(char *name, byte **buffer)
 {
     FILE *handle;
-    int	count, length;
+    int count, length;
     byte *buf;
-	
+
     handle = d_fopen(name, "rb");
     if (handle == NULL)
-	I_Error ("Couldn't read file %s", name);
+        I_Error("Couldn't read file %s", name);
 
     // find the size of the file by seeking to the end and
     // reading the current position
 
     length = M_FileLength(handle);
-    
-    buf = Z_Malloc (length, PU_STATIC, NULL);
+
+    buf = Z_Malloc(length, PU_STATIC, NULL);
     count = d_fread(buf, 1, length, handle);
-    d_fclose (handle);
-	
+    d_fclose(handle);
+
     if (count < length)
-	I_Error ("Couldn't read file %s", name);
-		
+        I_Error("Couldn't read file %s", name);
+
     *buffer = buf;
     return length;
 }
@@ -148,10 +146,7 @@ char *M_TempFile(char *s)
 
 boolean M_StrToInt(const char *str, int *result)
 {
-    return d_sscanf(str, " 0x%x", result) == 1
-        || d_sscanf(str, " 0X%x", result) == 1
-        || d_sscanf(str, " 0%o", result) == 1
-        || d_sscanf(str, " %d", result) == 1;
+    return d_sscanf(str, " 0x%x", result) == 1 || d_sscanf(str, " 0X%x", result) == 1 || d_sscanf(str, " 0%o", result) == 1 || d_sscanf(str, " %d", result) == 1;
 }
 
 void M_ExtractFileBase(char *path, char *dest)
@@ -165,7 +160,7 @@ void M_ExtractFileBase(char *path, char *dest)
     // back up until a \ or the start
     while (src != path && *(src - 1) != DIR_SEPARATOR)
     {
-	src--;
+        src--;
     }
 
     filename = src;
@@ -183,11 +178,11 @@ void M_ExtractFileBase(char *path, char *dest)
         if (length >= 8)
         {
             d_printf("Warning: Truncated '%s' lump name to '%.8s'.\n",
-                   filename, dest);
+                     filename, dest);
             break;
         }
 
-	dest[length++] = d_toupper((int)*src++);
+        dest[length++] = d_toupper((int)*src++);
     }
 }
 
@@ -281,7 +276,8 @@ char *M_StringReplace(const char *haystack, const char *needle,
         return NULL;
     }
 
-    dst = result; dst_len = result_len;
+    dst = result;
+    dst_len = result_len;
     p = haystack;
 
     while (*p != '\0')
@@ -296,7 +292,8 @@ char *M_StringReplace(const char *haystack, const char *needle,
         else
         {
             *dst = *p;
-            ++dst; --dst_len;
+            ++dst;
+            --dst_len;
             ++p;
         }
     }
@@ -347,16 +344,14 @@ boolean M_StringConcat(char *dest, const char *src, size_t dest_size)
 
 boolean M_StringStartsWith(const char *s, const char *prefix)
 {
-    return d_strlen(s) > d_strlen(prefix)
-        && d_strncmp(s, prefix, d_strlen(prefix)) == 0;
+    return d_strlen(s) > d_strlen(prefix) && d_strncmp(s, prefix, d_strlen(prefix)) == 0;
 }
 
 // Returns true if 's' ends with the specified suffix.
 
 boolean M_StringEndsWith(const char *s, const char *suffix)
 {
-    return d_strlen(s) >= d_strlen(suffix)
-        && d_strcmp(s + d_strlen(s) - d_strlen(suffix), suffix) == 0;
+    return d_strlen(s) >= d_strlen(suffix) && d_strcmp(s + d_strlen(s) - d_strlen(suffix), suffix) == 0;
 }
 
 // Return a newly-malloced string with all the strings given as arguments

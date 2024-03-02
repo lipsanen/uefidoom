@@ -35,7 +35,6 @@
 #include <stdint.h>
 #include "printf.h"
 
-
 // define this globally (e.g. gcc -DPRINTF_INCLUDE_CONFIG_H ...) to include the
 // printf_config.h header file
 // default: undefined
@@ -43,50 +42,49 @@
 #include "printf_config.h"
 #endif
 
-
 // 'ntoa' conversion buffer size, this must be big enough to hold one converted
 // numeric number including padded zeros (dynamically created on stack)
 // default: 32 byte
 #ifndef PRINTF_NTOA_BUFFER_SIZE
-#define PRINTF_NTOA_BUFFER_SIZE    32U
+#define PRINTF_NTOA_BUFFER_SIZE 32U
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
 
 // internal flag definitions
-#define FLAGS_ZEROPAD   (1U <<  0U)
-#define FLAGS_LEFT      (1U <<  1U)
-#define FLAGS_PLUS      (1U <<  2U)
-#define FLAGS_SPACE     (1U <<  3U)
-#define FLAGS_HASH      (1U <<  4U)
-#define FLAGS_UPPERCASE (1U <<  5U)
-#define FLAGS_CHAR      (1U <<  6U)
-#define FLAGS_SHORT     (1U <<  7U)
-#define FLAGS_LONG      (1U <<  8U)
-#define FLAGS_LONG_LONG (1U <<  9U)
+#define FLAGS_ZEROPAD (1U << 0U)
+#define FLAGS_LEFT (1U << 1U)
+#define FLAGS_PLUS (1U << 2U)
+#define FLAGS_SPACE (1U << 3U)
+#define FLAGS_HASH (1U << 4U)
+#define FLAGS_UPPERCASE (1U << 5U)
+#define FLAGS_CHAR (1U << 6U)
+#define FLAGS_SHORT (1U << 7U)
+#define FLAGS_LONG (1U << 8U)
+#define FLAGS_LONG_LONG (1U << 9U)
 #define FLAGS_PRECISION (1U << 10U)
 #define FLAGS_ADAPT_EXP (1U << 11U)
 
-
 // output function type
-typedef int (*out_fct_type)(char character, void* user, size_t idx, size_t maxlen);
+typedef int (*out_fct_type)(char character, void *user, size_t idx, size_t maxlen);
 
 // wrapper (used as buffer) for output function type
-typedef struct {
-  int  (*fct)(char character, void* arg);
-  void* arg;
+typedef struct
+{
+  int (*fct)(char character, void *arg);
+  void *arg;
 } out_fct_wrap_type;
 
-
-static inline int output(char character, printf_data* data)
+static inline int output(char character, printf_data *data)
 {
-  if(data->idx >= data->maxlen)
+  if (data->idx >= data->maxlen)
   {
     return 0;
   }
 
   int ret = data->fct(character, data->user, data->idx, data->maxlen);
-  if(ret > 0) {
+  if (ret > 0)
+  {
     data->idx += ret;
   }
   return ret;
@@ -94,13 +92,13 @@ static inline int output(char character, printf_data* data)
 
 // internal secure strlen
 // \return The length of the string (excluding the terminating 0) limited by 'maxsize'
-static inline unsigned int _strnlen_s(const char* str, size_t maxsize)
+static inline unsigned int _strnlen_s(const char *str, size_t maxsize)
 {
-  const char* s;
-  for (s = str; *s && maxsize--; ++s);
+  const char *s;
+  for (s = str; *s && maxsize--; ++s)
+    ;
   return (unsigned int)(s - str);
 }
-
 
 // internal test if char is a digit (0-9)
 // \return true if char is a digit
@@ -109,44 +107,52 @@ static inline bool _is_digit(char ch)
   return (ch >= '0') && (ch <= '9');
 }
 
-
 // internal ASCII string to unsigned int conversion
-static unsigned int _atoi(const char** str)
+static unsigned int _atoi(const char **str)
 {
   unsigned int i = 0U;
-  while (_is_digit(**str)) {
+  while (_is_digit(**str))
+  {
     i = i * 10U + (unsigned int)(*((*str)++) - '0');
   }
   return i;
 }
 
 // output the specified string in reverse, taking care of any zero-padding
-static int _out_rev(printf_data* data, const char* buf, size_t len, unsigned int width, unsigned int flags)
+static int _out_rev(printf_data *data, const char *buf, size_t len, unsigned int width, unsigned int flags)
 {
   const size_t start_idx = data->idx;
   int ret;
 
-#define OUT_WITH_ERRORCHECK(c) ret = output(c, data); \
-  if(ret < 0) goto error; \
-  else if(ret == 0) goto end;
+#define OUT_WITH_ERRORCHECK(c) \
+  ret = output(c, data);       \
+  if (ret < 0)                 \
+    goto error;                \
+  else if (ret == 0)           \
+    goto end;
 
   // pad spaces up to given width
-  if (!(flags & FLAGS_LEFT) && !(flags & FLAGS_ZEROPAD)) {
-    for (size_t i = len; i < width; i++) {
+  if (!(flags & FLAGS_LEFT) && !(flags & FLAGS_ZEROPAD))
+  {
+    for (size_t i = len; i < width; i++)
+    {
       OUT_WITH_ERRORCHECK(' ');
     }
   }
 
   // reverse string
-  while (len) {
+  while (len)
+  {
     --len;
     OUT_WITH_ERRORCHECK(buf[len]);
   }
 
   // append pad spaces up to given width
-  if (flags & FLAGS_LEFT) {
-    while (data->idx - start_idx < width) {
-       OUT_WITH_ERRORCHECK(' ');
+  if (flags & FLAGS_LEFT)
+  {
+    while (data->idx - start_idx < width)
+    {
+      OUT_WITH_ERRORCHECK(' ');
     }
   }
 
@@ -156,53 +162,67 @@ error:
   return -1;
 }
 
-
 // internal itoa format
-static int _ntoa_format(printf_data* data, char* buf, size_t len, bool negative, unsigned int base, unsigned int prec, unsigned int width, unsigned int flags)
+static int _ntoa_format(printf_data *data, char *buf, size_t len, bool negative, unsigned int base, unsigned int prec, unsigned int width, unsigned int flags)
 {
   // pad leading zeros
-  if (!(flags & FLAGS_LEFT)) {
-    if (width && (flags & FLAGS_ZEROPAD) && (negative || (flags & (FLAGS_PLUS | FLAGS_SPACE)))) {
+  if (!(flags & FLAGS_LEFT))
+  {
+    if (width && (flags & FLAGS_ZEROPAD) && (negative || (flags & (FLAGS_PLUS | FLAGS_SPACE))))
+    {
       width--;
     }
-    while ((len < prec) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    while ((len < prec) && (len < PRINTF_NTOA_BUFFER_SIZE))
+    {
       buf[len++] = '0';
     }
-    while ((flags & FLAGS_ZEROPAD) && (len < width) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    while ((flags & FLAGS_ZEROPAD) && (len < width) && (len < PRINTF_NTOA_BUFFER_SIZE))
+    {
       buf[len++] = '0';
     }
   }
 
   // handle hash
-  if (flags & FLAGS_HASH) {
-    if (!(flags & FLAGS_PRECISION) && len && ((len == prec) || (len == width))) {
+  if (flags & FLAGS_HASH)
+  {
+    if (!(flags & FLAGS_PRECISION) && len && ((len == prec) || (len == width)))
+    {
       len--;
-      if (len && (base == 16U)) {
+      if (len && (base == 16U))
+      {
         len--;
       }
     }
-    if ((base == 16U) && !(flags & FLAGS_UPPERCASE) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    if ((base == 16U) && !(flags & FLAGS_UPPERCASE) && (len < PRINTF_NTOA_BUFFER_SIZE))
+    {
       buf[len++] = 'x';
     }
-    else if ((base == 16U) && (flags & FLAGS_UPPERCASE) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    else if ((base == 16U) && (flags & FLAGS_UPPERCASE) && (len < PRINTF_NTOA_BUFFER_SIZE))
+    {
       buf[len++] = 'X';
     }
-    else if ((base == 2U) && (len < PRINTF_NTOA_BUFFER_SIZE)) {
+    else if ((base == 2U) && (len < PRINTF_NTOA_BUFFER_SIZE))
+    {
       buf[len++] = 'b';
     }
-    if (len < PRINTF_NTOA_BUFFER_SIZE) {
+    if (len < PRINTF_NTOA_BUFFER_SIZE)
+    {
       buf[len++] = '0';
     }
   }
 
-  if (len < PRINTF_NTOA_BUFFER_SIZE) {
-    if (negative) {
+  if (len < PRINTF_NTOA_BUFFER_SIZE)
+  {
+    if (negative)
+    {
       buf[len++] = '-';
     }
-    else if (flags & FLAGS_PLUS) {
-      buf[len++] = '+';  // ignore the space if the '+' exists
+    else if (flags & FLAGS_PLUS)
+    {
+      buf[len++] = '+'; // ignore the space if the '+' exists
     }
-    else if (flags & FLAGS_SPACE) {
+    else if (flags & FLAGS_SPACE)
+    {
       buf[len++] = ' ';
     }
   }
@@ -210,21 +230,23 @@ static int _ntoa_format(printf_data* data, char* buf, size_t len, bool negative,
   return _out_rev(data, buf, len, width, flags);
 }
 
-
 // internal itoa for 'long' type
-static size_t _ntoa_long(printf_data* data, unsigned long value, bool negative, unsigned long base, unsigned int prec, unsigned int width, unsigned int flags)
+static size_t _ntoa_long(printf_data *data, unsigned long value, bool negative, unsigned long base, unsigned int prec, unsigned int width, unsigned int flags)
 {
   char buf[PRINTF_NTOA_BUFFER_SIZE];
   size_t len = 0U;
 
   // no hash for 0 values
-  if (!value) {
+  if (!value)
+  {
     flags &= ~FLAGS_HASH;
   }
 
   // write if precision != 0 and value is != 0
-  if (!(flags & FLAGS_PRECISION) || value) {
-    do {
+  if (!(flags & FLAGS_PRECISION) || value)
+  {
+    do
+    {
       const char digit = (char)(value % base);
       buf[len++] = digit < 10 ? '0' + digit : (flags & FLAGS_UPPERCASE ? 'A' : 'a') + digit - 10;
       value /= base;
@@ -234,58 +256,92 @@ static size_t _ntoa_long(printf_data* data, unsigned long value, bool negative, 
   return _ntoa_format(data, buf, len, negative, (unsigned int)base, prec, width, flags);
 }
 
-int func_printf(printf_data* data, const char* format, va_list va)
+int func_printf(printf_data *data, const char *format, va_list va)
 {
   unsigned int flags, width, precision, n;
   int ret;
 
-  if(data->maxlen == 0)
+  if (data->maxlen == 0)
   {
     data->maxlen = (size_t)-1;
   }
 
-#define ERROR_CHECK() if(ret < 0) goto end; else if(ret == 0) goto end;
+#define ERROR_CHECK() \
+  if (ret < 0)        \
+    goto end;         \
+  else if (ret == 0)  \
+    goto end;
 
   while (*format)
   {
     // format specifier?  %[flags][width][.precision][length]
-    if (*format != '%') {
+    if (*format != '%')
+    {
       // no
       ret = output(*format, data);
       ERROR_CHECK();
       format++;
       continue;
     }
-    else {
+    else
+    {
       // yes, evaluate it
       format++;
     }
 
     // evaluate flags
     flags = 0U;
-    do {
-      switch (*format) {
-        case '0': flags |= FLAGS_ZEROPAD; format++; n = 1U; break;
-        case '-': flags |= FLAGS_LEFT;    format++; n = 1U; break;
-        case '+': flags |= FLAGS_PLUS;    format++; n = 1U; break;
-        case ' ': flags |= FLAGS_SPACE;   format++; n = 1U; break;
-        case '#': flags |= FLAGS_HASH;    format++; n = 1U; break;
-        default :                                   n = 0U; break;
+    do
+    {
+      switch (*format)
+      {
+      case '0':
+        flags |= FLAGS_ZEROPAD;
+        format++;
+        n = 1U;
+        break;
+      case '-':
+        flags |= FLAGS_LEFT;
+        format++;
+        n = 1U;
+        break;
+      case '+':
+        flags |= FLAGS_PLUS;
+        format++;
+        n = 1U;
+        break;
+      case ' ':
+        flags |= FLAGS_SPACE;
+        format++;
+        n = 1U;
+        break;
+      case '#':
+        flags |= FLAGS_HASH;
+        format++;
+        n = 1U;
+        break;
+      default:
+        n = 0U;
+        break;
       }
     } while (n);
 
     // evaluate width field
     width = 0U;
-    if (_is_digit(*format)) {
+    if (_is_digit(*format))
+    {
       width = _atoi(&format);
     }
-    else if (*format == '*') {
+    else if (*format == '*')
+    {
       const int w = va_arg(va, int);
-      if (w < 0) {
-        flags |= FLAGS_LEFT;    // reverse padding
+      if (w < 0)
+      {
+        flags |= FLAGS_LEFT; // reverse padding
         width = (unsigned int)-w;
       }
-      else {
+      else
+      {
         width = (unsigned int)w;
       }
       format++;
@@ -293,13 +349,16 @@ int func_printf(printf_data* data, const char* format, va_list va)
 
     // evaluate precision field
     precision = 0U;
-    if (*format == '.') {
+    if (*format == '.')
+    {
       flags |= FLAGS_PRECISION;
       format++;
-      if (_is_digit(*format)) {
+      if (_is_digit(*format))
+      {
         precision = _atoi(&format);
       }
-      else if (*format == '*') {
+      else if (*format == '*')
+      {
         const int prec = (int)va_arg(va, int);
         precision = prec > 0 ? (unsigned int)prec : 0U;
         format++;
@@ -307,175 +366,208 @@ int func_printf(printf_data* data, const char* format, va_list va)
     }
 
     // evaluate length field
-    switch (*format) {
-      case 'l' :
-        flags |= FLAGS_LONG;
+    switch (*format)
+    {
+    case 'l':
+      flags |= FLAGS_LONG;
+      format++;
+      if (*format == 'l')
+      {
+        flags |= FLAGS_LONG_LONG;
         format++;
-        if (*format == 'l') {
-          flags |= FLAGS_LONG_LONG;
-          format++;
-        }
-        break;
-      case 'h' :
-        flags |= FLAGS_SHORT;
+      }
+      break;
+    case 'h':
+      flags |= FLAGS_SHORT;
+      format++;
+      if (*format == 'h')
+      {
+        flags |= FLAGS_CHAR;
         format++;
-        if (*format == 'h') {
-          flags |= FLAGS_CHAR;
-          format++;
-        }
-        break;
-      case 'j' :
-        flags |= (sizeof(intmax_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
-        format++;
-        break;
-      case 'z' :
-        flags |= (sizeof(size_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
-        format++;
-        break;
-      default :
-        break;
+      }
+      break;
+    case 'j':
+      flags |= (sizeof(intmax_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
+      format++;
+      break;
+    case 'z':
+      flags |= (sizeof(size_t) == sizeof(long) ? FLAGS_LONG : FLAGS_LONG_LONG);
+      format++;
+      break;
+    default:
+      break;
     }
 
     // evaluate specifier
-    switch (*format) {
-      case 'd' :
-      case 'i' :
-      case 'u' :
-      case 'x' :
-      case 'X' :
-      case 'o' :
-      case 'b' : {
-        // set the base
-        unsigned int base;
-        if (*format == 'x' || *format == 'X') {
-          base = 16U;
-        }
-        else if (*format == 'o') {
-          base =  8U;
-        }
-        else if (*format == 'b') {
-          base =  2U;
-        }
-        else {
-          base = 10U;
-          flags &= ~FLAGS_HASH;   // no hash for dec format
-        }
-        // uppercase
-        if (*format == 'X') {
-          flags |= FLAGS_UPPERCASE;
-        }
-
-        // no plus or space flag for u, x, X, o, b
-        if ((*format != 'i') && (*format != 'd')) {
-          flags &= ~(FLAGS_PLUS | FLAGS_SPACE);
-        }
-
-        // ignore '0' flag when precision is given
-        if (flags & FLAGS_PRECISION) {
-          flags &= ~FLAGS_ZEROPAD;
-        }
-
-        // convert the integer
-        if ((*format == 'i') || (*format == 'd')) {
-          // signed
-          if (flags & FLAGS_LONG) {
-            const long value = va_arg(va, long);
-            ret = _ntoa_long(data, (unsigned long)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
-            ERROR_CHECK();
-          }
-          else {
-            const int value = (flags & FLAGS_CHAR) ? (char)va_arg(va, int) : (flags & FLAGS_SHORT) ? (short int)va_arg(va, int) : va_arg(va, int);
-            ret = _ntoa_long(data, (unsigned int)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
-            ERROR_CHECK();
-          }
-        }
-        else {
-          // unsigned
-          if (flags & FLAGS_LONG) {
-            ret = _ntoa_long(data, va_arg(va, unsigned long), false, base, precision, width, flags);
-            ERROR_CHECK();
-          }
-          else {
-            const unsigned int value = (flags & FLAGS_CHAR) ? (unsigned char)va_arg(va, unsigned int) : (flags & FLAGS_SHORT) ? (unsigned short int)va_arg(va, unsigned int) : va_arg(va, unsigned int);
-            ret = _ntoa_long(data, value, false, base, precision, width, flags);
-            ERROR_CHECK();
-          }
-        }
-        format++;
-        break;
+    switch (*format)
+    {
+    case 'd':
+    case 'i':
+    case 'u':
+    case 'x':
+    case 'X':
+    case 'o':
+    case 'b':
+    {
+      // set the base
+      unsigned int base;
+      if (*format == 'x' || *format == 'X')
+      {
+        base = 16U;
       }
-      case 'c' : {
-        unsigned int l = 1U;
-        // pre padding
-        if (!(flags & FLAGS_LEFT)) {
-          while (l++ < width) {
-            ret = output(' ', data);
-            ERROR_CHECK();
-          }
-        }
-        // char output
-        ret = output((char)va_arg(va, int), data);
-        ERROR_CHECK();
-        // post padding
-        if (flags & FLAGS_LEFT) {
-          while (l++ < width) {
-            ret = output(' ', data);
-            ERROR_CHECK();
-          }
-        }
-        format++;
-        break;
+      else if (*format == 'o')
+      {
+        base = 8U;
+      }
+      else if (*format == 'b')
+      {
+        base = 2U;
+      }
+      else
+      {
+        base = 10U;
+        flags &= ~FLAGS_HASH; // no hash for dec format
+      }
+      // uppercase
+      if (*format == 'X')
+      {
+        flags |= FLAGS_UPPERCASE;
       }
 
-      case 's' : {
-        const char* p = va_arg(va, char*);
-        unsigned int l = _strnlen_s(p, precision ? precision : (size_t)-1);
-        // pre padding
-        if (flags & FLAGS_PRECISION) {
-          l = (l < precision ? l : precision);
-        }
-        if (!(flags & FLAGS_LEFT)) {
-          while (l++ < width) {
-            ret = output(' ', data);
-            ERROR_CHECK();
-          }
-        }
-        // string output
-        while ((*p != 0) && (!(flags & FLAGS_PRECISION) || precision--)) {
-          ret = output(*(p++), data);
+      // no plus or space flag for u, x, X, o, b
+      if ((*format != 'i') && (*format != 'd'))
+      {
+        flags &= ~(FLAGS_PLUS | FLAGS_SPACE);
+      }
+
+      // ignore '0' flag when precision is given
+      if (flags & FLAGS_PRECISION)
+      {
+        flags &= ~FLAGS_ZEROPAD;
+      }
+
+      // convert the integer
+      if ((*format == 'i') || (*format == 'd'))
+      {
+        // signed
+        if (flags & FLAGS_LONG)
+        {
+          const long value = va_arg(va, long);
+          ret = _ntoa_long(data, (unsigned long)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
           ERROR_CHECK();
         }
-        // post padding
-        if (flags & FLAGS_LEFT) {
-          while (l++ < width) {
-            ret = output(' ', data);
-            ERROR_CHECK();
-          }
+        else
+        {
+          const int value = (flags & FLAGS_CHAR) ? (char)va_arg(va, int) : (flags & FLAGS_SHORT) ? (short int)va_arg(va, int)
+                                                                                                 : va_arg(va, int);
+          ret = _ntoa_long(data, (unsigned int)(value > 0 ? value : 0 - value), value < 0, base, precision, width, flags);
+          ERROR_CHECK();
         }
-        format++;
-        break;
       }
-
-      case 'p' : {
-        width = sizeof(void*) * 2U;
-        flags |= FLAGS_ZEROPAD | FLAGS_UPPERCASE;
-        ret = _ntoa_long(data, (unsigned long)((uintptr_t)va_arg(va, void*)), false, 16U, precision, width, flags);
-        ERROR_CHECK();
-        format++;
-        break;
+      else
+      {
+        // unsigned
+        if (flags & FLAGS_LONG)
+        {
+          ret = _ntoa_long(data, va_arg(va, unsigned long), false, base, precision, width, flags);
+          ERROR_CHECK();
+        }
+        else
+        {
+          const unsigned int value = (flags & FLAGS_CHAR) ? (unsigned char)va_arg(va, unsigned int) : (flags & FLAGS_SHORT) ? (unsigned short int)va_arg(va, unsigned int)
+                                                                                                                            : va_arg(va, unsigned int);
+          ret = _ntoa_long(data, value, false, base, precision, width, flags);
+          ERROR_CHECK();
+        }
       }
+      format++;
+      break;
+    }
+    case 'c':
+    {
+      unsigned int l = 1U;
+      // pre padding
+      if (!(flags & FLAGS_LEFT))
+      {
+        while (l++ < width)
+        {
+          ret = output(' ', data);
+          ERROR_CHECK();
+        }
+      }
+      // char output
+      ret = output((char)va_arg(va, int), data);
+      ERROR_CHECK();
+      // post padding
+      if (flags & FLAGS_LEFT)
+      {
+        while (l++ < width)
+        {
+          ret = output(' ', data);
+          ERROR_CHECK();
+        }
+      }
+      format++;
+      break;
+    }
 
-      case '%' :
-        ret = output('%', data);
+    case 's':
+    {
+      const char *p = va_arg(va, char *);
+      unsigned int l = _strnlen_s(p, precision ? precision : (size_t)-1);
+      // pre padding
+      if (flags & FLAGS_PRECISION)
+      {
+        l = (l < precision ? l : precision);
+      }
+      if (!(flags & FLAGS_LEFT))
+      {
+        while (l++ < width)
+        {
+          ret = output(' ', data);
+          ERROR_CHECK();
+        }
+      }
+      // string output
+      while ((*p != 0) && (!(flags & FLAGS_PRECISION) || precision--))
+      {
+        ret = output(*(p++), data);
         ERROR_CHECK();
-        format++;
-        break;
+      }
+      // post padding
+      if (flags & FLAGS_LEFT)
+      {
+        while (l++ < width)
+        {
+          ret = output(' ', data);
+          ERROR_CHECK();
+        }
+      }
+      format++;
+      break;
+    }
 
-      default :
-        ret = output(*format, data);
-        ERROR_CHECK();
-        format++;
-        break;
+    case 'p':
+    {
+      width = sizeof(void *) * 2U;
+      flags |= FLAGS_ZEROPAD | FLAGS_UPPERCASE;
+      ret = _ntoa_long(data, (unsigned long)((uintptr_t)va_arg(va, void *)), false, 16U, precision, width, flags);
+      ERROR_CHECK();
+      format++;
+      break;
+    }
+
+    case '%':
+      ret = output('%', data);
+      ERROR_CHECK();
+      format++;
+      break;
+
+    default:
+      ret = output(*format, data);
+      ERROR_CHECK();
+      format++;
+      break;
     }
   }
 
@@ -493,27 +585,33 @@ error:
 }
 
 // internal buffer output
-static inline int _out_buffer(char character, void* buffer, size_t idx, size_t maxlen)
+static inline int _out_buffer(char character, void *buffer, size_t idx, size_t maxlen)
 {
-  if(maxlen == 1) {
-    ((char*)buffer)[0] = '\0';
+  if (maxlen == 1)
+  {
+    ((char *)buffer)[0] = '\0';
     return 0;
-  } else if(idx >= maxlen - 1) {
+  }
+  else if (idx >= maxlen - 1)
+  {
     return 0;
-  } else if(idx == maxlen - 2 && character != '\0') {
-    ((char*)buffer)[idx] = character;
-    ((char*)buffer)[idx+1] = '\0';
+  }
+  else if (idx == maxlen - 2 && character != '\0')
+  {
+    ((char *)buffer)[idx] = character;
+    ((char *)buffer)[idx + 1] = '\0';
     return 1;
-  } 
-  else {
-    ((char*)buffer)[idx] = character;
+  }
+  else
+  {
+    ((char *)buffer)[idx] = character;
     return 1;
   }
 }
 
-int d_sprintf(char* buffer, const char* format, ...)
+int d_sprintf(char *buffer, const char *format, ...)
 {
-  printf_data data = { buffer, _out_buffer, 0, (size_t)-1 };
+  printf_data data = {buffer, _out_buffer, 0, (size_t)-1};
   va_list va;
   va_start(va, format);
   const int ret = func_printf(&data, format, va);
@@ -521,13 +619,12 @@ int d_sprintf(char* buffer, const char* format, ...)
   return ret;
 }
 
-int d_snprintf(char* buffer, size_t count, const char* format, ...)
+int d_snprintf(char *buffer, size_t count, const char *format, ...)
 {
-  printf_data data = { buffer, _out_buffer, 0, count };
+  printf_data data = {buffer, _out_buffer, 0, count};
   va_list va;
   va_start(va, format);
   const int ret = func_printf(&data, format, va);
   va_end(va);
   return ret;
 }
-

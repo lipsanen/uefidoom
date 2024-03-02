@@ -13,7 +13,6 @@
 // GNU General Public License for more details.
 //
 
-
 #include "dlibc.h"
 
 #include "config.h"

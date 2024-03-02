@@ -9,7 +9,7 @@ EFI_STATUS efi_main(
 	EFI_HANDLE handle, EFI_SYSTEM_TABLE *system_table)
 {
 	EFI_STATUS status;
-	EFI_BOOT_SERVICES* BS = system_table->BootServices;
+	EFI_BOOT_SERVICES *BS = system_table->BootServices;
 	Init(system_table);
 
 	EFI_GUID guid = EFI_SIMPLE_POINTER_PROTOCOL_GUID;
@@ -18,17 +18,19 @@ EFI_STATUS efi_main(
 	if (status != 0)
 		return status;
 
-	EFI_SIMPLE_POINTER_PROTOCOL*pProt;
-	status = LibLocateProtocol(BS, &guid, (void**)&pProt);
+	EFI_SIMPLE_POINTER_PROTOCOL *pProt;
+	status = LibLocateProtocol(BS, &guid, (void **)&pProt);
 
 	if (status != 0)
 		return status;
 	d_printf("status returned %u\n", status);
-	while(1) {
+	while (1)
+	{
 		EFI_SIMPLE_POINTER_STATE state;
 		status = pProt->GetState(pProt, &state);
 
-		if(status != EFI_SUCCESS) {
+		if (status != EFI_SUCCESS)
+		{
 			continue;
 		}
 
@@ -37,4 +39,3 @@ EFI_STATUS efi_main(
 
 	return 0;
 }
-

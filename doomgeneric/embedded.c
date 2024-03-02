@@ -66,11 +66,11 @@ int d_rename(const char* old, const char* newname ) { return -1; }
 
 int d_mkdir(const char *path)
 {
-	return -1;
+    return -1;
 }
 
 const char *d_tmpdir()
 {
-	return "/";
+    return "/";
 }
 

@@ -16,7 +16,6 @@
 //       Generate a checksum of the WAD directory.
 //
 
-
 #include "z_zone.h"
 #include "m_misc.h"
 #include "sha1.h"
@@ -31,7 +30,7 @@ static int GetFileNumber(wad_file_t *handle)
     int i;
     int result;
 
-    for (i=0; i<num_open_wadfiles; ++i)
+    for (i = 0; i < num_open_wadfiles; ++i)
     {
         if (open_wadfiles[i] == handle)
         {
@@ -42,13 +41,13 @@ static int GetFileNumber(wad_file_t *handle)
     // Not found in list.  This is a new file we haven't seen yet.
     // Allocate another slot for this file.
 
-    void* new_wadfiles = Z_Malloc(sizeof(wad_file_t *) * (num_open_wadfiles + 1), PU_STATIC, NULL);
-    if(open_wadfiles) 
+    void *new_wadfiles = Z_Malloc(sizeof(wad_file_t *) * (num_open_wadfiles + 1), PU_STATIC, NULL);
+    if (open_wadfiles)
     {
         d_memcpy(new_wadfiles, open_wadfiles, sizeof(wad_file_t *) * (num_open_wadfiles));
         Z_Free(open_wadfiles);
     }
-    
+
     open_wadfiles = new_wadfiles;
     open_wadfiles[num_open_wadfiles] = handle;
 
@@ -81,11 +80,10 @@ void W_Checksum(sha1_digest_t digest)
     // Go through each entry in the WAD directory, adding information
     // about each entry to the SHA1 hash.
 
-    for (i=0; i<numlumps; ++i)
+    for (i = 0; i < numlumps; ++i)
     {
         ChecksumAddLump(&sha1_context, &lumpinfo[i]);
     }
-    
+
     SHA1_Final(digest, &sha1_context);
 }
-

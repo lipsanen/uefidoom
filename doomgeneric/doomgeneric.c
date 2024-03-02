@@ -12,10 +12,10 @@ void D_DoomMain (struct doom_data_t_* doom);
 
 void doomgeneric_Create(struct doom_data_t_* doom, int argc, char **argv)
 {
-	// save arguments
+    // save arguments
     myargc = argc;
     myargv = argv;
 
-	D_DoomMain (doom);
+    D_DoomMain (doom);
 }
 

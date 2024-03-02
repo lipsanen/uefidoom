@@ -23,7 +23,7 @@
 
 const char *D_FindIWAD()
 {
-    static char* THE_filename = (char*)"doom1.wad";
+    static char *THE_filename = (char *)"doom1.wad";
 
     if (M_FileExists(THE_filename))
     {
@@ -51,4 +51,3 @@ char *D_SuggestGameName(GameMission_t mission, GameMode_t mode)
 {
     return "Doom";
 }
-

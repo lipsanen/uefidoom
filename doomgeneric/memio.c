@@ -12,7 +12,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// Emulates the IO functions in C stdio.h reading and writing to 
+// Emulates the IO functions in C stdio.h reading and writing to
 // memory.
 //
 #include "dlibc.h"
@@ -20,12 +20,14 @@
 
 #include "z_zone.h"
 
-typedef enum {
+typedef enum
+{
 	MODE_READ,
 	MODE_WRITE,
 } memfile_mode_t;
 
-struct _MEMFILE {
+struct _MEMFILE
+{
 	unsigned char *buf;
 	size_t buflen;
 	size_t alloced;
@@ -41,7 +43,7 @@ MEMFILE *mem_fopen_read(void *buf, size_t buflen)
 
 	file = Z_Malloc(sizeof(MEMFILE), PU_STATIC, 0);
 
-	file->buf = (unsigned char *) buf;
+	file->buf = (unsigned char *)buf;
 	file->buflen = buflen;
 	file->position = 0;
 	file->mode = MODE_READ;
@@ -62,22 +64,22 @@ size_t mem_fread(void *buf, size_t size, size_t nmemb, MEMFILE *stream)
 	}
 
 	// Trying to read more bytes than we have left?
-	
+
 	items = nmemb;
 
-	if (items * size > stream->buflen - stream->position) 
+	if (items * size > stream->buflen - stream->position)
 	{
 		items = (stream->buflen - stream->position) / size;
 	}
-	
+
 	// Copy bytes to buffer
-	
+
 	d_memcpy(buf, stream->buf + stream->position, items * size);
 
 	// Update position
 
 	stream->position += items * size;
-	
+
 	return items;
 }
 
@@ -108,12 +110,12 @@ size_t mem_fwrite(const void *ptr, size_t size, size_t nmemb, MEMFILE *stream)
 	{
 		return -1;
 	}
-	
+
 	// More bytes than can fit in the buffer?
 	// If so, reallocate bigger.
 
 	bytes = size * nmemb;
-	
+
 	while (bytes > stream->alloced - stream->position)
 	{
 		unsigned char *newbuf;
@@ -126,7 +128,7 @@ size_t mem_fwrite(const void *ptr, size_t size, size_t nmemb, MEMFILE *stream)
 	}
 
 	// Copy into buffer
-	
+
 	d_memcpy(stream->buf + stream->position, ptr, bytes);
 	stream->position += bytes;
 
@@ -163,19 +165,19 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
 
 	switch (whence)
 	{
-		case MEM_SEEK_SET:
-			newpos = (int) position;
-			break;
+	case MEM_SEEK_SET:
+		newpos = (int)position;
+		break;
 
-		case MEM_SEEK_CUR:
-			newpos = (int) (stream->position + position);
-			break;
-			
-		case MEM_SEEK_END:
-			newpos = (int) (stream->buflen + position);
-			break;
-		default:
-			return -1;
+	case MEM_SEEK_CUR:
+		newpos = (int)(stream->position + position);
+		break;
+
+	case MEM_SEEK_END:
+		newpos = (int)(stream->buflen + position);
+		break;
+	default:
+		return -1;
 	}
 
 	if (newpos < stream->buflen)
@@ -189,5 +191,3 @@ int mem_fseek(MEMFILE *stream, signed long position, mem_rel_t whence)
 		return -1;
 	}
 }
-
-

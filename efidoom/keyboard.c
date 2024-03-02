@@ -10,7 +10,7 @@ EFI_STATUS efi_main(
 	EFI_HANDLE handle, EFI_SYSTEM_TABLE *system_table)
 {
 	EFI_STATUS status;
-	EFI_BOOT_SERVICES* BS = system_table->BootServices;
+	EFI_BOOT_SERVICES *BS = system_table->BootServices;
 	Init(system_table);
 
 	EFI_GUID inputGuid = EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL_GUID;
@@ -21,14 +21,15 @@ EFI_STATUS efi_main(
 	if (status != 0)
 		return status;
 
-	EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL* pProt;
-	status = LibLocateProtocol(g_pSystemTable->BootServices, &inputGuid, (void**)&pProt);
+	EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *pProt;
+	status = LibLocateProtocol(g_pSystemTable->BootServices, &inputGuid, (void **)&pProt);
 	calibrate_cpu();
 
 	if (status != 0)
 		return status;
 
-	while(1) {
+	while (1)
+	{
 		EFI_KEY_DATA data;
 		status = pProt->ReadKeyStrokeEx(pProt, &data);
 
@@ -38,7 +39,5 @@ EFI_STATUS efi_main(
 		d_printf("yes %u, clock: %u\n", data.Key.ScanCode ? data.Key.ScanCode : data.Key.UnicodeChar, clock_msec());
 	}
 
-
 	return 0;
 }
-

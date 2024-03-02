@@ -10,7 +10,7 @@ EFI_STATUS efi_main(
 	EFI_HANDLE handle, EFI_SYSTEM_TABLE *system_table)
 {
 	EFI_STATUS status;
-	EFI_BOOT_SERVICES* BS = system_table->BootServices;
+	EFI_BOOT_SERVICES *BS = system_table->BootServices;
 	Init(system_table);
 
 	EFI_GUID gEfiGraphicsOutputProtocolGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
@@ -21,10 +21,9 @@ EFI_STATUS efi_main(
 
 	calibrate_cpu();
 
-	while(1)
+	while (1)
 	{
 	}
 
 	return 0;
 }
-

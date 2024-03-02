@@ -20,13 +20,10 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_misc.h"
-#include "m_argv.h"  // haleyjd 20110212: warning fix
+#include "m_argv.h" // haleyjd 20110212: warning fix
 
-int		myargc;
-char**		myargv;
-
-
-
+int myargc;
+char **myargv;
 
 //
 // M_CheckParm
@@ -42,8 +39,8 @@ int M_CheckParmWithArgs(char *check, int num_args)
 
     for (i = 1; i < myargc - num_args; i++)
     {
-	if (!d_stricmp(check, myargv[i]))
-	    return i;
+        if (!d_stricmp(check, myargv[i]))
+            return i;
     }
 
     return 0;
@@ -66,8 +63,7 @@ int M_CheckParm(char *check)
     return M_CheckParmWithArgs(check, 0);
 }
 
-#define MAXARGVS        100
-
+#define MAXARGVS 100
 
 // Return the name of the executable used to start the program:
 
@@ -86,4 +82,3 @@ char *M_GetExecutableName(void)
         return sep + 1;
     }
 }
-

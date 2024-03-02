@@ -1,4 +1,4 @@
-// Emacs style mode select   -*- C++ -*- 
+// Emacs style mode select   -*- C++ -*-
 //-----------------------------------------------------------------------------
 //
 // $Id:$
@@ -23,7 +23,7 @@
 //-----------------------------------------------------------------------------
 
 static const char
-rcsid[] = "$Id: i_x.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
+    rcsid[] = "$Id: i_x.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
 
 #include "dlibc.h"
 #include "config.h"
@@ -43,37 +43,38 @@ rcsid[] = "$Id: i_x.c,v 1.6 1997/02/03 22:45:10 b1 Exp $";
 
 struct FB_BitField
 {
-	uint32_t offset;			/* beginning of bitfield	*/
-	uint32_t length;			/* length of bitfield		*/
+    uint32_t offset; /* beginning of bitfield	*/
+    uint32_t length; /* length of bitfield		*/
 };
 
 struct FB_ScreenInfo
 {
-	uint32_t xres;			/* visible resolution		*/
-	uint32_t yres;
-	uint32_t xres_virtual;		/* virtual resolution		*/
-	uint32_t yres_virtual;
+    uint32_t xres; /* visible resolution		*/
+    uint32_t yres;
+    uint32_t xres_virtual; /* virtual resolution		*/
+    uint32_t yres_virtual;
     uint32_t skip_x;
     uint32_t skip_y;
 
-	uint32_t bits_per_pixel;		/* guess what			*/
-	
-							/* >1 = FOURCC			*/
-	struct FB_BitField red;		/* bitfield in s_Fb mem if true color, */
-	struct FB_BitField green;	/* else only length is significant */
-	struct FB_BitField blue;
-	struct FB_BitField transp;	/* transparency			*/
+    uint32_t bits_per_pixel; /* guess what			*/
+
+    /* >1 = FOURCC			*/
+    struct FB_BitField red;   /* bitfield in s_Fb mem if true color, */
+    struct FB_BitField green; /* else only length is significant */
+    struct FB_BitField blue;
+    struct FB_BitField transp; /* transparency			*/
 };
 
 static struct FB_ScreenInfo s_Fb;
 int fb_scaling = 1;
 int usemouse = 0;
 
-struct color {
-    uint32_t b:8;
-    uint32_t g:8;
-    uint32_t r:8;
-    uint32_t a:8;
+struct color
+{
+    uint32_t b : 8;
+    uint32_t g : 8;
+    uint32_t r : 8;
+    uint32_t a : 8;
 };
 
 static struct color colors[256];
@@ -108,16 +109,16 @@ int usegamma = 0;
 
 typedef struct
 {
-	byte r;
-	byte g;
-	byte b;
+    byte r;
+    byte g;
+    byte b;
 } col_t;
 
 // Palette converted to RGB565
 
 static uint16_t rgb565_palette[256];
 
-void cmap_to_rgb565(uint16_t * out, uint8_t * in, int in_pixels)
+void cmap_to_rgb565(uint16_t *out, uint8_t *in, int in_pixels)
 {
     int i, j;
     struct color c;
@@ -125,43 +126,44 @@ void cmap_to_rgb565(uint16_t * out, uint8_t * in, int in_pixels)
 
     for (i = 0; i < in_pixels; i++)
     {
-        c = colors[*in]; 
+        c = colors[*in];
         r = ((uint16_t)(c.r >> 3)) << 11;
         g = ((uint16_t)(c.g >> 2)) << 5;
         b = ((uint16_t)(c.b >> 3)) << 0;
         *out = (r | g | b);
 
         in++;
-        for (j = 0; j < fb_scaling; j++) {
+        for (j = 0; j < fb_scaling; j++)
+        {
             out++;
         }
     }
 }
 
-void map_to_fb(uint32_t* out, uint8_t* in)
+void map_to_fb(uint32_t *out, uint8_t *in)
 {
     uint32_t transformed_xres = s_Fb.xres - s_Fb.skip_x * 2;
     uint32_t transformed_yres = s_Fb.yres - s_Fb.skip_y * 2;
 
-    for(size_t y=0; y < s_Fb.yres; ++y)
+    for (size_t y = 0; y < s_Fb.yres; ++y)
     {
         size_t x;
 
         // This loop blacks out the entire line if we are in skip range
         // Since x == s_Fb.xres after this loop, none of the next loops do anything in that case
-        for(x=0; x < s_Fb.xres && (y < s_Fb.skip_y || y >= s_Fb.yres - s_Fb.skip_y); ++x)
+        for (x = 0; x < s_Fb.xres && (y < s_Fb.skip_y || y >= s_Fb.yres - s_Fb.skip_y); ++x)
         {
             out[y * s_Fb.xres + x] = 0;
         }
 
         // Black out the initial left pixels
-        for(; x < s_Fb.skip_x; ++x)
+        for (; x < s_Fb.skip_x; ++x)
         {
             out[y * s_Fb.xres + x] = 0;
         }
 
         // Actually doing work!
-        for(; x < s_Fb.xres - s_Fb.skip_x; ++x)
+        for (; x < s_Fb.xres - s_Fb.skip_x; ++x)
         {
             uint32_t transformed_x = (x - s_Fb.skip_x) * SCREENWIDTH / transformed_xres;
             uint32_t transformed_y = (y - s_Fb.skip_y) * SCREENHEIGHT / transformed_yres;
@@ -172,16 +174,14 @@ void map_to_fb(uint32_t* out, uint8_t* in)
         }
 
         // Black out the remaining pixels
-        for(; x < s_Fb.xres; ++x)
+        for (; x < s_Fb.xres; ++x)
         {
             out[y * s_Fb.xres + x] = 0;
         }
-
-
     }
 }
 
-void cmap_to_fb(uint8_t * out, uint8_t * in, int in_pixels)
+void cmap_to_fb(uint8_t *out, uint8_t *in, int in_pixels)
 {
     int i, j, k;
     struct color c;
@@ -190,7 +190,7 @@ void cmap_to_fb(uint8_t * out, uint8_t * in, int in_pixels)
 
     for (i = 0; i < in_pixels; i++)
     {
-        c = colors[*in];  /* R:8 G:8 B:8 format! */
+        c = colors[*in]; /* R:8 G:8 B:8 format! */
         r = (uint16_t)(c.r >> (8 - s_Fb.red.length));
         g = (uint16_t)(c.g >> (8 - s_Fb.green.length));
         b = (uint16_t)(c.b >> (8 - s_Fb.blue.length));
@@ -198,9 +198,11 @@ void cmap_to_fb(uint8_t * out, uint8_t * in, int in_pixels)
         pix |= g << s_Fb.green.offset;
         pix |= b << s_Fb.blue.offset;
 
-        for (k = 0; k < fb_scaling; k++) {
-            for (j = 0; j < s_Fb.bits_per_pixel/8; j++) {
-                *out = (pix >> (j*8));
+        for (k = 0; k < fb_scaling; k++)
+        {
+            for (j = 0; j < s_Fb.bits_per_pixel / 8; j++)
+            {
+                *out = (pix >> (j * 8));
                 out++;
             }
         }
@@ -208,71 +210,70 @@ void cmap_to_fb(uint8_t * out, uint8_t * in, int in_pixels)
     }
 }
 
-void I_InitGraphics (void)
+void I_InitGraphics(void)
 {
     int i;
 
-	d_memset(&s_Fb, 0, sizeof(struct FB_ScreenInfo));
+    d_memset(&s_Fb, 0, sizeof(struct FB_ScreenInfo));
     doomgeneric_Res(&s_Fb.xres, &s_Fb.yres);
     d_get_screen_params(s_Fb.xres, s_Fb.yres, &s_Fb.skip_x, &s_Fb.skip_y);
-	s_Fb.xres_virtual = s_Fb.xres;
-	s_Fb.yres_virtual = s_Fb.yres;
-	s_Fb.bits_per_pixel = 32;
+    s_Fb.xres_virtual = s_Fb.xres;
+    s_Fb.yres_virtual = s_Fb.yres;
+    s_Fb.bits_per_pixel = 32;
 
-	s_Fb.blue.length = 8;
-	s_Fb.green.length = 8;
-	s_Fb.red.length = 8;
-	s_Fb.transp.length = 8;
+    s_Fb.blue.length = 8;
+    s_Fb.green.length = 8;
+    s_Fb.red.length = 8;
+    s_Fb.transp.length = 8;
 
-	s_Fb.blue.offset = 0;
-	s_Fb.green.offset = 8;
-	s_Fb.red.offset = 16;
-	s_Fb.transp.offset = 24;
-	
+    s_Fb.blue.offset = 0;
+    s_Fb.green.offset = 8;
+    s_Fb.red.offset = 16;
+    s_Fb.transp.offset = 24;
 
     d_printf("I_InitGraphics: framebuffer: x_res: %d, y_res: %d, x_virtual: %d, y_virtual: %d, bpp: %d\n",
-            s_Fb.xres, s_Fb.yres, s_Fb.xres_virtual, s_Fb.yres_virtual, s_Fb.bits_per_pixel);
+             s_Fb.xres, s_Fb.yres, s_Fb.xres_virtual, s_Fb.yres_virtual, s_Fb.bits_per_pixel);
 
     d_printf("I_InitGraphics: framebuffer: RGBA: %d%d%d%d, red_off: %d, green_off: %d, blue_off: %d, transp_off: %d\n",
-            s_Fb.red.length, s_Fb.green.length, s_Fb.blue.length, s_Fb.transp.length, s_Fb.red.offset, s_Fb.green.offset, s_Fb.blue.offset, s_Fb.transp.offset);
+             s_Fb.red.length, s_Fb.green.length, s_Fb.blue.length, s_Fb.transp.length, s_Fb.red.offset, s_Fb.green.offset, s_Fb.blue.offset, s_Fb.transp.offset);
 
     d_printf("I_InitGraphics: DOOM screen size: w x h: %d x %d\n", SCREENWIDTH, SCREENHEIGHT);
 
-
     i = M_CheckParmWithArgs("-scaling", 1);
-    if (i > 0) {
+    if (i > 0)
+    {
         i = d_atoi(myargv[i + 1]);
         fb_scaling = i;
         d_printf("I_InitGraphics: Scaling factor: %d\n", fb_scaling);
-    } else {
+    }
+    else
+    {
         fb_scaling = s_Fb.xres / SCREENWIDTH;
         if (s_Fb.yres / SCREENHEIGHT < fb_scaling)
             fb_scaling = s_Fb.yres / SCREENHEIGHT;
         d_printf("I_InitGraphics: Auto-scaling factor: %d\n", fb_scaling);
     }
 
-
     /* Allocate screen to draw to */
-	I_VideoBuffer = (byte*)Z_Malloc (SCREENWIDTH * SCREENHEIGHT, PU_STATIC, NULL);  // For DOOM to draw on
+    I_VideoBuffer = (byte *)Z_Malloc(SCREENWIDTH * SCREENHEIGHT, PU_STATIC, NULL); // For DOOM to draw on
 
-	screenvisible = true;
+    screenvisible = true;
 }
 
-void I_ShutdownGraphics (void)
+void I_ShutdownGraphics(void)
 {
-	Z_Free (I_VideoBuffer);
+    Z_Free(I_VideoBuffer);
 }
 
-void I_StartFrame (void)
-{
-
-}
-
-void I_StartTic (doom_data_t* doom)
+void I_StartFrame(void)
 {
 }
 
-void I_UpdateNoBlit (void)
+void I_StartTic(doom_data_t *doom)
+{
+}
+
+void I_UpdateNoBlit(void)
 {
 }
 
@@ -280,7 +281,7 @@ void I_UpdateNoBlit (void)
 // I_FinishUpdate
 //
 
-void I_FinishUpdate (void)
+void I_FinishUpdate(void)
 {
     int y;
     int x_offset, y_offset, x_offset_end;
@@ -290,23 +291,23 @@ void I_FinishUpdate (void)
     /* 600 = s_Fb heigt, 200 screenheight */
     /* 600 = s_Fb heigt, 200 screenheight */
     /* 2048 =s_Fb width, 320 screenwidth */
-    y_offset     = (((s_Fb.yres - (SCREENHEIGHT * fb_scaling)) * s_Fb.bits_per_pixel/8)) / 2;
-    x_offset     = (((s_Fb.xres - (SCREENWIDTH  * fb_scaling)) * s_Fb.bits_per_pixel/8)) / 2; // XXX: siglent FB hack: /4 instead of /2, since it seems to handle the resolution in a funny way
-    //x_offset     = 0;
-    x_offset_end = ((s_Fb.xres - (SCREENWIDTH  * fb_scaling)) * s_Fb.bits_per_pixel/8) - x_offset;
+    y_offset = (((s_Fb.yres - (SCREENHEIGHT * fb_scaling)) * s_Fb.bits_per_pixel / 8)) / 2;
+    x_offset = (((s_Fb.xres - (SCREENWIDTH * fb_scaling)) * s_Fb.bits_per_pixel / 8)) / 2; // XXX: siglent FB hack: /4 instead of /2, since it seems to handle the resolution in a funny way
+    // x_offset     = 0;
+    x_offset_end = ((s_Fb.xres - (SCREENWIDTH * fb_scaling)) * s_Fb.bits_per_pixel / 8) - x_offset;
 
     /* DRAW SCREEN */
-    line_in  = (unsigned char *) I_VideoBuffer;
-    line_out = (unsigned char *) DG_ScreenBuffer;
+    line_in = (unsigned char *)I_VideoBuffer;
+    line_out = (unsigned char *)DG_ScreenBuffer;
 
     map_to_fb(DG_ScreenBuffer, I_VideoBuffer);
-	DG_DrawFrame();
+    DG_DrawFrame();
 }
 
 //
 // I_ReadScreen
 //
-void I_ReadScreen (byte* scr)
+void I_ReadScreen(byte *scr)
 {
     d_memcpy(scr, I_VideoBuffer, SCREENWIDTH * SCREENHEIGHT);
 }
@@ -314,32 +315,32 @@ void I_ReadScreen (byte* scr)
 //
 // I_SetPalette
 //
-#define GFX_RGB565(r, g, b)			((((r & 0xF8) >> 3) << 11) | (((g & 0xFC) >> 2) << 5) | ((b & 0xF8) >> 3))
-#define GFX_RGB565_R(color)			((0xF800 & color) >> 11)
-#define GFX_RGB565_G(color)			((0x07E0 & color) >> 5)
-#define GFX_RGB565_B(color)			(0x001F & color)
+#define GFX_RGB565(r, g, b) ((((r & 0xF8) >> 3) << 11) | (((g & 0xFC) >> 2) << 5) | ((b & 0xF8) >> 3))
+#define GFX_RGB565_R(color) ((0xF800 & color) >> 11)
+#define GFX_RGB565_G(color) ((0x07E0 & color) >> 5)
+#define GFX_RGB565_B(color) (0x001F & color)
 
-void I_SetPalette (byte* palette)
+void I_SetPalette(byte *palette)
 {
-	int i;
-	//col_t* c;
+    int i;
+    // col_t* c;
 
-	//for (i = 0; i < 256; i++)
-	//{
-	//	c = (col_t*)palette;
+    // for (i = 0; i < 256; i++)
+    //{
+    //	c = (col_t*)palette;
 
-	//	rgb565_palette[i] = GFX_RGB565(gammatable[usegamma][c->r],
-	//								   gammatable[usegamma][c->g],
-	//								   gammatable[usegamma][c->b]);
+    //	rgb565_palette[i] = GFX_RGB565(gammatable[usegamma][c->r],
+    //								   gammatable[usegamma][c->g],
+    //								   gammatable[usegamma][c->b]);
 
-	//	palette += 3;
-	//}
-    
+    //	palette += 3;
+    //}
 
     /* performance boost:
      * map to the right pixel format over here! */
 
-    for (i=0; i<256; ++i ) {
+    for (i = 0; i < 256; ++i)
+    {
         colors[i].a = 0;
         colors[i].r = gammatable[usegamma][*palette++];
         colors[i].g = gammatable[usegamma][*palette++];
@@ -349,7 +350,7 @@ void I_SetPalette (byte* palette)
 
 // Given an RGB value, find the closest matching palette index.
 
-int I_GetPaletteIndex (int r, int g, int b)
+int I_GetPaletteIndex(int r, int g, int b)
 {
     int best, best_diff, diff;
     int i;
@@ -362,13 +363,11 @@ int I_GetPaletteIndex (int r, int g, int b)
 
     for (i = 0; i < 256; ++i)
     {
-    	color.r = GFX_RGB565_R(rgb565_palette[i]);
-    	color.g = GFX_RGB565_G(rgb565_palette[i]);
-    	color.b = GFX_RGB565_B(rgb565_palette[i]);
+        color.r = GFX_RGB565_R(rgb565_palette[i]);
+        color.g = GFX_RGB565_G(rgb565_palette[i]);
+        color.b = GFX_RGB565_B(rgb565_palette[i]);
 
-        diff = (r - color.r) * (r - color.r)
-             + (g - color.g) * (g - color.g)
-             + (b - color.b) * (b - color.b);
+        diff = (r - color.r) * (r - color.r) + (g - color.g) * (g - color.g) + (b - color.b) * (b - color.b);
 
         if (diff < best_diff)
         {
@@ -385,19 +384,19 @@ int I_GetPaletteIndex (int r, int g, int b)
     return best;
 }
 
-void I_BeginRead (void)
+void I_BeginRead(void)
 {
 }
 
-void I_EndRead (void)
+void I_EndRead(void)
 {
 }
 
-void I_GraphicsCheckCommandLine (void)
+void I_GraphicsCheckCommandLine(void)
 {
 }
 
-void I_SetGrabMouseCallback (grabmouse_callback_t func)
+void I_SetGrabMouseCallback(grabmouse_callback_t func)
 {
 }
 
@@ -405,14 +404,14 @@ void I_EnableLoadingDisk(void)
 {
 }
 
-void I_BindVideoVariables (void)
+void I_BindVideoVariables(void)
 {
 }
 
-void I_DisplayFPSDots (boolean dots_on)
+void I_DisplayFPSDots(boolean dots_on)
 {
 }
 
-void I_CheckIsScreensaver (void)
+void I_CheckIsScreensaver(void)
 {
 }

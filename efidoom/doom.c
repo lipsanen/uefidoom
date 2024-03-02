@@ -11,7 +11,7 @@
 #include "x86.h"
 
 static EFI_GRAPHICS_OUTPUT_PROTOCOL *pGraphics = NULL;
-static EFI_SIMPLE_POINTER_PROTOCOL* pPointer = NULL;
+static EFI_SIMPLE_POINTER_PROTOCOL *pPointer = NULL;
 static size_t WIDTH;
 static size_t HEIGHT;
 static uint8_t keyStateMap[258];
@@ -33,15 +33,18 @@ static void AddKey(int pressed, unsigned int key)
 {
 	event_t event;
 	event.type = pressed ? ev_keydown : ev_keyup;
-    event.data1 = key;
+	event.data1 = key;
 	D_PostEvent(&doom, &event);
 }
 
 static void pressDoomKey(uint8_t pressed, unsigned int key)
 {
-	if(mouse_detected && keyStateMap[key] == pressed) {
+	if (mouse_detected && keyStateMap[key] == pressed)
+	{
 		return;
-	} else if(mouse_detected == 0) {
+	}
+	else if (mouse_detected == 0)
+	{
 		pressed = !keyStateMap[key];
 	}
 
@@ -97,13 +100,16 @@ static void ReadKeys()
 static void ResetPressedKeys()
 {
 	// In keyboard only mode we just toggle
-	if(!mouse_detected) {
+	if (!mouse_detected)
+	{
 		return;
 	}
 
 	// Does not affect the mouse buttons, for those we have key release state
-	for(size_t i=0; i < 256; ++i) {
-		if(keyStateMap[i] == 1) {
+	for (size_t i = 0; i < 256; ++i)
+	{
+		if (keyStateMap[i] == 1)
+		{
 			pressDoomKey(0, i);
 		}
 	}
@@ -113,14 +119,16 @@ static int32_t mouse_lowest_dx = INT32_MAX;
 
 static void ReadMouse()
 {
-	if(pPointer == NULL) {
+	if (pPointer == NULL)
+	{
 		return;
 	}
 
 	EFI_SIMPLE_POINTER_STATE state;
 	EFI_STATUS status = pPointer->GetState(pPointer, &state);
 
-	if(status != EFI_SUCCESS) {
+	if (status != EFI_SUCCESS)
+	{
 		return;
 	}
 
@@ -132,14 +140,15 @@ static void ReadMouse()
 	// Therefore make this code self-calibrating
 	int32_t absMov = d_abs(state.RelativeMovementX);
 
-	if(absMov < mouse_lowest_dx && absMov > 0) {
+	if (absMov < mouse_lowest_dx && absMov > 0)
+	{
 		mouse_lowest_dx = absMov;
 	}
 
 	//    data1: Bitfield of buttons currently held down.
-    //           (bit 0 = left; bit 1 = right; bit 2 = middle).
-    //    data2: X axis mouse movement (turn).
-    //    data3: Y axis mouse movement (forward/backward).
+	//           (bit 0 = left; bit 1 = right; bit 2 = middle).
+	//    data2: X axis mouse movement (turn).
+	//    data3: Y axis mouse movement (forward/backward).
 	event_t event;
 	d_memset(&event, 0, sizeof(event_t));
 	event.type = ev_mouse;
@@ -154,7 +163,7 @@ void DG_DrawFrame()
 	ResetPressedKeys();
 	ReadKeys();
 	ReadMouse();
-	pGraphics->Blt(pGraphics, (EFI_GRAPHICS_OUTPUT_BLT_PIXEL*)DG_ScreenBuffer, EfiBltBufferToVideo, 0, 0, 0, 0, WIDTH, HEIGHT, 0);
+	pGraphics->Blt(pGraphics, (EFI_GRAPHICS_OUTPUT_BLT_PIXEL *)DG_ScreenBuffer, EfiBltBufferToVideo, 0, 0, 0, 0, WIDTH, HEIGHT, 0);
 }
 
 EFI_STATUS efi_main(
@@ -176,7 +185,7 @@ EFI_STATUS efi_main(
 		return status;
 
 	EFI_GUID gPointerGuid = EFI_SIMPLE_POINTER_PROTOCOL_GUID;
-	LibLocateProtocol(BS, &gPointerGuid, (void**)&pPointer);
+	LibLocateProtocol(BS, &gPointerGuid, (void **)&pPointer);
 
 	WIDTH = pGraphics->Mode->Info->HorizontalResolution;
 	HEIGHT = pGraphics->Mode->Info->VerticalResolution;
