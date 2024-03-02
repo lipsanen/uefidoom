@@ -320,7 +320,7 @@ boolean D_GrabMouseCallback(doom_data_t *doom)
 {
     // Drone players don't need mouse focus
 
-    if (drone)
+    if (doom->drone)
         return false;
 
     // when menu is active or game is paused, release the mouse

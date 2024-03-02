@@ -40,6 +40,8 @@
 #include "net_sdl.h"
 #include "net_loop.h"
 
+const static boolean net_client_connected = false;
+
 static boolean BuildNewTic(struct doom_data_t_ *doom)
 {
     int gameticdiv;
@@ -54,7 +56,7 @@ static boolean BuildNewTic(struct doom_data_t_ *doom)
 
     doom->loop_interface->RunMenu();
 
-    if (drone)
+    if (doom->drone)
     {
         // In drone mode, do not generate any ticcmds.
 
@@ -111,11 +113,11 @@ void NetUpdate(struct doom_data_t_ *doom)
     BuildNewTic(doom);
 }
 
-static void D_Disconnected(void)
+static void D_Disconnected(struct doom_data_t_ *doom)
 {
     // In drone mode, the game cannot continue once disconnected.
 
-    if (drone)
+    if (doom->drone)
     {
         I_Error("Disconnected from server in drone mode.");
     }
@@ -138,13 +140,13 @@ void D_ReceiveTic(doom_data_t *doom, ticcmd_t *ticcmds, boolean *players_mask)
 
     if (ticcmds == NULL && players_mask == NULL)
     {
-        D_Disconnected();
+        D_Disconnected(doom);
         return;
     }
 
     for (i = 0; i < NET_MAXPLAYERS; ++i)
     {
-        if (!drone && i == doom->localplayer)
+        if (!doom->drone && i == doom->localplayer)
         {
             // This is us.  Don't overwrite it.
         }
@@ -374,7 +376,7 @@ static boolean PlayersInGame(doom_data_t *doom)
     // Whether single or multi-player, unless we are running as a drone,
     // we are in the game.
 
-    if (!drone)
+    if (!doom->drone)
     {
         result = true;
     }

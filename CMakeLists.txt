@@ -15,7 +15,6 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/doomdef.c
     doomgeneric/doomgeneric.c
     doomgeneric/dstrings.c
-    doomgeneric/dummy.c
     doomgeneric/embedded.c
     doomgeneric/f_finale.c
     doomgeneric/f_wipe.c

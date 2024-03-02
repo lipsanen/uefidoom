@@ -299,6 +299,8 @@ struct doom_data_t_ {
 
     int myargc;
     char **myargv;
+
+    boolean drone;
 };
 
 typedef struct doom_data_t_ doom_data_t;
