@@ -19,10 +19,9 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/f_finale.c # done
     doomgeneric/f_wipe.c # done
     doomgeneric/g_game.c # done
-    doomgeneric/hu_lib.c
-    doomgeneric/hu_stuff.c
-    doomgeneric/i_input.c
-    doomgeneric/i_sound.c
+    doomgeneric/hu_lib.c # done
+    doomgeneric/hu_stuff.c # done
+    doomgeneric/i_sound.c # done
     doomgeneric/i_system.c
     doomgeneric/i_video.c
     doomgeneric/info.c
