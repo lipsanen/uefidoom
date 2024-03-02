@@ -743,7 +743,7 @@ boolean G_Responder(doom_data_t *doom, event_t *ev)
 
     if (gamestate == GS_FINALE)
     {
-        if (F_Responder(ev))
+        if (F_Responder(doom, ev))
             return true; // finale ate the event
     }
 

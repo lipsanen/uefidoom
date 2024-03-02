@@ -35,22 +35,6 @@
 #include "doomstat.h"
 #include "r_state.h"
 
-typedef enum
-{
-    F_STAGE_TEXT,
-    F_STAGE_ARTSCREEN,
-    F_STAGE_CAST,
-} finalestage_t;
-
-// ?
-//#include "doomstat.h"
-//#include "r_local.h"
-//#include "f_finale.h"
-
-// Stage of animation:
-finalestage_t finalestage;
-
-unsigned int finalecount;
 
 #define	TEXTSPEED	3
 #define	TEXTWAIT	250
@@ -91,9 +75,6 @@ static textscreen_t textscreens[] =
     { pack_plut, 1, 15, "RROCK13",   P5TEXT},
     { pack_plut, 1, 31, "RROCK19",   P6TEXT},
 };
-
-const char*	finaletext;
-const char*	finaleflat;
 
 void	F_StartCast (doom_data_t* doom);
 void	F_CastTicker (void);
@@ -138,24 +119,24 @@ void F_StartFinale (doom_data_t* doom)
          && (logical_gamemission != doom1 || gameepisode == screen->episode)
          && gamemap == screen->level)
         {
-            finaletext = screen->text;
-            finaleflat = screen->background;
+            doom->finaletext = screen->text;
+            doom->finaleflat = screen->background;
         }
     }
 
     // Do dehacked substitutions of strings
   
     
-    finalestage = F_STAGE_TEXT;
-    finalecount = 0;
+    doom->finalestage = F_STAGE_TEXT;
+    doom->finalecount = 0;
 	
 }
 
 
 
-boolean F_Responder (event_t *event)
+boolean F_Responder (doom_data_t* doom, event_t *event)
 {
-    if (finalestage == F_STAGE_CAST)
+    if (doom->finalestage == F_STAGE_CAST)
 	return F_CastResponder (event);
 	
     return false;
@@ -171,7 +152,7 @@ void F_Ticker (doom_data_t* doom)
     
     // check for skipping
     if ( (doom->gamemode == commercial)
-      && ( finalecount > 50) )
+      && ( doom->finalecount > 50) )
     {
       // go on to the next level
       for (i=0 ; i<MAXPLAYERS ; i++)
@@ -188,9 +169,9 @@ void F_Ticker (doom_data_t* doom)
     }
     
     // advance animation
-    finalecount++;
+    doom->finalecount++;
 	
-    if (finalestage == F_STAGE_CAST)
+    if (doom->finalestage == F_STAGE_CAST)
     {
 	F_CastTicker ();
 	return;
@@ -199,11 +180,11 @@ void F_Ticker (doom_data_t* doom)
     if ( doom->gamemode == commercial)
 	return;
 		
-    if (finalestage == F_STAGE_TEXT
-     && finalecount>d_strlen (finaletext)*TEXTSPEED + TEXTWAIT)
+    if (doom->finalestage == F_STAGE_TEXT
+     && doom->finalecount>d_strlen (doom->finaletext)*TEXTSPEED + TEXTWAIT)
     {
-	finalecount = 0;
-	finalestage = F_STAGE_ARTSCREEN;
+	doom->finalecount = 0;
+	doom->finalestage = F_STAGE_ARTSCREEN;
 	doom->wipegamestate = -1;		// force a wipe
 	if (gameepisode == 3)
 	    S_StartMusic (doom, mus_bunny);
@@ -233,7 +214,7 @@ void F_TextWrite (struct doom_data_t_* doom)
     int		cy;
     
     // erase the entire screen to a tiled background
-    src = W_CacheLumpName (doom, finaleflat , PU_CACHE);
+    src = W_CacheLumpName (doom, doom->finaleflat , PU_CACHE);
     dest = I_VideoBuffer;
 	
     for (y=0 ; y<SCREENHEIGHT ; y++)
@@ -255,9 +236,9 @@ void F_TextWrite (struct doom_data_t_* doom)
     // draw some of the text onto the screen
     cx = 10;
     cy = 10;
-    ch = finaletext;
+    ch = doom->finaletext;
 	
-    count = ((signed int) finalecount - 10) / TEXTSPEED;
+    count = ((signed int) doom->finalecount - 10) / TEXTSPEED;
     if (count < 0)
 	count = 0;
     for ( ; count ; count-- )
@@ -340,7 +321,7 @@ void F_StartCast (doom_data_t* doom)
     caststate = &states[mobjinfo[castorder[castnum].type].seestate];
     casttics = caststate->tics;
     castdeath = false;
-    finalestage = F_STAGE_CAST;
+    doom->finalestage = F_STAGE_CAST;
     castframes = 0;
     castonmelee = 0;
     castattacking = false;
@@ -614,7 +595,7 @@ void F_BunnyScroll (struct doom_data_t_* doom)
 
     V_MarkRect (doom, 0, 0, SCREENWIDTH, SCREENHEIGHT);
 	
-    scrolled = (320 - ((signed int) finalecount-230)/2);
+    scrolled = (320 - ((signed int) doom->finalecount-230)/2);
     if (scrolled > 320)
 	scrolled = 320;
     if (scrolled < 0)
@@ -628,9 +609,9 @@ void F_BunnyScroll (struct doom_data_t_* doom)
 	    F_DrawPatchCol (x, p2, x+scrolled - 320);		
     }
 	
-    if (finalecount < 1130)
+    if (doom->finalecount < 1130)
 	return;
-    if (finalecount < 1180)
+    if (doom->finalecount < 1180)
     {
         V_DrawPatch(doom, (SCREENWIDTH - 13 * 8) / 2,
                     (SCREENHEIGHT - 8 * 8) / 2, 
@@ -639,7 +620,7 @@ void F_BunnyScroll (struct doom_data_t_* doom)
 	return;
     }
 	
-    stage = (finalecount-1180) / 5;
+    stage = (doom->finalecount-1180) / 5;
     if (stage > 6)
 	stage = 6;
     if (stage > laststage)
@@ -697,7 +678,7 @@ static void F_ArtScreenDrawer(struct doom_data_t_* doom)
 //
 void F_Drawer (struct doom_data_t_* doom)
 {
-    switch (finalestage)
+    switch (doom->finalestage)
     {
         case F_STAGE_CAST:
             F_CastDrawer(doom);

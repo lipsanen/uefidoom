@@ -299,6 +299,13 @@ typedef enum
 
 } weapontype_t;
 
+typedef enum
+{
+    F_STAGE_TEXT,
+    F_STAGE_ARTSCREEN,
+    F_STAGE_CAST,
+} finalestage_t;
+
 struct doom_data_t_
 {
     int leveljuststarted; // kluge until AM_LevelInit() is called
@@ -787,6 +794,15 @@ struct doom_data_t_
     cheatseq_t cheat_choppers;
     cheatseq_t cheat_clev;
     cheatseq_t cheat_mypos;
+
+    patch_t *sttminus;
+
+    // Stage of animation:
+    finalestage_t finalestage;
+
+    unsigned int finalecount;
+    const char*	finaletext;
+    const char*	finaleflat;
 };
 
 typedef struct doom_data_t_ doom_data_t;

@@ -35,11 +35,10 @@
 // Hack display negative frags.
 //  Loads and store the stminus lump.
 //
-patch_t *sttminus;
 
 void STlib_init(struct doom_data_t_ *doom)
 {
-    sttminus = (patch_t *)W_CacheLumpName(doom, DEH_String("STTMINUS"), PU_STATIC);
+    doom->sttminus = (patch_t *)W_CacheLumpName(doom, DEH_String("STTMINUS"), PU_STATIC);
 }
 
 // ?
@@ -120,7 +119,7 @@ void STlib_drawNum(struct doom_data_t_ *doom, st_number_t *n,
 
     // draw a minus sign if necessary
     if (neg)
-        V_DrawPatch(doom, x - 8, n->y, sttminus);
+        V_DrawPatch(doom, x - 8, n->y, doom->sttminus);
 }
 
 //

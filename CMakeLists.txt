@@ -16,7 +16,7 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/doomgeneric.c # done
     doomgeneric/dstrings.c # done
     doomgeneric/embedded.c
-    doomgeneric/f_finale.c
+    doomgeneric/f_finale.c # done
     doomgeneric/f_wipe.c
     doomgeneric/g_game.c
     doomgeneric/hu_lib.c
@@ -70,8 +70,8 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/scanf.c
     doomgeneric/sha1.c
     doomgeneric/sounds.c
-    doomgeneric/st_lib.c
-    doomgeneric/st_stuff.c
+    doomgeneric/st_lib.c # done
+    doomgeneric/st_stuff.c # done
     doomgeneric/tables.c # done
     doomgeneric/utils.c # done
     doomgeneric/v_video.c # done

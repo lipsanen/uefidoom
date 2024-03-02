@@ -27,8 +27,10 @@
 // FINALE
 //
 
+struct doom_data_t_;
+
 // Called by main loop.
-boolean F_Responder (event_t* ev);
+boolean F_Responder (struct doom_data_t_* doom, event_t* ev);
 
 // Called by main loop.
 void F_Ticker (void);
