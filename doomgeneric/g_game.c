@@ -964,7 +964,7 @@ void G_Ticker(doom_data_t *doom)
     {
     case GS_LEVEL:
         P_Ticker(doom);
-        ST_Ticker();
+        ST_Ticker(doom);
         AM_Ticker(doom);
         HU_Ticker(doom);
         break;

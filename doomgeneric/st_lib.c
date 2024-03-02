@@ -98,7 +98,7 @@ void STlib_drawNum(struct doom_data_t_ *doom, st_number_t *n,
     if (n->y - ST_Y < 0)
         I_Error("drawNum: n->y - ST_Y < 0");
 
-    V_CopyRect(doom, x, n->y - ST_Y, st_backing_screen, w * numdigits, h, x, n->y);
+    V_CopyRect(doom, x, n->y - ST_Y, doom->st_backing_screen, w * numdigits, h, x, n->y);
 
     // if non-number, do not draw it
     if (num == 1994)
@@ -189,7 +189,7 @@ void STlib_updateMultIcon(struct doom_data_t_ *doom, st_multicon_t *mi,
             if (y - ST_Y < 0)
                 I_Error("updateMultIcon: y - ST_Y < 0");
 
-            V_CopyRect(doom, x, y - ST_Y, st_backing_screen, w, h, x, y);
+            V_CopyRect(doom, x, y - ST_Y, doom->st_backing_screen, w, h, x, y);
         }
         V_DrawPatch(doom, mi->x, mi->y, mi->p[*mi->inum]);
         mi->oldinum = *mi->inum;
@@ -232,7 +232,7 @@ void STlib_updateBinIcon(struct doom_data_t_ *doom, st_binicon_t *bi,
         if (*bi->val)
             V_DrawPatch(doom, bi->x, bi->y, bi->p);
         else
-            V_CopyRect(doom, x, y - ST_Y, st_backing_screen, w, h, x, y);
+            V_CopyRect(doom, x, y - ST_Y, doom->st_backing_screen, w, h, x, y);
 
         bi->oldval = *bi->val;
     }

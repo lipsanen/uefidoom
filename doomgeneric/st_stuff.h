@@ -21,6 +21,7 @@
 #ifndef __STSTUFF_H__
 #define __STSTUFF_H__
 
+#include "doomdef.h"
 #include "doomtype.h"
 #include "d_event.h"
 #include "m_cheat.h"
@@ -40,7 +41,7 @@
 boolean ST_Responder (doom_data_t* doom, event_t* ev);
 
 // Called by main loop.
-void ST_Ticker (void);
+void ST_Ticker (struct doom_data_t_* doom);
 
 // Called by main loop.
 void ST_Drawer (doom_data_t* doom, boolean fullscreen, boolean refresh);
@@ -53,27 +54,6 @@ void ST_Init (struct doom_data_t_* doom);
 
 
 
-// States for status bar code.
-typedef enum
-{
-    AutomapState,
-    FirstPersonState
-    
-} st_stateenum_t;
-
-
-// States for the chat code.
-typedef enum
-{
-    StartChatState,
-    WaitDestState,
-    GetChatState
-    
-} st_chatstateenum_t;
-
-
-
-extern byte *st_backing_screen;
 extern cheatseq_t cheat_mus;
 extern cheatseq_t cheat_god;
 extern cheatseq_t cheat_ammo;

@@ -72,9 +72,9 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/sounds.c
     doomgeneric/st_lib.c
     doomgeneric/st_stuff.c
-    doomgeneric/tables.c
-    doomgeneric/utils.c
-    doomgeneric/v_video.c
+    doomgeneric/tables.c # done
+    doomgeneric/utils.c # done
+    doomgeneric/v_video.c # done
     doomgeneric/w_checksum.c # done
     doomgeneric/w_file.c # done
     doomgeneric/w_file_stdc.c # done

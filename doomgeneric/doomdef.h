@@ -77,16 +77,198 @@ typedef enum
     GS_DEMOSCREEN,
 } gamestate_t;
 
+
+//
+// Key cards.
+//
+typedef enum
+{
+    it_bluecard,
+    it_yellowcard,
+    it_redcard,
+    it_blueskull,
+    it_yellowskull,
+    it_redskull,
+
+    NUMCARDS
+
+} card_t;
+
+
+
+// Ammunition types defined.
+typedef enum
+{
+    am_clip,  // Pistol / chaingun ammo.
+    am_shell, // Shotgun / double barreled shotgun.
+    am_cell,  // Plasma rifle, BFG.
+    am_misl,  // Missile launcher.
+    NUMAMMO,
+    am_noammo // Unlimited for chainsaw / fist.
+
+} ammotype_t;
+
+// Power up artifacts.
+typedef enum
+{
+    pw_invulnerability,
+    pw_strength,
+    pw_invisibility,
+    pw_ironfeet,
+    pw_allmap,
+    pw_infrared,
+    NUMPOWERS
+
+} powertype_t;
+
+//
+// Power up durations,
+//  how many seconds till expiration,
+//  assuming TICRATE is 35 ticks/second.
+//
+typedef enum
+{
+    INVULNTICS = (30 * TICRATE),
+    INVISTICS = (60 * TICRATE),
+    INFRATICS = (120 * TICRATE),
+    IRONTICS = (60 * TICRATE)
+
+} powerduration_t;
+
+
+// States for status bar code.
+typedef enum
+{
+    AutomapState,
+    FirstPersonState
+    
+} st_stateenum_t;
+
+
+// States for the chat code.
+typedef enum
+{
+    StartChatState,
+    WaitDestState,
+    GetChatState
+    
+} st_chatstateenum_t;
+
 struct loop_interface_t_;
 struct lumpinfo_s;
 struct wbplayerstruct_s;
 struct wbstartstruct_s;
 struct _wad_file_s;
+struct player_s;
+
+
+typedef struct
+{
+    // upper right-hand corner
+    //  of the number (right-justified)
+    int x;
+    int y;
+
+    // max # of digits in number
+    int width;
+
+    // last number value
+    int oldnum;
+
+    // pointer to current value
+    int *num;
+
+    // pointer to boolean stating
+    //  whether to update number
+    boolean *on;
+
+    // list of patches for 0-9
+    patch_t **p;
+
+    // user data
+    int data;
+
+} st_number_t;
+
+// Percent widget ("child" of number widget,
+//  or, more precisely, contains a number widget.)
+typedef struct
+{
+    // number information
+    st_number_t n;
+
+    // percent sign graphic
+    patch_t *p;
+
+} st_percent_t;
+
+// Multiple Icon widget
+typedef struct
+{
+    // center-justified location of icons
+    int x;
+    int y;
+
+    // last icon number
+    int oldinum;
+
+    // pointer to current icon
+    int *inum;
+
+    // pointer to boolean stating
+    //  whether to update icon
+    boolean *on;
+
+    // list of icons
+    patch_t **p;
+
+    // user data
+    int data;
+
+} st_multicon_t;
+
+// Binary Icon widget
+
+typedef struct
+{
+    // center-justified location of icon
+    int x;
+    int y;
+
+    // last icon value
+    boolean oldval;
+
+    // pointer to current icon status
+    boolean *val;
+
+    // pointer to boolean
+    //  stating whether to update icon
+    boolean *on;
+
+    patch_t *p; // icon
+    int data;   // user data
+
+} st_binicon_t;
+
 
 typedef boolean (*vpatchclipfunc_t)(patch_t *, int, int);
 
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS 4
+
+// Number of status faces.
+#define ST_NUMPAINFACES 5
+#define ST_NUMSTRAIGHTFACES 3
+#define ST_NUMTURNFACES 2
+#define ST_NUMSPECIALFACES 3
+
+#define ST_FACESTRIDE \
+    (ST_NUMSTRAIGHTFACES + ST_NUMTURNFACES + ST_NUMSPECIALFACES)
+
+#define ST_NUMEXTRAFACES 2
+
+#define ST_NUMFACES \
+    (ST_FACESTRIDE * ST_NUMPAINFACES + ST_NUMEXTRAFACES)
 
 typedef enum
 {
@@ -94,6 +276,28 @@ typedef enum
     StatCount,
     ShowNextLoc,
 } stateenum_t;
+
+// The defined weapons,
+//  including a marker indicating
+//  user has not changed weapon.
+typedef enum
+{
+    wp_fist,
+    wp_pistol,
+    wp_shotgun,
+    wp_chaingun,
+    wp_missile,
+    wp_plasma,
+    wp_bfg,
+    wp_chainsaw,
+    wp_supershotgun,
+
+    NUMWEAPONS,
+
+    // No pending weapon change.
+    wp_nochange
+
+} weapontype_t;
 
 struct doom_data_t_
 {
@@ -438,6 +642,131 @@ struct doom_data_t_
     // haleyjd 08/28/10: clipping callback function for patches.
     // This is needed for Chocolate Strife, which clips patches to the screen.
     vpatchclipfunc_t patchclip_callback;
+
+    boolean st_stopped;
+
+    // graphics are drawn to a backing screen and blitted to the real screen
+    byte *st_backing_screen;
+
+    // main player in game
+    struct player_s *plyr;
+
+    // ST_Start() has just been called
+    boolean st_firsttime;
+
+    // lump number for PLAYPAL
+    int lu_palette;
+
+    // used for timing
+    unsigned int st_clock;
+
+    // used for making messages go away
+    int st_msgcounter;
+
+    // used when in chat
+    st_chatstateenum_t st_chatstate;
+
+    // whether in automap or first-person
+    st_stateenum_t st_gamestate;
+
+    // whether left-side main status bar is active
+    boolean st_statusbaron;
+
+    // whether status bar chat is active
+    boolean st_chat;
+
+    // value of st_chat before message popped up
+    boolean st_oldchat;
+
+    // whether chat window has the cursor on
+    boolean st_cursoron;
+
+    // !deathmatch
+    boolean st_notdeathmatch;
+
+    // !deathmatch && st_statusbaron
+    boolean st_armson;
+
+    // !deathmatch
+    boolean st_fragson;
+
+    // main bar left
+    patch_t *sbar;
+
+    // 0-9, tall numbers
+    patch_t *tallnum[10];
+
+    // tall % sign
+    patch_t *tallpercent;
+
+    // 0-9, short, yellow (,different!) numbers
+    patch_t *shortnum[10];
+
+    // 3 key-cards, 3 skulls
+    patch_t *keys[NUMCARDS];
+
+    // face status patches
+    patch_t *faces[ST_NUMFACES];
+
+    // face background
+    patch_t *faceback;
+
+    // main bar right
+    patch_t *armsbg;
+
+    // weapon ownership patches
+    patch_t *arms[6][2];
+
+    // ready-weapon widget
+    st_number_t w_ready;
+
+    // in deathmatch only, summary of frags stats
+    st_number_t w_frags;
+
+    // health widget
+    st_percent_t w_health;
+
+    // arms background
+    st_binicon_t w_armsbg;
+
+    // weapon ownership widgets
+    st_multicon_t w_arms[6];
+
+    // face status widget
+    st_multicon_t w_faces;
+
+    // keycard widgets
+    st_multicon_t w_keyboxes[3];
+
+    // armor widget
+    st_percent_t w_armor;
+
+    // ammo widgets
+    st_number_t w_ammo[4];
+
+    // max ammo widgets
+    st_number_t w_maxammo[4];
+
+    // number of frags so far in deathmatch
+    int st_fragscount;
+
+    // used to use appopriately pained face
+    int st_oldhealth;
+
+    // used for evil grin
+    boolean oldweaponsowned[NUMWEAPONS];
+
+    // count until face changes
+    int st_facecount;
+
+    // current face index, used by w_faces
+    int st_faceindex;
+
+    // holds key-type for each key box on bar
+    int keyboxes[3];
+
+    // a random number per tick
+    int st_randomnumber;
 };
 
 typedef struct doom_data_t_ doom_data_t;
@@ -481,82 +810,5 @@ typedef enum
 
 // Deaf monsters/do not react to sound.
 #define MTF_AMBUSH 8
-
-//
-// Key cards.
-//
-typedef enum
-{
-    it_bluecard,
-    it_yellowcard,
-    it_redcard,
-    it_blueskull,
-    it_yellowskull,
-    it_redskull,
-
-    NUMCARDS
-
-} card_t;
-
-// The defined weapons,
-//  including a marker indicating
-//  user has not changed weapon.
-typedef enum
-{
-    wp_fist,
-    wp_pistol,
-    wp_shotgun,
-    wp_chaingun,
-    wp_missile,
-    wp_plasma,
-    wp_bfg,
-    wp_chainsaw,
-    wp_supershotgun,
-
-    NUMWEAPONS,
-
-    // No pending weapon change.
-    wp_nochange
-
-} weapontype_t;
-
-// Ammunition types defined.
-typedef enum
-{
-    am_clip,  // Pistol / chaingun ammo.
-    am_shell, // Shotgun / double barreled shotgun.
-    am_cell,  // Plasma rifle, BFG.
-    am_misl,  // Missile launcher.
-    NUMAMMO,
-    am_noammo // Unlimited for chainsaw / fist.
-
-} ammotype_t;
-
-// Power up artifacts.
-typedef enum
-{
-    pw_invulnerability,
-    pw_strength,
-    pw_invisibility,
-    pw_ironfeet,
-    pw_allmap,
-    pw_infrared,
-    NUMPOWERS
-
-} powertype_t;
-
-//
-// Power up durations,
-//  how many seconds till expiration,
-//  assuming TICRATE is 35 ticks/second.
-//
-typedef enum
-{
-    INVULNTICS = (30 * TICRATE),
-    INVISTICS = (60 * TICRATE),
-    INFRATICS = (120 * TICRATE),
-    IRONTICS = (60 * TICRATE)
-
-} powerduration_t;
 
 #endif // __DOOMDEF__

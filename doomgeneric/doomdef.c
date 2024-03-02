@@ -45,6 +45,8 @@ void doomdata_init(doom_data_t* doom) {
     doom->gameversion = exe_final2;
     doom->lastepisode = -1;
     doom->lastlevel = -1;
+    doom->st_stopped = true;
+    doom->st_oldhealth = -1;
 }
 
 // Location for any defines turned variables.
