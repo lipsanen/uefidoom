@@ -250,7 +250,7 @@ void F_TextWrite (struct doom_data_t_* doom)
 	}
     }
 
-    V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
+    V_MarkRect (doom, 0, 0, SCREENWIDTH, SCREENHEIGHT);
     
     // draw some of the text onto the screen
     cx = 10;
@@ -282,7 +282,7 @@ void F_TextWrite (struct doom_data_t_* doom)
 	w = SHORT (hu_font[c]->width);
 	if (cx+w > SCREENWIDTH)
 	    break;
-	V_DrawPatch(cx, cy, hu_font[c]);
+	V_DrawPatch(doom, cx, cy, hu_font[c]);
 	cx+=w;
     }
 	
@@ -479,7 +479,7 @@ boolean F_CastResponder (event_t* ev)
 }
 
 
-void F_CastPrint (char* text)
+void F_CastPrint (struct doom_data_t_* doom, char* text)
 {
     char*	ch;
     int		c;
@@ -523,7 +523,7 @@ void F_CastPrint (char* text)
 	}
 		
 	w = SHORT (hu_font[c]->width);
-	V_DrawPatch(cx, 180, hu_font[c]);
+	V_DrawPatch(doom, cx, 180, hu_font[c]);
 	cx+=w;
     }
 	
@@ -543,9 +543,9 @@ void F_CastDrawer (struct doom_data_t_* doom)
     patch_t*		patch;
     
     // erase the entire screen to a background
-    V_DrawPatch (0, 0, W_CacheLumpName (doom, DEH_String("BOSSBACK"), PU_CACHE));
+    V_DrawPatch (doom, 0, 0, W_CacheLumpName (doom, DEH_String("BOSSBACK"), PU_CACHE));
 
-    F_CastPrint (DEH_String(castorder[castnum].name));
+    F_CastPrint (doom, DEH_String(castorder[castnum].name));
     
     // draw the current frame in the middle of the screen
     sprdef = &sprites[caststate->sprite];
@@ -555,9 +555,9 @@ void F_CastDrawer (struct doom_data_t_* doom)
 			
     patch = W_CacheLumpNum (doom, lump+firstspritelump, PU_CACHE);
     if (flip)
-	V_DrawPatchFlipped(160, 170, patch);
+	V_DrawPatchFlipped(doom, 160, 170, patch);
     else
-	V_DrawPatch(160, 170, patch);
+	V_DrawPatch(doom, 160, 170, patch);
 }
 
 
@@ -612,7 +612,7 @@ void F_BunnyScroll (struct doom_data_t_* doom)
     p1 = W_CacheLumpName (doom, DEH_String("PFUB2"), PU_LEVEL);
     p2 = W_CacheLumpName (doom, DEH_String("PFUB1"), PU_LEVEL);
 
-    V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
+    V_MarkRect (doom, 0, 0, SCREENWIDTH, SCREENHEIGHT);
 	
     scrolled = (320 - ((signed int) finalecount-230)/2);
     if (scrolled > 320)
@@ -632,7 +632,7 @@ void F_BunnyScroll (struct doom_data_t_* doom)
 	return;
     if (finalecount < 1180)
     {
-        V_DrawPatch((SCREENWIDTH - 13 * 8) / 2,
+        V_DrawPatch(doom, (SCREENWIDTH - 13 * 8) / 2,
                     (SCREENHEIGHT - 8 * 8) / 2, 
                     W_CacheLumpName(doom, DEH_String("END0"), PU_CACHE));
 	laststage = 0;
@@ -649,7 +649,7 @@ void F_BunnyScroll (struct doom_data_t_* doom)
     }
 	
     d_snprintf(name, 10, "END%i", stage);
-    V_DrawPatch((SCREENWIDTH - 13 * 8) / 2, 
+    V_DrawPatch(doom, (SCREENWIDTH - 13 * 8) / 2, 
                 (SCREENHEIGHT - 8 * 8) / 2, 
                 W_CacheLumpName (doom, name,PU_CACHE));
 }
@@ -688,7 +688,7 @@ static void F_ArtScreenDrawer(struct doom_data_t_* doom)
 
         lumpname = DEH_String(lumpname);
 
-        V_DrawPatch (0, 0, W_CacheLumpName(doom, lumpname, PU_CACHE));
+        V_DrawPatch (doom, 0, 0, W_CacheLumpName(doom, lumpname, PU_CACHE));
     }
 }
 

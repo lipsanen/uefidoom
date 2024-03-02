@@ -819,43 +819,43 @@ void R_FillBackScreen(struct doom_data_t_ *doom)
 
     // Draw screen and bezel; this is done to a separate screen buffer.
 
-    V_UseBuffer(background_buffer);
+    V_UseBuffer(doom, background_buffer);
 
     patch = W_CacheLumpName(doom, DEH_String("brdr_t"), PU_CACHE);
 
     for (x = 0; x < scaledviewwidth; x += 8)
-        V_DrawPatch(viewwindowx + x, viewwindowy - 8, patch);
+        V_DrawPatch(doom, viewwindowx + x, viewwindowy - 8, patch);
     patch = W_CacheLumpName(doom, DEH_String("brdr_b"), PU_CACHE);
 
     for (x = 0; x < scaledviewwidth; x += 8)
-        V_DrawPatch(viewwindowx + x, viewwindowy + viewheight, patch);
+        V_DrawPatch(doom, viewwindowx + x, viewwindowy + viewheight, patch);
     patch = W_CacheLumpName(doom, DEH_String("brdr_l"), PU_CACHE);
 
     for (y = 0; y < viewheight; y += 8)
-        V_DrawPatch(viewwindowx - 8, viewwindowy + y, patch);
+        V_DrawPatch(doom, viewwindowx - 8, viewwindowy + y, patch);
     patch = W_CacheLumpName(doom, DEH_String("brdr_r"), PU_CACHE);
 
     for (y = 0; y < viewheight; y += 8)
-        V_DrawPatch(viewwindowx + scaledviewwidth, viewwindowy + y, patch);
+        V_DrawPatch(doom, viewwindowx + scaledviewwidth, viewwindowy + y, patch);
 
     // Draw beveled edge.
-    V_DrawPatch(viewwindowx - 8,
+    V_DrawPatch(doom, viewwindowx - 8,
                 viewwindowy - 8,
                 W_CacheLumpName(doom, DEH_String("brdr_tl"), PU_CACHE));
 
-    V_DrawPatch(viewwindowx + scaledviewwidth,
+    V_DrawPatch(doom, viewwindowx + scaledviewwidth,
                 viewwindowy - 8,
                 W_CacheLumpName(doom, DEH_String("brdr_tr"), PU_CACHE));
 
-    V_DrawPatch(viewwindowx - 8,
+    V_DrawPatch(doom, viewwindowx - 8,
                 viewwindowy + viewheight,
                 W_CacheLumpName(doom, DEH_String("brdr_bl"), PU_CACHE));
 
-    V_DrawPatch(viewwindowx + scaledviewwidth,
+    V_DrawPatch(doom, viewwindowx + scaledviewwidth,
                 viewwindowy + viewheight,
                 W_CacheLumpName(doom, DEH_String("brdr_br"), PU_CACHE));
 
-    V_RestoreBuffer();
+    V_RestoreBuffer(doom);
 }
 
 //
@@ -881,7 +881,7 @@ void R_VideoErase(unsigned ofs,
 // Draws the border around the view
 //  for different size windows?
 //
-void R_DrawViewBorder(void)
+void R_DrawViewBorder(struct doom_data_t_* doom)
 {
     int top;
     int side;
@@ -912,5 +912,5 @@ void R_DrawViewBorder(void)
     }
 
     // ?
-    V_MarkRect(0, 0, SCREENWIDTH, SCREENHEIGHT - SBARHEIGHT);
+    V_MarkRect(doom, 0, 0, SCREENWIDTH, SCREENHEIGHT - SBARHEIGHT);
 }

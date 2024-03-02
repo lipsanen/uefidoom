@@ -83,6 +83,8 @@ struct wbplayerstruct_s;
 struct wbstartstruct_s;
 struct _wad_file_s;
 
+typedef boolean (*vpatchclipfunc_t)(patch_t *, int, int);
+
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS 4
 
@@ -418,6 +420,24 @@ struct doom_data_t_
 
     struct _wad_file_s **open_wadfiles;
     int num_open_wadfiles;
+
+    // Blending table used for fuzzpatch, etc.
+    // Only used in Heretic/Hexen
+
+    byte *tinttable;
+
+    // villsa [STRIFE] Blending table used for Strife
+    byte *xlatab;
+
+    // The screen buffer that the v_video.c code draws to.
+
+    byte *dest_screen;
+
+    int dirtybox[4];
+
+    // haleyjd 08/28/10: clipping callback function for patches.
+    // This is needed for Chocolate Strife, which clips patches to the screen.
+    vpatchclipfunc_t patchclip_callback;
 };
 
 typedef struct doom_data_t_ doom_data_t;

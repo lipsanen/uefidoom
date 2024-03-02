@@ -733,7 +733,7 @@ boolean G_Responder(doom_data_t *doom, event_t *ev)
 	    return true; 
 	}
 #endif
-        if (HU_Responder(ev))
+        if (HU_Responder(doom, ev))
             return true; // chat ate the event
         if (ST_Responder(doom, ev))
             return true; // status window ate it

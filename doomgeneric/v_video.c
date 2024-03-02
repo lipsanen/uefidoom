@@ -41,43 +41,25 @@
 // is common code. Fix this.
 #define RANGECHECK
 
-// Blending table used for fuzzpatch, etc.
-// Only used in Heretic/Hexen
-
-byte *tinttable = NULL;
-
-// villsa [STRIFE] Blending table used for Strife
-byte *xlatab = NULL;
-
-// The screen buffer that the v_video.c code draws to.
-
-static byte *dest_screen = NULL;
-
-int dirtybox[4];
-
-// haleyjd 08/28/10: clipping callback function for patches.
-// This is needed for Chocolate Strife, which clips patches to the screen.
-static vpatchclipfunc_t patchclip_callback = NULL;
-
 //
 // V_MarkRect
 //
-void V_MarkRect(int x, int y, int width, int height)
+void V_MarkRect(doom_data_t* doom, int x, int y, int width, int height)
 {
     // If we are temporarily using an alternate screen, do not
     // affect the update box.
 
-    if (dest_screen == I_VideoBuffer)
+    if (doom->dest_screen == I_VideoBuffer)
     {
-        M_AddToBox(dirtybox, x, y);
-        M_AddToBox(dirtybox, x + width - 1, y + height - 1);
+        M_AddToBox(doom->dirtybox, x, y);
+        M_AddToBox(doom->dirtybox, x + width - 1, y + height - 1);
     }
 }
 
 //
 // V_CopyRect
 //
-void V_CopyRect(int srcx, int srcy, byte *source,
+void V_CopyRect(doom_data_t* doom, int srcx, int srcy, byte *source,
                 int width, int height,
                 int destx, int desty)
 {
@@ -91,10 +73,10 @@ void V_CopyRect(int srcx, int srcy, byte *source,
     }
 #endif
 
-    V_MarkRect(destx, desty, width, height);
+    V_MarkRect(doom, destx, desty, width, height);
 
     src = source + SCREENWIDTH * srcy + srcx;
-    dest = dest_screen + SCREENWIDTH * desty + destx;
+    dest = doom->dest_screen + SCREENWIDTH * desty + destx;
 
     for (; height > 0; height--)
     {
@@ -114,9 +96,9 @@ void V_CopyRect(int srcx, int srcy, byte *source,
 // implementation, so this could possibly be extended to those as well for
 // accurate emulation.
 //
-void V_SetPatchClipCallback(vpatchclipfunc_t func)
+void V_SetPatchClipCallback(doom_data_t* doom, vpatchclipfunc_t func)
 {
-    patchclip_callback = func;
+    doom->patchclip_callback = func;
 }
 
 //
@@ -124,7 +106,7 @@ void V_SetPatchClipCallback(vpatchclipfunc_t func)
 // Masks a column based masked pic to the screen.
 //
 
-void V_DrawPatch(int x, int y, patch_t *patch)
+void V_DrawPatch(doom_data_t* doom, int x, int y, patch_t *patch)
 {
     int count;
     int col;
@@ -138,9 +120,9 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     x -= SHORT(patch->leftoffset);
 
     // haleyjd 08/28/10: Strife needs silent error checking here.
-    if (patchclip_callback)
+    if (doom->patchclip_callback)
     {
-        if (!patchclip_callback(patch, x, y))
+        if (!doom->patchclip_callback(patch, x, y))
             return;
     }
 
@@ -151,10 +133,10 @@ void V_DrawPatch(int x, int y, patch_t *patch)
     }
 #endif
 
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+    V_MarkRect(doom, x, y, SHORT(patch->width), SHORT(patch->height));
 
     col = 0;
-    desttop = dest_screen + y * SCREENWIDTH + x;
+    desttop = doom->dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
 
@@ -185,7 +167,7 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 // Flips horizontally, e.g. to mirror face.
 //
 
-void V_DrawPatchFlipped(int x, int y, patch_t *patch)
+void V_DrawPatchFlipped(doom_data_t* doom, int x, int y, patch_t *patch)
 {
     int count;
     int col;
@@ -199,9 +181,9 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     x -= SHORT(patch->leftoffset);
 
     // haleyjd 08/28/10: Strife needs silent error checking here.
-    if (patchclip_callback)
+    if (doom->patchclip_callback)
     {
-        if (!patchclip_callback(patch, x, y))
+        if (!doom->patchclip_callback(patch, x, y))
             return;
     }
 
@@ -212,10 +194,10 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
     }
 #endif
 
-    V_MarkRect(x, y, SHORT(patch->width), SHORT(patch->height));
+    V_MarkRect(doom, x, y, SHORT(patch->width), SHORT(patch->height));
 
     col = 0;
-    desttop = dest_screen + y * SCREENWIDTH + x;
+    desttop = doom->dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
 
@@ -245,9 +227,9 @@ void V_DrawPatchFlipped(int x, int y, patch_t *patch)
 // Draws directly to the screen on the pc.
 //
 
-void V_DrawPatchDirect(int x, int y, patch_t *patch)
+void V_DrawPatchDirect(doom_data_t* doom, int x, int y, patch_t *patch)
 {
-    V_DrawPatch(x, y, patch);
+    V_DrawPatch(doom, x, y, patch);
 }
 
 //
@@ -256,7 +238,7 @@ void V_DrawPatchDirect(int x, int y, patch_t *patch)
 // Masks a column based translucent masked pic to the screen.
 //
 
-void V_DrawTLPatch(int x, int y, patch_t *patch)
+void V_DrawTLPatch(doom_data_t* doom, int x, int y, patch_t *patch)
 {
     int count, col;
     column_t *column;
@@ -272,7 +254,7 @@ void V_DrawTLPatch(int x, int y, patch_t *patch)
     }
 
     col = 0;
-    desttop = dest_screen + y * SCREENWIDTH + x;
+    desttop = doom->dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
     for (; col < w; x++, col++, desttop++)
@@ -289,7 +271,7 @@ void V_DrawTLPatch(int x, int y, patch_t *patch)
 
             while (count--)
             {
-                *dest = tinttable[((*dest) << 8) + *source++];
+                *dest = doom->tinttable[((*dest) << 8) + *source++];
                 dest += SCREENWIDTH;
             }
             column = (column_t *)((byte *)column + column->length + 4);
@@ -303,7 +285,7 @@ void V_DrawTLPatch(int x, int y, patch_t *patch)
 // villsa [STRIFE] Masks a column based translucent masked pic to the screen.
 //
 
-void V_DrawXlaPatch(int x, int y, patch_t *patch)
+void V_DrawXlaPatch(doom_data_t* doom, int x, int y, patch_t *patch)
 {
     int count, col;
     column_t *column;
@@ -313,14 +295,14 @@ void V_DrawXlaPatch(int x, int y, patch_t *patch)
     y -= SHORT(patch->topoffset);
     x -= SHORT(patch->leftoffset);
 
-    if (patchclip_callback)
+    if (doom->patchclip_callback)
     {
-        if (!patchclip_callback(patch, x, y))
+        if (!doom->patchclip_callback(patch, x, y))
             return;
     }
 
     col = 0;
-    desttop = dest_screen + y * SCREENWIDTH + x;
+    desttop = doom->dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
     for (; col < w; x++, col++, desttop++)
@@ -337,7 +319,7 @@ void V_DrawXlaPatch(int x, int y, patch_t *patch)
 
             while (count--)
             {
-                *dest = xlatab[*dest + ((*source) << 8)];
+                *dest = doom->xlatab[*dest + ((*source) << 8)];
                 source++;
                 dest += SCREENWIDTH;
             }
@@ -352,7 +334,7 @@ void V_DrawXlaPatch(int x, int y, patch_t *patch)
 // Masks a column based translucent masked pic to the screen.
 //
 
-void V_DrawAltTLPatch(int x, int y, patch_t *patch)
+void V_DrawAltTLPatch(doom_data_t* doom, int x, int y, patch_t *patch)
 {
     int count, col;
     column_t *column;
@@ -368,7 +350,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t *patch)
     }
 
     col = 0;
-    desttop = dest_screen + y * SCREENWIDTH + x;
+    desttop = doom->dest_screen + y * SCREENWIDTH + x;
 
     w = SHORT(patch->width);
     for (; col < w; x++, col++, desttop++)
@@ -385,7 +367,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t *patch)
 
             while (count--)
             {
-                *dest = tinttable[((*dest) << 8) + *source++];
+                *dest = doom->tinttable[((*dest) << 8) + *source++];
                 dest += SCREENWIDTH;
             }
             column = (column_t *)((byte *)column + column->length + 4);
@@ -399,7 +381,7 @@ void V_DrawAltTLPatch(int x, int y, patch_t *patch)
 // Masks a column based masked pic to the screen.
 //
 
-void V_DrawShadowedPatch(int x, int y, patch_t *patch)
+void V_DrawShadowedPatch(doom_data_t* doom, int x, int y, patch_t *patch)
 {
     int count, col;
     column_t *column;
@@ -416,8 +398,8 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
     }
 
     col = 0;
-    desttop = dest_screen + y * SCREENWIDTH + x;
-    desttop2 = dest_screen + (y + 2) * SCREENWIDTH + x + 2;
+    desttop = doom->dest_screen + y * SCREENWIDTH + x;
+    desttop2 = doom->dest_screen + (y + 2) * SCREENWIDTH + x + 2;
 
     w = SHORT(patch->width);
     for (; col < w; x++, col++, desttop++, desttop2++)
@@ -435,7 +417,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 
             while (count--)
             {
-                *dest2 = tinttable[((*dest2) << 8)];
+                *dest2 = doom->tinttable[((*dest2) << 8)];
                 dest2 += SCREENWIDTH;
                 *dest = *source++;
                 dest += SCREENWIDTH;
@@ -451,7 +433,7 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 
 void V_LoadTintTable(struct doom_data_t_* doom)
 {
-    tinttable = W_CacheLumpName(doom, "TINTTAB", PU_STATIC);
+    doom->tinttable = W_CacheLumpName(doom, "TINTTAB", PU_STATIC);
 }
 
 //
@@ -462,7 +444,7 @@ void V_LoadTintTable(struct doom_data_t_* doom)
 
 void V_LoadXlaTable(struct doom_data_t_* doom)
 {
-    xlatab = W_CacheLumpName(doom, "XLATAB", PU_STATIC);
+    doom->xlatab = W_CacheLumpName(doom, "XLATAB", PU_STATIC);
 }
 
 //
@@ -470,7 +452,7 @@ void V_LoadXlaTable(struct doom_data_t_* doom)
 // Draw a linear block of pixels into the view buffer.
 //
 
-void V_DrawBlock(int x, int y, int width, int height, byte *src)
+void V_DrawBlock(doom_data_t* doom, int x, int y, int width, int height, byte *src)
 {
     byte *dest;
 
@@ -481,9 +463,9 @@ void V_DrawBlock(int x, int y, int width, int height, byte *src)
     }
 #endif
 
-    V_MarkRect(x, y, width, height);
+    V_MarkRect(doom, x, y, width, height);
 
-    dest = dest_screen + y * SCREENWIDTH + x;
+    dest = doom->dest_screen + y * SCREENWIDTH + x;
 
     while (height--)
     {
@@ -493,7 +475,7 @@ void V_DrawBlock(int x, int y, int width, int height, byte *src)
     }
 }
 
-void V_DrawFilledBox(int x, int y, int w, int h, int c)
+void V_DrawFilledBox(struct doom_data_t_ *doom, int x, int y, int w, int h, int c)
 {
     uint8_t *buf, *buf1;
     int x1, y1;
@@ -513,7 +495,7 @@ void V_DrawFilledBox(int x, int y, int w, int h, int c)
     }
 }
 
-void V_DrawHorizLine(int x, int y, int w, int c)
+void V_DrawHorizLine(struct doom_data_t_ *doom, int x, int y, int w, int c)
 {
     uint8_t *buf;
     int x1;
@@ -526,7 +508,7 @@ void V_DrawHorizLine(int x, int y, int w, int c)
     }
 }
 
-void V_DrawVertLine(int x, int y, int h, int c)
+void V_DrawVertLine(struct doom_data_t_ *doom, int x, int y, int h, int c)
 {
     uint8_t *buf;
     int y1;
@@ -540,12 +522,12 @@ void V_DrawVertLine(int x, int y, int h, int c)
     }
 }
 
-void V_DrawBox(int x, int y, int w, int h, int c)
+void V_DrawBox(struct doom_data_t_ *doom, int x, int y, int w, int h, int c)
 {
-    V_DrawHorizLine(x, y, w, c);
-    V_DrawHorizLine(x, y + h - 1, w, c);
-    V_DrawVertLine(x, y, h, c);
-    V_DrawVertLine(x + w - 1, y, h, c);
+    V_DrawHorizLine(doom, x, y, w, c);
+    V_DrawHorizLine(doom, x, y + h - 1, w, c);
+    V_DrawVertLine(doom, x, y, h, c);
+    V_DrawVertLine(doom, x + w - 1, y, h, c);
 }
 
 //
@@ -553,15 +535,15 @@ void V_DrawBox(int x, int y, int w, int h, int c)
 // to the screen)
 //
 
-void V_DrawRawScreen(byte *raw)
+void V_DrawRawScreen(doom_data_t* doom, byte *raw)
 {
-    d_memcpy(dest_screen, raw, SCREENWIDTH * SCREENHEIGHT);
+    d_memcpy(doom->dest_screen, raw, SCREENWIDTH * SCREENHEIGHT);
 }
 
 //
 // V_Init
 //
-void V_Init(void)
+void V_Init(struct doom_data_t_* doom)
 {
     // no-op!
     // There used to be separate screens that could be drawn to; these are
@@ -570,16 +552,16 @@ void V_Init(void)
 
 // Set the buffer that the code draws to.
 
-void V_UseBuffer(byte *buffer)
+void V_UseBuffer(doom_data_t* doom, byte *buffer)
 {
-    dest_screen = buffer;
+    doom->dest_screen = buffer;
 }
 
 // Restore screen buffer to the i_video screen buffer.
 
-void V_RestoreBuffer(void)
+void V_RestoreBuffer(doom_data_t* doom)
 {
-    dest_screen = I_VideoBuffer;
+    doom->dest_screen = I_VideoBuffer;
 }
 
 //
@@ -616,7 +598,7 @@ typedef struct
 // WritePCXfile
 //
 
-void WritePCXfile(char *filename, byte *data,
+void WritePCXfile(struct doom_data_t_ *doom, char *filename, byte *data,
                   int width, int height,
                   byte *palette)
 {
@@ -719,7 +701,7 @@ void V_ScreenShot(struct doom_data_t_* doom, char *format)
 #endif
     {
         // save the pcx file
-        WritePCXfile(lbmname, I_VideoBuffer,
+        WritePCXfile(doom, lbmname, I_VideoBuffer,
                      SCREENWIDTH, SCREENHEIGHT,
                      W_CacheLumpName(doom, DEH_String("PLAYPAL"), PU_CACHE));
     }
@@ -728,7 +710,7 @@ void V_ScreenShot(struct doom_data_t_* doom, char *format)
 #define MOUSE_SPEED_BOX_WIDTH 120
 #define MOUSE_SPEED_BOX_HEIGHT 9
 
-void V_DrawMouseSpeedBox(int speed)
+void V_DrawMouseSpeedBox(struct doom_data_t_* doom, int speed)
 {
     extern int usemouse;
     int bgcolor, bordercolor, red, black, white, yellow;
@@ -757,9 +739,9 @@ void V_DrawMouseSpeedBox(int speed)
     box_x = SCREENWIDTH - MOUSE_SPEED_BOX_WIDTH - 10;
     box_y = 15;
 
-    V_DrawFilledBox(box_x, box_y,
+    V_DrawFilledBox(doom, box_x, box_y,
                     MOUSE_SPEED_BOX_WIDTH, MOUSE_SPEED_BOX_HEIGHT, bgcolor);
-    V_DrawBox(box_x, box_y,
+    V_DrawBox(doom, box_x, box_y,
               MOUSE_SPEED_BOX_WIDTH, MOUSE_SPEED_BOX_HEIGHT, bordercolor);
 
     // Calculate the position of the red line.  This is 1/3 of the way
@@ -790,23 +772,23 @@ void V_DrawMouseSpeedBox(int speed)
         linelen = MOUSE_SPEED_BOX_WIDTH - 1;
     }
 
-    V_DrawHorizLine(box_x + 1, box_y + 4, MOUSE_SPEED_BOX_WIDTH - 2, black);
+    V_DrawHorizLine(doom, box_x + 1, box_y + 4, MOUSE_SPEED_BOX_WIDTH - 2, black);
 
     if (linelen < redline_x)
     {
-        V_DrawHorizLine(box_x + 1, box_y + MOUSE_SPEED_BOX_HEIGHT / 2,
+        V_DrawHorizLine(doom, box_x + 1, box_y + MOUSE_SPEED_BOX_HEIGHT / 2,
                         linelen, white);
     }
     else
     {
-        V_DrawHorizLine(box_x + 1, box_y + MOUSE_SPEED_BOX_HEIGHT / 2,
+        V_DrawHorizLine(doom, box_x + 1, box_y + MOUSE_SPEED_BOX_HEIGHT / 2,
                         redline_x, white);
-        V_DrawHorizLine(box_x + redline_x, box_y + MOUSE_SPEED_BOX_HEIGHT / 2,
+        V_DrawHorizLine(doom, box_x + redline_x, box_y + MOUSE_SPEED_BOX_HEIGHT / 2,
                         linelen - redline_x, yellow);
     }
 
     // Draw red line
 
-    V_DrawVertLine(box_x + redline_x, box_y + 1,
+    V_DrawVertLine(doom, box_x + redline_x, box_y + 1,
                    MOUSE_SPEED_BOX_HEIGHT - 2, red);
 }

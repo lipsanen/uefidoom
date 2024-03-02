@@ -38,7 +38,7 @@ static byte *wipe_scr_start;
 static byte *wipe_scr_end;
 static byte *wipe_scr;
 
-void wipe_shittyColMajorXform(short *array,
+void wipe_shittyColMajorXform(struct doom_data_t_ *doom, short *array,
                               int width,
                               int height)
 {
@@ -57,7 +57,7 @@ void wipe_shittyColMajorXform(short *array,
     Z_Free(dest);
 }
 
-int wipe_initColorXForm(int width,
+int wipe_initColorXForm(struct doom_data_t_ *doom, int width,
                         int height,
                         int ticks)
 {
@@ -65,7 +65,7 @@ int wipe_initColorXForm(int width,
     return 0;
 }
 
-int wipe_doColorXForm(int width,
+int wipe_doColorXForm(struct doom_data_t_ *doom, int width,
                       int height,
                       int ticks)
 {
@@ -108,7 +108,7 @@ int wipe_doColorXForm(int width,
     return !changed;
 }
 
-int wipe_exitColorXForm(int width,
+int wipe_exitColorXForm(struct doom_data_t_ *doom, int width,
                         int height,
                         int ticks)
 {
@@ -117,7 +117,7 @@ int wipe_exitColorXForm(int width,
 
 static int *y;
 
-int wipe_initMelt(int width,
+int wipe_initMelt(struct doom_data_t_ *doom, int width,
                   int height,
                   int ticks)
 {
@@ -128,8 +128,8 @@ int wipe_initMelt(int width,
 
     // makes this wipe faster (in theory)
     // to have stuff in column-major format
-    wipe_shittyColMajorXform((short *)wipe_scr_start, width / 2, height);
-    wipe_shittyColMajorXform((short *)wipe_scr_end, width / 2, height);
+    wipe_shittyColMajorXform(doom, (short *)wipe_scr_start, width / 2, height);
+    wipe_shittyColMajorXform(doom, (short *)wipe_scr_end, width / 2, height);
 
     // setup initial column positions
     // (y<0 => not ready to scroll yet)
@@ -148,7 +148,7 @@ int wipe_initMelt(int width,
     return 0;
 }
 
-int wipe_doMelt(int width,
+int wipe_doMelt(struct doom_data_t_ *doom, int width,
                 int height,
                 int ticks)
 {
@@ -202,7 +202,7 @@ int wipe_doMelt(int width,
     return done;
 }
 
-int wipe_exitMelt(int width,
+int wipe_exitMelt(struct doom_data_t_ *doom, int width,
                   int height,
                   int ticks)
 {
@@ -212,7 +212,7 @@ int wipe_exitMelt(int width,
     return 0;
 }
 
-int wipe_StartScreen(int x,
+int wipe_StartScreen(struct doom_data_t_ *doom, int x,
                      int y,
                      int width,
                      int height)
@@ -222,18 +222,19 @@ int wipe_StartScreen(int x,
     return 0;
 }
 
-int wipe_EndScreen(int x,
+int wipe_EndScreen(struct doom_data_t_ *doom, int x,
                    int y,
                    int width,
                    int height)
 {
     wipe_scr_end = Z_Malloc(SCREENWIDTH * SCREENHEIGHT, PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
-    V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
+    V_DrawBlock(doom, x, y, width, height, wipe_scr_start); // restore start scr.
     return 0;
 }
 
-int wipe_ScreenWipe(int wipeno,
+int wipe_ScreenWipe(struct doom_data_t_ *doom,
+                    int wipeno,
                     int x,
                     int y,
                     int width,
@@ -241,7 +242,7 @@ int wipe_ScreenWipe(int wipeno,
                     int ticks)
 {
     int rc;
-    static int (*wipes[])(int, int, int) =
+    static int (*wipes[])(struct doom_data_t_ *doom, int, int, int) =
         {
             wipe_initColorXForm, wipe_doColorXForm, wipe_exitColorXForm,
             wipe_initMelt, wipe_doMelt, wipe_exitMelt};
@@ -252,19 +253,19 @@ int wipe_ScreenWipe(int wipeno,
         go = 1;
         // wipe_scr = (byte *) Z_Malloc(width*height, PU_STATIC, 0); // DEBUG
         wipe_scr = I_VideoBuffer;
-        (*wipes[wipeno * 3])(width, height, ticks);
+        (*wipes[wipeno * 3])(doom, width, height, ticks);
     }
 
     // do a piece of wipe-in
-    V_MarkRect(0, 0, width, height);
-    rc = (*wipes[wipeno * 3 + 1])(width, height, ticks);
+    V_MarkRect(doom, 0, 0, width, height);
+    rc = (*wipes[wipeno * 3 + 1])(doom, width, height, ticks);
     //  V_DrawBlock(x, y, 0, width, height, wipe_scr); // DEBUG
 
     // final stuff
     if (rc)
     {
         go = 0;
-        (*wipes[wipeno * 3 + 2])(width, height, ticks);
+        (*wipes[wipeno * 3 + 2])(doom, width, height, ticks);
     }
 
     return !go;

@@ -1190,7 +1190,7 @@ static void AM_drawMarks(doom_data_t *doom)
             fx = CXMTOF(doom->markpoints[i].x);
             fy = CYMTOF(doom->markpoints[i].y);
             if (fx >= doom->f_x && fx <= doom->f_w - w && fy >= doom->f_y && fy <= doom->f_h - h)
-                V_DrawPatch(fx, fy, doom->marknums[i]);
+                V_DrawPatch(doom, fx, fy, doom->marknums[i]);
         }
     }
 }
@@ -1216,5 +1216,5 @@ void AM_Drawer(doom_data_t *doom)
 
     AM_drawMarks(doom);
 
-    V_MarkRect(doom->f_x, doom->f_y, doom->f_w, doom->f_h);
+    V_MarkRect(doom, doom->f_x, doom->f_y, doom->f_w, doom->f_h);
 }

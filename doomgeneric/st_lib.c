@@ -37,13 +37,13 @@
 //
 patch_t *sttminus;
 
-void STlib_init(struct doom_data_t_* doom)
+void STlib_init(struct doom_data_t_ *doom)
 {
     sttminus = (patch_t *)W_CacheLumpName(doom, DEH_String("STTMINUS"), PU_STATIC);
 }
 
 // ?
-void STlib_initNum(st_number_t *n,
+void STlib_initNum(struct doom_data_t_* doom, st_number_t *n,
                    int x,
                    int y,
                    patch_t **pl,
@@ -65,7 +65,7 @@ void STlib_initNum(st_number_t *n,
 //  based on differences from the old number.
 // Note: worth the trouble?
 //
-void STlib_drawNum(st_number_t *n,
+void STlib_drawNum(struct doom_data_t_ *doom, st_number_t *n,
                    boolean refresh)
 {
 
@@ -98,7 +98,7 @@ void STlib_drawNum(st_number_t *n,
     if (n->y - ST_Y < 0)
         I_Error("drawNum: n->y - ST_Y < 0");
 
-    V_CopyRect(x, n->y - ST_Y, st_backing_screen, w * numdigits, h, x, n->y);
+    V_CopyRect(doom, x, n->y - ST_Y, st_backing_screen, w * numdigits, h, x, n->y);
 
     // if non-number, do not draw it
     if (num == 1994)
@@ -108,31 +108,31 @@ void STlib_drawNum(st_number_t *n,
 
     // in the special case of 0, you draw 0
     if (!num)
-        V_DrawPatch(x - w, n->y, n->p[0]);
+        V_DrawPatch(doom, x - w, n->y, n->p[0]);
 
     // draw the new number
     while (num && numdigits--)
     {
         x -= w;
-        V_DrawPatch(x, n->y, n->p[num % 10]);
+        V_DrawPatch(doom, x, n->y, n->p[num % 10]);
         num /= 10;
     }
 
     // draw a minus sign if necessary
     if (neg)
-        V_DrawPatch(x - 8, n->y, sttminus);
+        V_DrawPatch(doom, x - 8, n->y, sttminus);
 }
 
 //
-void STlib_updateNum(st_number_t *n,
+void STlib_updateNum(struct doom_data_t_ *doom, st_number_t *n,
                      boolean refresh)
 {
     if (*n->on)
-        STlib_drawNum(n, refresh);
+        STlib_drawNum(doom, n, refresh);
 }
 
 //
-void STlib_initPercent(st_percent_t *p,
+void STlib_initPercent(struct doom_data_t_* doom, st_percent_t *p,
                        int x,
                        int y,
                        patch_t **pl,
@@ -140,20 +140,21 @@ void STlib_initPercent(st_percent_t *p,
                        boolean *on,
                        patch_t *percent)
 {
-    STlib_initNum(&p->n, x, y, pl, num, on, 3);
+    STlib_initNum(doom, &p->n, x, y, pl, num, on, 3);
     p->p = percent;
 }
 
-void STlib_updatePercent(st_percent_t *per,
+void STlib_updatePercent(struct doom_data_t_ *doom, st_percent_t *per,
                          int refresh)
 {
     if (refresh && *per->n.on)
-        V_DrawPatch(per->n.x, per->n.y, per->p);
+        V_DrawPatch(doom, per->n.x, per->n.y, per->p);
 
-    STlib_updateNum(&per->n, refresh);
+    STlib_updateNum(doom, &per->n, refresh);
 }
 
-void STlib_initMultIcon(st_multicon_t *i,
+void STlib_initMultIcon(struct doom_data_t_ *doom,
+                        st_multicon_t *i,
                         int x,
                         int y,
                         patch_t **il,
@@ -168,7 +169,7 @@ void STlib_initMultIcon(st_multicon_t *i,
     i->p = il;
 }
 
-void STlib_updateMultIcon(st_multicon_t *mi,
+void STlib_updateMultIcon(struct doom_data_t_ *doom, st_multicon_t *mi,
                           boolean refresh)
 {
     int w;
@@ -188,14 +189,14 @@ void STlib_updateMultIcon(st_multicon_t *mi,
             if (y - ST_Y < 0)
                 I_Error("updateMultIcon: y - ST_Y < 0");
 
-            V_CopyRect(x, y - ST_Y, st_backing_screen, w, h, x, y);
+            V_CopyRect(doom, x, y - ST_Y, st_backing_screen, w, h, x, y);
         }
-        V_DrawPatch(mi->x, mi->y, mi->p[*mi->inum]);
+        V_DrawPatch(doom, mi->x, mi->y, mi->p[*mi->inum]);
         mi->oldinum = *mi->inum;
     }
 }
 
-void STlib_initBinIcon(st_binicon_t *b,
+void STlib_initBinIcon(struct doom_data_t_ *doom, st_binicon_t *b,
                        int x,
                        int y,
                        patch_t *i,
@@ -210,7 +211,7 @@ void STlib_initBinIcon(st_binicon_t *b,
     b->p = i;
 }
 
-void STlib_updateBinIcon(st_binicon_t *bi,
+void STlib_updateBinIcon(struct doom_data_t_ *doom, st_binicon_t *bi,
                          boolean refresh)
 {
     int x;
@@ -229,9 +230,9 @@ void STlib_updateBinIcon(st_binicon_t *bi,
             I_Error("updateBinIcon: y - ST_Y < 0");
 
         if (*bi->val)
-            V_DrawPatch(bi->x, bi->y, bi->p);
+            V_DrawPatch(doom, bi->x, bi->y, bi->p);
         else
-            V_CopyRect(x, y - ST_Y, st_backing_screen, w, h, x, y);
+            V_CopyRect(doom, x, y - ST_Y, st_backing_screen, w, h, x, y);
 
         bi->oldval = *bi->val;
     }

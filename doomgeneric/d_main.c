@@ -114,7 +114,7 @@ static void Do_Wipe(doom_data_t *doom)
     boolean done;
 
     tics = 1;
-    done = wipe_ScreenWipe(wipe_Melt, 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
+    done = wipe_ScreenWipe(doom, wipe_Melt, 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
     I_UpdateNoBlit();
     M_Drawer(doom);       // menu is drawn even on top of wipes
     I_FinishUpdate(doom); // page flip or blit buffer
@@ -153,7 +153,7 @@ void D_Display(struct doom_data_t_ *doom)
     if (gamestate != doom->wipegamestate)
     {
         doom->wipe = true;
-        wipe_StartScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+        wipe_StartScreen(doom, 0, 0, SCREENWIDTH, SCREENHEIGHT);
     }
     else
         doom->wipe = false;
@@ -218,7 +218,7 @@ void D_Display(struct doom_data_t_ *doom)
             doom->borderdrawcount = 3;
         if (doom->borderdrawcount)
         {
-            R_DrawViewBorder(); // erase old menu stuff
+            R_DrawViewBorder(doom); // erase old menu stuff
             doom->borderdrawcount--;
         }
     }
@@ -227,7 +227,7 @@ void D_Display(struct doom_data_t_ *doom)
     {
         // Box showing current mouse speed
 
-        V_DrawMouseSpeedBox(testcontrols_mousespeed);
+        V_DrawMouseSpeedBox(doom, testcontrols_mousespeed);
     }
 
     doom->menuactivestate = menuactive;
@@ -242,7 +242,7 @@ void D_Display(struct doom_data_t_ *doom)
             y = 4;
         else
             y = viewwindowy + 4;
-        V_DrawPatchDirect(viewwindowx + (scaledviewwidth - 68) / 2, y,
+        V_DrawPatchDirect(doom, viewwindowx + (scaledviewwidth - 68) / 2, y,
                           W_CacheLumpName(doom, DEH_String("M_PAUSE"), PU_CACHE));
     }
 
@@ -257,7 +257,7 @@ void D_Display(struct doom_data_t_ *doom)
         return;
     }
 
-    wipe_EndScreen(0, 0, SCREENWIDTH, SCREENHEIGHT);
+    wipe_EndScreen(doom, 0, 0, SCREENWIDTH, SCREENHEIGHT);
 }
 
 //
@@ -375,7 +375,7 @@ void D_DoomLoop(struct doom_data_t_ *doom)
     I_InitGraphics(doom);
     I_EnableLoadingDisk();
 
-    V_RestoreBuffer();
+    V_RestoreBuffer(doom);
     R_ExecuteSetViewSize();
 
     D_StartGameLoop();
@@ -403,7 +403,7 @@ void D_PageTicker(doom_data_t *doom)
 //
 void D_PageDrawer(doom_data_t *doom)
 {
-    V_DrawPatch(0, 0, W_CacheLumpName(doom, doom->pagename, PU_CACHE));
+    V_DrawPatch(doom, 0, 0, W_CacheLumpName(doom, doom->pagename, PU_CACHE));
 }
 
 //
@@ -1168,7 +1168,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
 
     // init subsystems
     d_printf("V_Init: allocate screens.\n");
-    V_Init();
+    V_Init(doom);
 
     // Load configuration files before initialising other subsystems.
     d_printf("M_LoadDefaults: Load system defaults.\n");

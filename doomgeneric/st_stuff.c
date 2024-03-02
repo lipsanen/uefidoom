@@ -403,21 +403,21 @@ cheatseq_t cheat_mypos = CHEAT("idmypos", 0);
 //
 void ST_Stop(struct doom_data_t_* doom);
 
-void ST_refreshBackground(void)
+void ST_refreshBackground(struct doom_data_t_* doom)
 {
 
     if (st_statusbaron)
     {
-        V_UseBuffer(st_backing_screen);
+        V_UseBuffer(doom, st_backing_screen);
 
-        V_DrawPatch(ST_X, 0, sbar);
+        V_DrawPatch(doom, ST_X, 0, sbar);
 
         if (netgame)
-            V_DrawPatch(ST_FX, 0, faceback);
+            V_DrawPatch(doom, ST_FX, 0, faceback);
 
-        V_RestoreBuffer();
+        V_RestoreBuffer(doom);
 
-        V_CopyRect(ST_X, 0, st_backing_screen, ST_WIDTH, ST_HEIGHT, ST_X, ST_Y);
+        V_CopyRect(doom, ST_X, 0, st_backing_screen, ST_WIDTH, ST_HEIGHT, ST_X, ST_Y);
     }
 }
 
@@ -957,7 +957,7 @@ void ST_doPaletteStuff(doom_data_t *doom)
     }
 }
 
-void ST_drawWidgets(boolean refresh)
+void ST_drawWidgets(struct doom_data_t_* doom, boolean refresh)
 {
     int i;
 
@@ -967,46 +967,46 @@ void ST_drawWidgets(boolean refresh)
     // used by w_frags widget
     st_fragson = deathmatch && st_statusbaron;
 
-    STlib_updateNum(&w_ready, refresh);
+    STlib_updateNum(doom, &w_ready, refresh);
 
     for (i = 0; i < 4; i++)
     {
-        STlib_updateNum(&w_ammo[i], refresh);
-        STlib_updateNum(&w_maxammo[i], refresh);
+        STlib_updateNum(doom, &w_ammo[i], refresh);
+        STlib_updateNum(doom, &w_maxammo[i], refresh);
     }
 
-    STlib_updatePercent(&w_health, refresh);
-    STlib_updatePercent(&w_armor, refresh);
+    STlib_updatePercent(doom, &w_health, refresh);
+    STlib_updatePercent(doom, &w_armor, refresh);
 
-    STlib_updateBinIcon(&w_armsbg, refresh);
+    STlib_updateBinIcon(doom, &w_armsbg, refresh);
 
     for (i = 0; i < 6; i++)
-        STlib_updateMultIcon(&w_arms[i], refresh);
+        STlib_updateMultIcon(doom, &w_arms[i], refresh);
 
-    STlib_updateMultIcon(&w_faces, refresh);
+    STlib_updateMultIcon(doom, &w_faces, refresh);
 
     for (i = 0; i < 3; i++)
-        STlib_updateMultIcon(&w_keyboxes[i], refresh);
+        STlib_updateMultIcon(doom, &w_keyboxes[i], refresh);
 
-    STlib_updateNum(&w_frags, refresh);
+    STlib_updateNum(doom, &w_frags, refresh);
 }
 
-void ST_doRefresh(void)
+void ST_doRefresh(struct doom_data_t_* doom)
 {
 
     st_firsttime = false;
 
     // draw status bar background to off-screen buff
-    ST_refreshBackground();
+    ST_refreshBackground(doom);
 
     // and refresh all widgets
-    ST_drawWidgets(true);
+    ST_drawWidgets(doom, true);
 }
 
-void ST_diffDraw(void)
+void ST_diffDraw(struct doom_data_t_* doom)
 {
     // update all widgets
-    ST_drawWidgets(false);
+    ST_drawWidgets(doom, false);
 }
 
 void ST_Drawer(doom_data_t *doom, boolean fullscreen, boolean refresh)
@@ -1020,10 +1020,10 @@ void ST_Drawer(doom_data_t *doom, boolean fullscreen, boolean refresh)
 
     // If just after ST_Start(), refresh all
     if (st_firsttime)
-        ST_doRefresh();
+        ST_doRefresh(doom);
     // Otherwise, update as little as possible
     else
-        ST_diffDraw();
+        ST_diffDraw(doom);
 }
 
 typedef void (*load_callback_t)(struct doom_data_t_* doom, char *lumpname, patch_t **variable);
@@ -1179,13 +1179,13 @@ void ST_initData(doom_data_t *doom)
     STlib_init(doom);
 }
 
-void ST_createWidgets(void)
+void ST_createWidgets(struct doom_data_t_* doom)
 {
 
     int i;
 
     // ready weapon ammo
-    STlib_initNum(&w_ready,
+    STlib_initNum(doom, &w_ready,
                   ST_AMMOX,
                   ST_AMMOY,
                   tallnum,
@@ -1197,7 +1197,7 @@ void ST_createWidgets(void)
     w_ready.data = plyr->readyweapon;
 
     // health percentage
-    STlib_initPercent(&w_health,
+    STlib_initPercent(doom, &w_health,
                       ST_HEALTHX,
                       ST_HEALTHY,
                       tallnum,
@@ -1206,7 +1206,7 @@ void ST_createWidgets(void)
                       tallpercent);
 
     // arms background
-    STlib_initBinIcon(&w_armsbg,
+    STlib_initBinIcon(doom, &w_armsbg,
                       ST_ARMSBGX,
                       ST_ARMSBGY,
                       armsbg,
@@ -1216,7 +1216,7 @@ void ST_createWidgets(void)
     // weapons owned
     for (i = 0; i < 6; i++)
     {
-        STlib_initMultIcon(&w_arms[i],
+        STlib_initMultIcon(doom, &w_arms[i],
                            ST_ARMSX + (i % 3) * ST_ARMSXSPACE,
                            ST_ARMSY + (i / 3) * ST_ARMSYSPACE,
                            arms[i], (int *)&plyr->weaponowned[i + 1],
@@ -1224,7 +1224,7 @@ void ST_createWidgets(void)
     }
 
     // frags sum
-    STlib_initNum(&w_frags,
+    STlib_initNum(doom, &w_frags,
                   ST_FRAGSX,
                   ST_FRAGSY,
                   tallnum,
@@ -1233,7 +1233,7 @@ void ST_createWidgets(void)
                   ST_FRAGSWIDTH);
 
     // faces
-    STlib_initMultIcon(&w_faces,
+    STlib_initMultIcon(doom, &w_faces,
                        ST_FACESX,
                        ST_FACESY,
                        faces,
@@ -1241,7 +1241,7 @@ void ST_createWidgets(void)
                        &st_statusbaron);
 
     // armor percentage - should be colored later
-    STlib_initPercent(&w_armor,
+    STlib_initPercent(doom, &w_armor,
                       ST_ARMORX,
                       ST_ARMORY,
                       tallnum,
@@ -1249,21 +1249,21 @@ void ST_createWidgets(void)
                       &st_statusbaron, tallpercent);
 
     // keyboxes 0-2
-    STlib_initMultIcon(&w_keyboxes[0],
+    STlib_initMultIcon(doom, &w_keyboxes[0],
                        ST_KEY0X,
                        ST_KEY0Y,
                        keys,
                        &keyboxes[0],
                        &st_statusbaron);
 
-    STlib_initMultIcon(&w_keyboxes[1],
+    STlib_initMultIcon(doom, &w_keyboxes[1],
                        ST_KEY1X,
                        ST_KEY1Y,
                        keys,
                        &keyboxes[1],
                        &st_statusbaron);
 
-    STlib_initMultIcon(&w_keyboxes[2],
+    STlib_initMultIcon(doom, &w_keyboxes[2],
                        ST_KEY2X,
                        ST_KEY2Y,
                        keys,
@@ -1271,7 +1271,7 @@ void ST_createWidgets(void)
                        &st_statusbaron);
 
     // ammo count (all four kinds)
-    STlib_initNum(&w_ammo[0],
+    STlib_initNum(doom, &w_ammo[0],
                   ST_AMMO0X,
                   ST_AMMO0Y,
                   shortnum,
@@ -1279,7 +1279,7 @@ void ST_createWidgets(void)
                   &st_statusbaron,
                   ST_AMMO0WIDTH);
 
-    STlib_initNum(&w_ammo[1],
+    STlib_initNum(doom, &w_ammo[1],
                   ST_AMMO1X,
                   ST_AMMO1Y,
                   shortnum,
@@ -1287,7 +1287,7 @@ void ST_createWidgets(void)
                   &st_statusbaron,
                   ST_AMMO1WIDTH);
 
-    STlib_initNum(&w_ammo[2],
+    STlib_initNum(doom, &w_ammo[2],
                   ST_AMMO2X,
                   ST_AMMO2Y,
                   shortnum,
@@ -1295,7 +1295,7 @@ void ST_createWidgets(void)
                   &st_statusbaron,
                   ST_AMMO2WIDTH);
 
-    STlib_initNum(&w_ammo[3],
+    STlib_initNum(doom, &w_ammo[3],
                   ST_AMMO3X,
                   ST_AMMO3Y,
                   shortnum,
@@ -1304,7 +1304,7 @@ void ST_createWidgets(void)
                   ST_AMMO3WIDTH);
 
     // max ammo count (all four kinds)
-    STlib_initNum(&w_maxammo[0],
+    STlib_initNum(doom, &w_maxammo[0],
                   ST_MAXAMMO0X,
                   ST_MAXAMMO0Y,
                   shortnum,
@@ -1312,7 +1312,7 @@ void ST_createWidgets(void)
                   &st_statusbaron,
                   ST_MAXAMMO0WIDTH);
 
-    STlib_initNum(&w_maxammo[1],
+    STlib_initNum(doom, &w_maxammo[1],
                   ST_MAXAMMO1X,
                   ST_MAXAMMO1Y,
                   shortnum,
@@ -1320,7 +1320,7 @@ void ST_createWidgets(void)
                   &st_statusbaron,
                   ST_MAXAMMO1WIDTH);
 
-    STlib_initNum(&w_maxammo[2],
+    STlib_initNum(doom, &w_maxammo[2],
                   ST_MAXAMMO2X,
                   ST_MAXAMMO2Y,
                   shortnum,
@@ -1328,7 +1328,7 @@ void ST_createWidgets(void)
                   &st_statusbaron,
                   ST_MAXAMMO2WIDTH);
 
-    STlib_initNum(&w_maxammo[3],
+    STlib_initNum(doom, &w_maxammo[3],
                   ST_MAXAMMO3X,
                   ST_MAXAMMO3Y,
                   shortnum,
@@ -1346,7 +1346,7 @@ void ST_Start(doom_data_t *doom)
         ST_Stop(doom);
 
     ST_initData(doom);
-    ST_createWidgets();
+    ST_createWidgets(doom);
     st_stopped = false;
 }
 

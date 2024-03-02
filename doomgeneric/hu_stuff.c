@@ -313,13 +313,13 @@ void HU_Start(struct doom_data_t_ *doom)
     chat_on = false;
 
     // create the message widget
-    HUlib_initSText(&w_message,
+    HUlib_initSText(doom, &w_message,
                     HU_MSGX, HU_MSGY, HU_MSGHEIGHT,
                     hu_font,
                     HU_FONTSTART, &message_on);
 
     // create the map title widget
-    HUlib_initTextLine(&w_title,
+    HUlib_initTextLine(doom, &w_title,
                        HU_TITLEX, HU_TITLEY,
                        hu_font,
                        HU_FONTSTART);
@@ -356,28 +356,27 @@ void HU_Start(struct doom_data_t_ *doom)
     s = DEH_String(s);
 
     while (*s)
-        HUlib_addCharToTextLine(&w_title, *(s++));
+        HUlib_addCharToTextLine(doom, &w_title, *(s++));
 
     // create the chat widget
-    HUlib_initIText(&w_chat,
+    HUlib_initIText(doom, &w_chat,
                     HU_INPUTX, HU_INPUTY,
                     hu_font,
                     HU_FONTSTART, &chat_on);
 
     // create the inputbuffer widgets
     for (i = 0; i < MAXPLAYERS; i++)
-        HUlib_initIText(&w_inputbuffer[i], 0, 0, 0, 0, &always_off);
+        HUlib_initIText(doom, &w_inputbuffer[i], 0, 0, 0, 0, &always_off);
 
     headsupactive = true;
 }
 
 void HU_Drawer(doom_data_t *doom)
 {
-
-    HUlib_drawSText(&w_message);
-    HUlib_drawIText(&w_chat);
+    HUlib_drawSText(doom, &w_message);
+    HUlib_drawIText(doom, &w_chat);
     if (doom->automapactive)
-        HUlib_drawTextLine(&w_title, false);
+        HUlib_drawTextLine(doom, &w_title, false);
 }
 
 void HU_Erase(doom_data_t *doom)
@@ -407,7 +406,7 @@ void HU_Ticker(struct doom_data_t_ *doom)
         // display message if necessary
         if ((plr->message && !message_nottobefuckedwith) || (plr->message && message_dontfuckwithme))
         {
-            HUlib_addMessageToSText(&w_message, 0, plr->message);
+            HUlib_addMessageToSText(doom, &w_message, 0, plr->message);
             plr->message = 0;
             message_on = true;
             message_counter = HU_MSGTIMEOUT;
@@ -430,12 +429,12 @@ void HU_Ticker(struct doom_data_t_ *doom)
                     chat_dest[i] = c;
                 else
                 {
-                    rc = HUlib_keyInIText(&w_inputbuffer[i], c);
+                    rc = HUlib_keyInIText(doom, &w_inputbuffer[i], c);
                     if (rc && c == KEY_ENTER)
                     {
                         if (w_inputbuffer[i].l.len && (chat_dest[i] == consoleplayer + 1 || chat_dest[i] == HU_BROADCAST))
                         {
-                            HUlib_addMessageToSText(&w_message,
+                            HUlib_addMessageToSText(doom, &w_message,
                                                     DEH_String(player_names[i]),
                                                     w_inputbuffer[i].l.l);
 
@@ -447,7 +446,7 @@ void HU_Ticker(struct doom_data_t_ *doom)
                             else
                                 S_StartSound(0, sfx_tink);
                         }
-                        HUlib_resetIText(&w_inputbuffer[i]);
+                        HUlib_resetIText(doom, &w_inputbuffer[i]);
                     }
                 }
                 players[i].cmd.chatchar = 0;
@@ -492,7 +491,7 @@ char HU_dequeueChatChar(void)
     return c;
 }
 
-boolean HU_Responder(event_t *ev)
+boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
 {
 
     static char lastmessage[HU_MAXLINELENGTH + 1];
@@ -533,7 +532,7 @@ boolean HU_Responder(event_t *ev)
         else if (netgame && ev->data2 == key_multi_msg)
         {
             eatkey = chat_on = true;
-            HUlib_resetIText(&w_chat);
+            HUlib_resetIText(doom, &w_chat);
             HU_queueChatChar(HU_BROADCAST);
         }
         else if (netgame && numplayers > 2)
@@ -545,7 +544,7 @@ boolean HU_Responder(event_t *ev)
                     if (playeringame[i] && i != consoleplayer)
                     {
                         eatkey = chat_on = true;
-                        HUlib_resetIText(&w_chat);
+                        HUlib_resetIText(doom, &w_chat);
                         HU_queueChatChar(i + 1);
                         break;
                     }
@@ -596,7 +595,7 @@ boolean HU_Responder(event_t *ev)
         {
             c = ev->data2;
 
-            eatkey = HUlib_keyInIText(&w_chat, c);
+            eatkey = HUlib_keyInIText(doom, &w_chat, c);
             if (eatkey)
             {
                 // static unsigned char buf[20]; // DEBUG

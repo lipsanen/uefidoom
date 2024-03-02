@@ -88,25 +88,25 @@ typedef struct
 //
 
 // initializes heads-up widget library
-void HUlib_init(void);
+void HUlib_init(struct doom_data_t_* doom);
 
 //
 // textline code
 //
 
 // clear a line of text
-void	HUlib_clearTextLine(hu_textline_t *t);
+void	HUlib_clearTextLine(struct doom_data_t_* doom, hu_textline_t *t);
 
-void	HUlib_initTextLine(hu_textline_t *t, int x, int y, patch_t **f, int sc);
-
-// returns success
-boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch);
+void	HUlib_initTextLine(struct doom_data_t_* doom, hu_textline_t *t, int x, int y, patch_t **f, int sc);
 
 // returns success
-boolean HUlib_delCharFromTextLine(hu_textline_t *t);
+boolean HUlib_addCharToTextLine(struct doom_data_t_* doom, hu_textline_t *t, char ch);
+
+// returns success
+boolean HUlib_delCharFromTextLine(struct doom_data_t_* doom, hu_textline_t *t);
 
 // draws tline
-void	HUlib_drawTextLine(hu_textline_t *l, boolean drawcursor);
+void	HUlib_drawTextLine(struct doom_data_t_* doom, hu_textline_t *l, boolean drawcursor);
 
 // erases text line
 void	HUlib_eraseTextLine(doom_data_t* doom, hu_textline_t *l); 
@@ -119,7 +119,8 @@ void	HUlib_eraseTextLine(doom_data_t* doom, hu_textline_t *l);
 // ?
 void
 HUlib_initSText
-( hu_stext_t*	s,
+( struct doom_data_t_* doom,
+  hu_stext_t*	s,
   int		x,
   int		y,
   int		h,
@@ -128,17 +129,18 @@ HUlib_initSText
   boolean*	on );
 
 // add a new line
-void HUlib_addLineToSText(hu_stext_t* s);  
+void HUlib_addLineToSText(struct doom_data_t_* doom, hu_stext_t* s);  
 
 // ?
 void
 HUlib_addMessageToSText
-( hu_stext_t*	s,
+( struct doom_data_t_* doom,
+  hu_stext_t*	s,
   char*		prefix,
   char*		msg );
 
 // draws stext
-void HUlib_drawSText(hu_stext_t* s);
+void HUlib_drawSText(struct doom_data_t_* doom, hu_stext_t* s);
 
 // erases all stext lines
 void HUlib_eraseSText(doom_data_t* doom, hu_stext_t* s); 
@@ -146,7 +148,8 @@ void HUlib_eraseSText(doom_data_t* doom, hu_stext_t* s);
 // Input Text Line widget routines
 void
 HUlib_initIText
-( hu_itext_t*	it,
+( struct doom_data_t_* doom, 
+  hu_itext_t*	it,
   int		x,
   int		y,
   patch_t**	font,
@@ -154,27 +157,29 @@ HUlib_initIText
   boolean*	on );
 
 // enforces left margin
-void HUlib_delCharFromIText(hu_itext_t* it);
+void HUlib_delCharFromIText(struct doom_data_t_* doom, hu_itext_t* it);
 
 // enforces left margin
-void HUlib_eraseLineFromIText(hu_itext_t* it);
+void HUlib_eraseLineFromIText(struct doom_data_t_* doom, hu_itext_t* it);
 
 // resets line and left margin
-void HUlib_resetIText(hu_itext_t* it);
+void HUlib_resetIText(struct doom_data_t_* doom, hu_itext_t* it);
 
 // left of left-margin
 void
 HUlib_addPrefixToIText
-( hu_itext_t*	it,
+( struct doom_data_t_* doom, 
+  hu_itext_t*	it,
   char*		str );
 
 // whether eaten
 boolean
 HUlib_keyInIText
-( hu_itext_t*	it,
+( struct doom_data_t_* doom, 
+  hu_itext_t*	it,
   unsigned char ch );
 
-void HUlib_drawIText(hu_itext_t* it);
+void HUlib_drawIText(struct doom_data_t_* doom, hu_itext_t* it);
 
 // erases all itext lines
 void HUlib_eraseIText(doom_data_t* doom, hu_itext_t* it); 

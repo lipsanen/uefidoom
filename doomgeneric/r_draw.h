@@ -97,7 +97,7 @@ struct doom_data_t_;
 void R_FillBackScreen (struct doom_data_t_* doom);
 
 // If the view size is not full screen, draws a border around it.
-void R_DrawViewBorder (void);
+void R_DrawViewBorder (struct doom_data_t_* doom);
 
 
 

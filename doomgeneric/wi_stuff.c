@@ -292,7 +292,7 @@ static anim_t *anims[NUMEPISODES] =
 // slam background
 void WI_slamBackground(doom_data_t *doom)
 {
-	V_DrawPatch(0, 0, doom->background);
+	V_DrawPatch(doom, 0, 0, doom->background);
 }
 
 // The ticker is used to detect keys
@@ -310,13 +310,13 @@ void WI_drawLF(doom_data_t *doom)
 	if (doom->gamemode != commercial || doom->wbs->last < doom->NUMCMAPS)
 	{
 		// draw <LevelName>
-		V_DrawPatch((SCREENWIDTH - SHORT(doom->lnames[doom->wbs->last]->width)) / 2,
+		V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->lnames[doom->wbs->last]->width)) / 2,
 					y, doom->lnames[doom->wbs->last]);
 
 		// draw "Finished!"
 		y += (5 * SHORT(doom->lnames[doom->wbs->last]->height)) / 4;
 
-		V_DrawPatch((SCREENWIDTH - SHORT(doom->finished->width)) / 2, y, doom->finished);
+		V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->finished->width)) / 2, y, doom->finished);
 	}
 	else if (doom->wbs->last == doom->NUMCMAPS)
 	{
@@ -336,7 +336,7 @@ void WI_drawLF(doom_data_t *doom)
 		tmp.leftoffset = 1;
 		tmp.topoffset = 1;
 
-		V_DrawPatch(0, y, &tmp);
+		V_DrawPatch(doom, 0, y, &tmp);
 	}
 }
 
@@ -346,14 +346,14 @@ void WI_drawEL(doom_data_t *doom)
 	int y = WI_TITLEY;
 
 	// draw "Entering"
-	V_DrawPatch((SCREENWIDTH - SHORT(doom->entering->width)) / 2,
+	V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->entering->width)) / 2,
 				y,
 				doom->entering);
 
 	// draw level
 	y += (5 * SHORT(doom->lnames[doom->wbs->next]->height)) / 4;
 
-	V_DrawPatch((SCREENWIDTH - SHORT(doom->lnames[doom->wbs->next]->width)) / 2,
+	V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->lnames[doom->wbs->next]->width)) / 2,
 				y,
 				doom->lnames[doom->wbs->next]);
 }
@@ -390,7 +390,7 @@ void WI_drawOnLnode(doom_data_t *doom,
 
 	if (fits && i < 2)
 	{
-		V_DrawPatch(lnodes[doom->wbs->epsd][n].x,
+		V_DrawPatch(doom, lnodes[doom->wbs->epsd][n].x,
 					lnodes[doom->wbs->epsd][n].y,
 					c[i]);
 	}
@@ -496,7 +496,7 @@ void WI_drawAnimatedBack(doom_data_t *doom)
 		a = &anims[doom->wbs->epsd][i];
 
 		if (a->ctr >= 0)
-			V_DrawPatch(a->loc.x, a->loc.y, a->p[a->ctr]);
+			V_DrawPatch(doom, a->loc.x, a->loc.y, a->p[a->ctr]);
 	}
 }
 
@@ -551,13 +551,13 @@ int WI_drawNum(doom_data_t *doom,
 	while (digits--)
 	{
 		x -= fontwidth;
-		V_DrawPatch(x, y, doom->num[n % 10]);
+		V_DrawPatch(doom, x, y, doom->num[n % 10]);
 		n /= 10;
 	}
 
 	// draw a minus sign if necessary
 	if (neg)
-		V_DrawPatch(x -= 8, y, doom->wiminus);
+		V_DrawPatch(doom, x -= 8, y, doom->wiminus);
 
 	return x;
 }
@@ -570,7 +570,7 @@ void WI_drawPercent(doom_data_t *doom,
 	if (p < 0)
 		return;
 
-	V_DrawPatch(x, y, doom->percent);
+	V_DrawPatch(doom, x, y, doom->percent);
 	WI_drawNum(doom, x, y, p, -1);
 }
 
@@ -602,14 +602,14 @@ void WI_drawTime(doom_data_t *doom,
 
 			// draw
 			if (div == 60 || t / div)
-				V_DrawPatch(x, y, doom->colon);
+				V_DrawPatch(doom, x, y, doom->colon);
 
 		} while (t / div);
 	}
 	else
 	{
 		// "sucks"
-		V_DrawPatch(x - SHORT(doom->sucks->width), y, doom->sucks);
+		V_DrawPatch(doom, x - SHORT(doom->sucks->width), y, doom->sucks);
 	}
 }
 
@@ -866,12 +866,12 @@ void WI_drawDeathmatchStats(doom_data_t *doom)
 	WI_drawLF(doom);
 
 	// draw stat titles (top line)
-	V_DrawPatch(DM_TOTALSX - SHORT(doom->total->width) / 2,
+	V_DrawPatch(doom, DM_TOTALSX - SHORT(doom->total->width) / 2,
 				DM_MATRIXY - WI_SPACINGY + 10,
 				doom->total);
 
-	V_DrawPatch(DM_KILLERSX, DM_KILLERSY, doom->killers);
-	V_DrawPatch(DM_VICTIMSX, DM_VICTIMSY, doom->victims);
+	V_DrawPatch(doom, DM_KILLERSX, DM_KILLERSY, doom->killers);
+	V_DrawPatch(doom, DM_VICTIMSX, DM_VICTIMSY, doom->victims);
 
 	// draw P?
 	x = DM_MATRIXX + DM_SPACINGX;
@@ -881,21 +881,21 @@ void WI_drawDeathmatchStats(doom_data_t *doom)
 	{
 		if (playeringame[i])
 		{
-			V_DrawPatch(x - SHORT(doom->p[i]->width) / 2,
+			V_DrawPatch(doom, x - SHORT(doom->p[i]->width) / 2,
 						DM_MATRIXY - WI_SPACINGY,
 						doom->p[i]);
 
-			V_DrawPatch(DM_MATRIXX - SHORT(doom->p[i]->width) / 2,
+			V_DrawPatch(doom, DM_MATRIXX - SHORT(doom->p[i]->width) / 2,
 						y,
 						doom->p[i]);
 
 			if (i == doom->me)
 			{
-				V_DrawPatch(x - SHORT(doom->p[i]->width) / 2,
+				V_DrawPatch(doom, x - SHORT(doom->p[i]->width) / 2,
 							DM_MATRIXY - WI_SPACINGY,
 							doom->bstar);
 
-				V_DrawPatch(DM_MATRIXX - SHORT(doom->p[i]->width) / 2,
+				V_DrawPatch(doom, DM_MATRIXX - SHORT(doom->p[i]->width) / 2,
 							y,
 							doom->star);
 			}
@@ -1128,17 +1128,17 @@ void WI_drawNetgameStats(doom_data_t *doom)
 	WI_drawLF(doom);
 
 	// draw stat titles (top line)
-	V_DrawPatch(NG_STATSX + NG_SPACINGX - SHORT(doom->kills->width),
+	V_DrawPatch(doom, NG_STATSX + NG_SPACINGX - SHORT(doom->kills->width),
 				NG_STATSY, doom->kills);
 
-	V_DrawPatch(NG_STATSX + 2 * NG_SPACINGX - SHORT(doom->items->width),
+	V_DrawPatch(doom, NG_STATSX + 2 * NG_SPACINGX - SHORT(doom->items->width),
 				NG_STATSY, doom->items);
 
-	V_DrawPatch(NG_STATSX + 3 * NG_SPACINGX - SHORT(doom->secret->width),
+	V_DrawPatch(doom, NG_STATSX + 3 * NG_SPACINGX - SHORT(doom->secret->width),
 				NG_STATSY, doom->secret);
 
 	if (doom->dofrags)
-		V_DrawPatch(NG_STATSX + 4 * NG_SPACINGX - SHORT(doom->frags->width),
+		V_DrawPatch(doom, NG_STATSX + 4 * NG_SPACINGX - SHORT(doom->frags->width),
 					NG_STATSY, doom->frags);
 
 	// draw stats
@@ -1150,10 +1150,10 @@ void WI_drawNetgameStats(doom_data_t *doom)
 			continue;
 
 		x = NG_STATSX;
-		V_DrawPatch(x - SHORT(doom->p[i]->width), y, doom->p[i]);
+		V_DrawPatch(doom, x - SHORT(doom->p[i]->width), y, doom->p[i]);
 
 		if (i == doom->me)
-			V_DrawPatch(x - SHORT(doom->p[i]->width), y, doom->star);
+			V_DrawPatch(doom, x - SHORT(doom->p[i]->width), y, doom->star);
 
 		x += NG_SPACINGX;
 		WI_drawPercent(doom, x - pwidth, y + 10, doom->cnt_kills[i]);
@@ -1301,21 +1301,21 @@ void WI_drawStats(doom_data_t *doom)
 
 	WI_drawLF(doom);
 
-	V_DrawPatch(SP_STATSX, SP_STATSY, doom->kills);
+	V_DrawPatch(doom, SP_STATSX, SP_STATSY, doom->kills);
 	WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY, doom->cnt_kills[0]);
 
-	V_DrawPatch(SP_STATSX, SP_STATSY + lh, doom->items);
+	V_DrawPatch(doom, SP_STATSX, SP_STATSY + lh, doom->items);
 	WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY + lh, doom->cnt_items[0]);
 
-	V_DrawPatch(SP_STATSX, SP_STATSY + 2 * lh, doom->sp_secret);
+	V_DrawPatch(doom, SP_STATSX, SP_STATSY + 2 * lh, doom->sp_secret);
 	WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY + 2 * lh, doom->cnt_secret[0]);
 
-	V_DrawPatch(SP_TIMEX, SP_TIMEY, doom->timepatch);
+	V_DrawPatch(doom, SP_TIMEX, SP_TIMEY, doom->timepatch);
 	WI_drawTime(doom, SCREENWIDTH / 2 - SP_TIMEX, SP_TIMEY, doom->cnt_time);
 
 	if (doom->wbs->epsd < 3)
 	{
-		V_DrawPatch(SCREENWIDTH / 2 + SP_TIMEX, SP_TIMEY, doom->par);
+		V_DrawPatch(doom, SCREENWIDTH / 2 + SP_TIMEX, SP_TIMEY, doom->par);
 		WI_drawTime(doom, SCREENWIDTH - SP_TIMEX, SP_TIMEY, doom->cnt_par);
 	}
 }

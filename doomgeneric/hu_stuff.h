@@ -47,7 +47,7 @@ void HU_Init(struct doom_data_t_* doom);
 void HU_Start(struct doom_data_t_* doom);
 struct doom_data_t_;
 
-boolean HU_Responder(event_t* ev);
+boolean HU_Responder(struct doom_data_t_* doom, event_t* ev);
 
 void HU_Ticker(struct doom_data_t_* doom);
 void HU_Drawer(doom_data_t* doom);
