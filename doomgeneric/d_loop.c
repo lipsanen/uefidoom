@@ -290,10 +290,6 @@ boolean D_InitNetGame(doom_data_t *doom, net_connect_data_t *connect_data)
 //
 void D_QuitNetGame(doom_data_t *doom)
 {
-#ifdef FEATURE_MULTIPLAYER
-    NET_SV_Shutdown();
-    NET_CL_Disconnect();
-#endif
 }
 
 static int GetLowTic(doom_data_t *doom)
@@ -301,16 +297,6 @@ static int GetLowTic(doom_data_t *doom)
     int lowtic;
 
     lowtic = doom->maketic;
-
-#ifdef FEATURE_MULTIPLAYER
-    if (net_client_connected)
-    {
-        if (drone || recvtic < lowtic)
-        {
-            lowtic = recvtic;
-        }
-    }
-#endif
 
     return lowtic;
 }

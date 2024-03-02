@@ -1009,9 +1009,6 @@ void D_DoomMain(struct doom_data_t_ *doom)
     int p;
     char file[256];
     char demolumpname[9];
-#if ORIGCODE
-    int numiwadlumps;
-#endif
 
     I_AtExit(D_Endoom, false);
 
@@ -1219,9 +1216,6 @@ void D_DoomMain(struct doom_data_t_ *doom)
 
     d_printf("W_Init: Init WADfiles.\n");
     D_AddFile((char *)doom->iwadfile);
-#if ORIGCODE
-    numiwadlumps = numlumps;
-#endif
 
     W_CheckCorrectIWAD(doom1);
 
@@ -1229,21 +1223,6 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // we're playing and which version of Vanilla Doom we need to emulate.
     D_IdentifyVersion(doom);
     InitGameVersion(doom);
-
-#if ORIGCODE
-    //!
-    // @category mod
-    //
-    // Disable automatic loading of Dehacked patches for certain
-    // IWAD files.
-    //
-    if (!M_ParmExists("-nodeh"))
-    {
-        // Some IWADs have dehacked patches that need to be loaded for
-        // them to be played properly.
-        LoadIwadDeh();
-    }
-#endif
 
     // Doom 3: BFG Edition includes modified versions of the classic
     // IWADs which can be identified by an additional DMENUPIC lump.
