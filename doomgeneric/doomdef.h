@@ -301,6 +301,11 @@ struct doom_data_t_ {
     char **myargv;
 
     boolean drone;
+
+    int lastlevel, lastepisode;
+
+    int nexttic;
+    int litelevelscnt;
 };
 
 typedef struct doom_data_t_ doom_data_t;

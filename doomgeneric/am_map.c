@@ -309,7 +309,7 @@ void AM_changeWindowLoc(doom_data_t *doom)
 void AM_initVariables(doom_data_t *doom)
 {
     int pnum;
-    static event_t st_notify = {ev_keyup, AM_MSGENTERED, 0, 0};
+    event_t st_notify = {ev_keyup, AM_MSGENTERED, 0, 0};
 
     doom->automapactive = true;
     doom->fb = I_VideoBuffer;
@@ -420,7 +420,7 @@ void AM_LevelInit(doom_data_t *doom)
 //
 void AM_Stop(doom_data_t *doom)
 {
-    static event_t st_notify = {0, ev_keyup, AM_MSGEXITED, 0};
+    event_t st_notify = {0, ev_keyup, AM_MSGEXITED, 0};
 
     AM_unloadPics(doom);
     doom->automapactive = false;
@@ -433,16 +433,14 @@ void AM_Stop(doom_data_t *doom)
 //
 void AM_Start(doom_data_t *doom)
 {
-    static int lastlevel = -1, lastepisode = -1;
-
     if (!doom->stopped)
         AM_Stop(doom);
     doom->stopped = false;
-    if (lastlevel != gamemap || lastepisode != gameepisode)
+    if (doom->lastlevel != gamemap || doom->lastepisode != gameepisode)
     {
         AM_LevelInit(doom);
-        lastlevel = gamemap;
-        lastepisode = gameepisode;
+        doom->lastlevel = gamemap;
+        doom->lastepisode = gameepisode;
     }
     AM_initVariables(doom);
     AM_loadPics(doom);
@@ -474,10 +472,9 @@ static void AM_maxOutWindowScale(doom_data_t *doom)
 boolean
 AM_Responder(doom_data_t *doom, event_t *ev)
 {
-
     int rc;
-    static int bigstate = 0;
-    static char buffer[20];
+    int bigstate = 0;
+    char buffer[20];
     int key;
 
     rc = false;
@@ -631,7 +628,6 @@ AM_Responder(doom_data_t *doom, event_t *ev)
 //
 static void AM_changeWindowScale(doom_data_t *doom)
 {
-
     // Change the scaling multipliers
     doom->scale_mtof = FixedMul(doom->scale_mtof, doom->mtof_zoommul);
     doom->scale_ftom = FixedDiv(FRACUNIT, doom->scale_mtof);
@@ -671,18 +667,16 @@ static void AM_doFollowPlayer(doom_data_t *doom)
 //
 static void AM_updatelightlev(doom_data_t *doom)
 {
-    static int nexttic = 0;
     // static int litelevels[] = { 0, 3, 5, 6, 6, 7, 7, 7 };
-    static int litelevels[] = {0, 4, 7, 10, 12, 14, 15, 15};
-    static int litelevelscnt = 0;
+    static const int litelevels[] = {0, 4, 7, 10, 12, 14, 15, 15};
 
     // Change light level
-    if (doom->amclock > nexttic)
+    if (doom->amclock > doom->nexttic)
     {
-        doom->lightlev = litelevels[litelevelscnt++];
-        if (litelevelscnt == arrlen(litelevels))
-            litelevelscnt = 0;
-        nexttic = doom->amclock + 6 - (doom->amclock % 6);
+        doom->lightlev = litelevels[doom->litelevelscnt++];
+        if (doom->litelevelscnt == arrlen(litelevels))
+            doom->litelevelscnt = 0;
+        doom->nexttic = doom->amclock + 6 - (doom->amclock % 6);
     }
 }
 
@@ -945,7 +939,7 @@ AM_drawMline(doom_data_t *doom,
              mline_t *ml,
              int color)
 {
-    static fline_t fl;
+    fline_t fl;
 
     if (AM_clipMline(doom, ml, &fl))
         AM_drawFline(doom, &fl, color); // draws it on frame buffer using fb coords
@@ -1000,7 +994,7 @@ static void AM_drawGrid(doom_data_t *doom, int color)
 static void AM_drawWalls(doom_data_t *doom)
 {
     int i;
-    static mline_t l;
+    mline_t l;
 
     for (i = 0; i < numlines; i++)
     {
@@ -1125,7 +1119,7 @@ static void AM_drawPlayers(doom_data_t *doom)
 {
     int i;
     player_t *p;
-    static int their_colors[] = {GREENS, GRAYS, BROWNS, REDS};
+    static const int their_colors[] = {GREENS, GRAYS, BROWNS, REDS};
     int their_color = -1;
     int color;
 

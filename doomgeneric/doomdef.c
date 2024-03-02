@@ -43,6 +43,8 @@ void doomdata_init(doom_data_t* doom) {
     doom->gamemode = indetermined;
     doom->gamemission = doom1;
     doom->gameversion = exe_final2;
+    doom->lastepisode = -1;
+    doom->lastlevel = -1;
 }
 
 // Location for any defines turned variables.
