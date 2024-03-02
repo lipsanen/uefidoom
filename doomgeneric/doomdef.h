@@ -803,6 +803,15 @@ struct doom_data_t_
     unsigned int finalecount;
     const char*	finaletext;
     const char*	finaleflat;
+
+    //
+    //                       SCREEN WIPE PACKAGE
+    //
+    boolean wipe_go;
+    byte *wipe_scr_start;
+    byte *wipe_scr_end;
+    byte *wipe_scr;
+    int *wipe_y;
 };
 
 typedef struct doom_data_t_ doom_data_t;
