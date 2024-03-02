@@ -53,17 +53,4 @@ void ST_Start (doom_data_t* doom);
 void ST_Init (struct doom_data_t_* doom);
 
 
-
-extern cheatseq_t cheat_mus;
-extern cheatseq_t cheat_god;
-extern cheatseq_t cheat_ammo;
-extern cheatseq_t cheat_ammonokey;
-extern cheatseq_t cheat_noclip;
-extern cheatseq_t cheat_commercial_noclip;
-extern cheatseq_t cheat_powerup[7];
-extern cheatseq_t cheat_choppers;
-extern cheatseq_t cheat_clev;
-extern cheatseq_t cheat_mypos;
-
-
 #endif

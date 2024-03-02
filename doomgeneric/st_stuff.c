@@ -240,28 +240,6 @@
 #define ST_MAPTITLEY 0
 #define ST_MAPHEIGHT 1
 
-cheatseq_t cheat_mus = CHEAT("idmus", 2);
-cheatseq_t cheat_god = CHEAT("iddqd", 0);
-cheatseq_t cheat_ammo = CHEAT("idkfa", 0);
-cheatseq_t cheat_ammonokey = CHEAT("idfa", 0);
-cheatseq_t cheat_noclip = CHEAT("idspispopd", 0);
-cheatseq_t cheat_commercial_noclip = CHEAT("idclip", 0);
-
-cheatseq_t cheat_powerup[7] =
-    {
-        CHEAT("idbeholdv", 0),
-        CHEAT("idbeholds", 0),
-        CHEAT("idbeholdi", 0),
-        CHEAT("idbeholdr", 0),
-        CHEAT("idbeholda", 0),
-        CHEAT("idbeholdl", 0),
-        CHEAT("idbehold", 0),
-};
-
-cheatseq_t cheat_choppers = CHEAT("idchoppers", 0);
-cheatseq_t cheat_clev = CHEAT("idclev", 2);
-cheatseq_t cheat_mypos = CHEAT("idmypos", 0);
-
 //
 // STATUS BAR CODE
 //
@@ -315,7 +293,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
         if (!netgame && gameskill != sk_nightmare)
         {
             // 'dqd' cheat for toggleable god mode
-            if (cht_CheckCheat(&cheat_god, ev->data2))
+            if (cht_CheckCheat(&doom->cheat_god, ev->data2))
             {
                 doom->plyr->cheats ^= CF_GODMODE;
                 if (doom->plyr->cheats & CF_GODMODE)
@@ -330,7 +308,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
                     doom->plyr->message = DEH_String(STSTR_DQDOFF);
             }
             // 'fa' cheat for killer fucking arsenal
-            else if (cht_CheckCheat(&cheat_ammonokey, ev->data2))
+            else if (cht_CheckCheat(&doom->cheat_ammonokey, ev->data2))
             {
                 doom->plyr->armorpoints = deh_idfa_armor;
                 doom->plyr->armortype = deh_idfa_armor_class;
@@ -344,7 +322,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
                 doom->plyr->message = DEH_String(STSTR_FAADDED);
             }
             // 'kfa' cheat for key full ammo
-            else if (cht_CheckCheat(&cheat_ammo, ev->data2))
+            else if (cht_CheckCheat(&doom->cheat_ammo, ev->data2))
             {
                 doom->plyr->armorpoints = deh_idkfa_armor;
                 doom->plyr->armortype = deh_idkfa_armor_class;
@@ -361,14 +339,14 @@ ST_Responder(doom_data_t *doom, event_t *ev)
                 doom->plyr->message = DEH_String(STSTR_KFAADDED);
             }
             // 'mus' cheat for changing music
-            else if (cht_CheckCheat(&cheat_mus, ev->data2))
+            else if (cht_CheckCheat(&doom->cheat_mus, ev->data2))
             {
 
                 char buf[3];
                 int musnum;
 
                 doom->plyr->message = DEH_String(STSTR_MUS);
-                cht_GetParam(&cheat_mus, buf);
+                cht_GetParam(&doom->cheat_mus, buf);
 
                 // Note: The original v1.9 had a bug that tried to play back
                 // the Doom II music regardless of gamemode.  This was fixed
@@ -394,7 +372,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
                         S_ChangeMusic(doom, musnum, 1);
                 }
             }
-            else if ((logical_gamemission == doom1 && cht_CheckCheat(&cheat_noclip, ev->data2)) || (logical_gamemission != doom1 && cht_CheckCheat(&cheat_commercial_noclip, ev->data2)))
+            else if ((logical_gamemission == doom1 && cht_CheckCheat(&doom->cheat_noclip, ev->data2)) || (logical_gamemission != doom1 && cht_CheckCheat(&doom->cheat_commercial_noclip, ev->data2)))
             {
                 // Noclip cheat.
                 // For Doom 1, use the idspipsopd cheat; for all others, use
@@ -410,7 +388,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
             // 'behold?' power-up cheats
             for (i = 0; i < 6; i++)
             {
-                if (cht_CheckCheat(&cheat_powerup[i], ev->data2))
+                if (cht_CheckCheat(&doom->cheat_powerup[i], ev->data2))
                 {
                     if (!doom->plyr->powers[i])
                         P_GivePower(doom->plyr, i);
@@ -424,19 +402,19 @@ ST_Responder(doom_data_t *doom, event_t *ev)
             }
 
             // 'behold' power-up menu
-            if (cht_CheckCheat(&cheat_powerup[6], ev->data2))
+            if (cht_CheckCheat(&doom->cheat_powerup[6], ev->data2))
             {
                 doom->plyr->message = DEH_String(STSTR_BEHOLD);
             }
             // 'choppers' invulnerability & chainsaw
-            else if (cht_CheckCheat(&cheat_choppers, ev->data2))
+            else if (cht_CheckCheat(&doom->cheat_choppers, ev->data2))
             {
                 doom->plyr->weaponowned[wp_chainsaw] = true;
                 doom->plyr->powers[pw_invulnerability] = true;
                 doom->plyr->message = DEH_String(STSTR_CHOPPERS);
             }
             // 'mypos' for player position
-            else if (cht_CheckCheat(&cheat_mypos, ev->data2))
+            else if (cht_CheckCheat(&doom->cheat_mypos, ev->data2))
             {
                 static char buf[ST_MSGWIDTH];
                 d_snprintf(buf, sizeof(buf), "ang=0x%x;x,y=(0x%x,0x%x)",
@@ -448,13 +426,13 @@ ST_Responder(doom_data_t *doom, event_t *ev)
         }
 
         // 'clev' change-level cheat
-        if (!netgame && cht_CheckCheat(&cheat_clev, ev->data2))
+        if (!netgame && cht_CheckCheat(&doom->cheat_clev, ev->data2))
         {
             char buf[3];
             int epsd;
             int map;
 
-            cht_GetParam(&cheat_clev, buf);
+            cht_GetParam(&doom->cheat_clev, buf);
 
             if (doom->gamemode == commercial)
             {
@@ -507,17 +485,15 @@ ST_Responder(doom_data_t *doom, event_t *ev)
 int ST_calcPainOffset(struct doom_data_t_* doom)
 {
     int health;
-    static int lastcalc;
-    static int oldhealth = -1;
 
     health = doom->plyr->health > 100 ? 100 : doom->plyr->health;
 
-    if (health != oldhealth)
+    if (health != doom->oldhealth)
     {
-        lastcalc = ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
-        oldhealth = health;
+        doom->lastcalc = ST_FACESTRIDE * (((100 - health) * ST_NUMPAINFACES) / 101);
+        doom->oldhealth = health;
     }
-    return lastcalc;
+    return doom->lastcalc;
 }
 
 //
@@ -531,22 +507,20 @@ void ST_updateFaceWidget(struct doom_data_t_* doom)
     int i;
     angle_t badguyangle;
     angle_t diffang;
-    static int lastattackdown = -1;
-    static int priority = 0;
     boolean doevilgrin;
 
-    if (priority < 10)
+    if (doom->priority < 10)
     {
         // dead
         if (!doom->plyr->health)
         {
-            priority = 9;
+            doom->priority = 9;
             doom->st_faceindex = ST_DEADFACE;
             doom->st_facecount = 1;
         }
     }
 
-    if (priority < 9)
+    if (doom->priority < 9)
     {
         if (doom->plyr->bonuscount)
         {
@@ -564,19 +538,19 @@ void ST_updateFaceWidget(struct doom_data_t_* doom)
             if (doevilgrin)
             {
                 // evil grin if just picked up weapon
-                priority = 8;
+                doom->priority = 8;
                 doom->st_facecount = ST_EVILGRINCOUNT;
                 doom->st_faceindex = ST_calcPainOffset(doom) + ST_EVILGRINOFFSET;
             }
         }
     }
 
-    if (priority < 8)
+    if (doom->priority < 8)
     {
         if (doom->plyr->damagecount && doom->plyr->attacker && doom->plyr->attacker != doom->plyr->mo)
         {
             // being attacked
-            priority = 7;
+            doom->priority = 7;
 
             if (doom->plyr->health - doom->st_oldhealth > ST_MUCHPAIN)
             {
@@ -625,51 +599,51 @@ void ST_updateFaceWidget(struct doom_data_t_* doom)
         }
     }
 
-    if (priority < 7)
+    if (doom->priority < 7)
     {
         // getting hurt because of your own damn stupidity
         if (doom->plyr->damagecount)
         {
             if (doom->plyr->health - doom->st_oldhealth > ST_MUCHPAIN)
             {
-                priority = 7;
+                doom->priority = 7;
                 doom->st_facecount = ST_TURNCOUNT;
                 doom->st_faceindex = ST_calcPainOffset(doom) + ST_OUCHOFFSET;
             }
             else
             {
-                priority = 6;
+                doom->priority = 6;
                 doom->st_facecount = ST_TURNCOUNT;
                 doom->st_faceindex = ST_calcPainOffset(doom) + ST_RAMPAGEOFFSET;
             }
         }
     }
 
-    if (priority < 6)
+    if (doom->priority < 6)
     {
         // rapid firing
         if (doom->plyr->attackdown)
         {
-            if (lastattackdown == -1)
-                lastattackdown = ST_RAMPAGEDELAY;
-            else if (!--lastattackdown)
+            if (doom->lastattackdown == -1)
+                doom->lastattackdown = ST_RAMPAGEDELAY;
+            else if (!--doom->lastattackdown)
             {
-                priority = 5;
+                doom->priority = 5;
                 doom->st_faceindex = ST_calcPainOffset(doom) + ST_RAMPAGEOFFSET;
                 doom->st_facecount = 1;
-                lastattackdown = 1;
+                doom->lastattackdown = 1;
             }
         }
         else
-            lastattackdown = -1;
+            doom->lastattackdown = -1;
     }
 
-    if (priority < 5)
+    if (doom->priority < 5)
     {
         // invulnerability
         if ((doom->plyr->cheats & CF_GODMODE) || doom->plyr->powers[pw_invulnerability])
         {
-            priority = 4;
+            doom->priority = 4;
 
             doom->st_faceindex = ST_GODFACE;
             doom->st_facecount = 1;
@@ -681,7 +655,7 @@ void ST_updateFaceWidget(struct doom_data_t_* doom)
     {
         doom->st_faceindex = ST_calcPainOffset(doom) + (doom->st_randomnumber % 3);
         doom->st_facecount = ST_STRAIGHTFACECOUNT;
-        priority = 0;
+        doom->priority = 0;
     }
 
     doom->st_facecount--;
@@ -689,14 +663,13 @@ void ST_updateFaceWidget(struct doom_data_t_* doom)
 
 void ST_updateWidgets(struct doom_data_t_* doom)
 {
-    static int largeammo = 1994; // means "n/a"
     int i;
 
     // must redirect the pointer if the ready weapon has changed.
     //  if (w_ready.data != plyr->readyweapon)
     //  {
     if (weaponinfo[doom->plyr->readyweapon].ammo == am_noammo)
-        doom->w_ready.num = &largeammo;
+        doom->w_ready.num = &doom->largeammo;
     else
         doom->w_ready.num = &doom->plyr->ammo[weaponinfo[doom->plyr->readyweapon].ammo];
     //{

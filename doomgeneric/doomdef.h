@@ -767,6 +767,26 @@ struct doom_data_t_
 
     // a random number per tick
     int st_randomnumber;
+
+    int largeammo;
+
+    int lastattackdown;
+    int priority;
+
+    int lastcalc;
+    int oldhealth;
+
+    cheatseq_t cheat_mus;
+    cheatseq_t cheat_god;
+    cheatseq_t cheat_ammo;
+    cheatseq_t cheat_ammonokey;
+    cheatseq_t cheat_noclip;
+    cheatseq_t cheat_commercial_noclip;
+
+    cheatseq_t cheat_powerup[7];
+    cheatseq_t cheat_choppers;
+    cheatseq_t cheat_clev;
+    cheatseq_t cheat_mypos;
 };
 
 typedef struct doom_data_t_ doom_data_t;

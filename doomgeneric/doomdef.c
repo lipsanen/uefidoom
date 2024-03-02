@@ -23,11 +23,46 @@
 // scale on entry
 #define INITSCALEMTOF (.2*FRACUNIT)
 
+static const cheatseq_t cheat_amap = CHEAT("iddt", 0);
+static const cheatseq_t cheat_mus = CHEAT("idmus", 2);
+static const cheatseq_t cheat_god = CHEAT("iddqd", 0);
+static const cheatseq_t cheat_ammo = CHEAT("idkfa", 0);
+static const cheatseq_t cheat_ammonokey = CHEAT("idfa", 0);
+static const cheatseq_t cheat_noclip = CHEAT("idspispopd", 0);
+static const cheatseq_t cheat_commercial_noclip = CHEAT("idclip", 0);
+
+static const cheatseq_t cheat_powerup[7] =
+    {
+        CHEAT("idbeholdv", 0),
+        CHEAT("idbeholds", 0),
+        CHEAT("idbeholdi", 0),
+        CHEAT("idbeholdr", 0),
+        CHEAT("idbeholda", 0),
+        CHEAT("idbeholdl", 0),
+        CHEAT("idbehold", 0),
+};
+
+static const cheatseq_t cheat_choppers = CHEAT("idchoppers", 0);
+static const cheatseq_t cheat_clev = CHEAT("idclev", 2);
+static const cheatseq_t cheat_mypos = CHEAT("idmypos", 0);
+
 void doomdata_init(doom_data_t* doom) {
     d_memset(doom, 0, sizeof(doom_data_t));
-    d_strcpy(doom->cheat_amap.sequence, "iddt");
-    doom->cheat_amap.sequence_len = d_strlen(doom->cheat_amap.sequence);
-    d_strcpy(doom->cheat_amap.parameter_buf, "");
+
+#define COPY_VAR(var) d_memcpy(&doom->var, &var, sizeof(var));
+
+    COPY_VAR(cheat_amap);
+    COPY_VAR(cheat_mus);
+    COPY_VAR(cheat_god);
+    COPY_VAR(cheat_ammo);
+    COPY_VAR(cheat_ammonokey);
+    COPY_VAR(cheat_noclip);
+    COPY_VAR(cheat_commercial_noclip);
+    COPY_VAR(cheat_powerup);
+    COPY_VAR(cheat_choppers);
+    COPY_VAR(cheat_clev);
+    COPY_VAR(cheat_mypos);
+
     doom->leveljuststarted = 1;
     doom->markpointnum = 0; // next point to be assigned
     doom->followplayer = 1; // specifies whether to follow the player around
@@ -47,6 +82,9 @@ void doomdata_init(doom_data_t* doom) {
     doom->lastlevel = -1;
     doom->st_stopped = true;
     doom->st_oldhealth = -1;
+    doom->largeammo = 1994; // means "n/a"
+    doom->lastattackdown = -1;
+    doom->oldhealth = -1;
 }
 
 // Location for any defines turned variables.

@@ -163,7 +163,7 @@ void DG_DrawFrame()
 	ResetPressedKeys();
 	ReadKeys();
 	ReadMouse();
-	pGraphics->Blt(pGraphics, (EFI_GRAPHICS_OUTPUT_BLT_PIXEL *)DG_ScreenBuffer, EfiBltBufferToVideo, 0, 0, 0, 0, WIDTH, HEIGHT, 0);
+	pGraphics->Blt(pGraphics, (EFI_GRAPHICS_OUTPUT_BLT_PIXEL *)doom.DG_ScreenBuffer, EfiBltBufferToVideo, 0, 0, 0, 0, WIDTH, HEIGHT, 0);
 }
 
 EFI_STATUS efi_main(
