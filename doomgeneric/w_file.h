@@ -28,7 +28,7 @@ typedef struct
 {
     // Open a file for reading.
 
-    wad_file_t *(*OpenFile)(char *path);
+    wad_file_t *(*OpenFile)(const char *path);
 
     // Close the specified file.
 
@@ -60,8 +60,9 @@ struct _wad_file_s
 
 // Open the specified file. Returns a pointer to a new wad_file_t 
 // handle for the WAD file, or NULL if it could not be opened.
+struct doom_data_t_;
 
-wad_file_t *W_OpenFile(struct doom_data_t_* doom, char *path);
+wad_file_t *W_OpenFile(struct doom_data_t_* doom, const char *path);
 
 // Close the specified WAD file.
 

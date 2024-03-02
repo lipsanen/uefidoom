@@ -41,7 +41,6 @@
 
 static void PlayerQuitGame(doom_data_t* doom, player_t *player)
 {
-    static char exitmsg[80];
     unsigned int player_num;
 
     player_num = player - players;
@@ -49,13 +48,13 @@ static void PlayerQuitGame(doom_data_t* doom, player_t *player)
     // Do this the same way as Vanilla Doom does, to allow dehacked
     // replacements of this message
 
-    M_StringCopy(exitmsg, DEH_String("Player 1 left the game"),
-                 sizeof(exitmsg));
+    M_StringCopy(doom->exitmsg, DEH_String("Player 1 left the game"),
+                 sizeof(doom->exitmsg));
 
-    exitmsg[7] += player_num;
+    doom->exitmsg[7] += player_num;
 
     playeringame[player_num] = false;
-    players[consoleplayer].message = exitmsg;
+    players[consoleplayer].message = doom->exitmsg;
 
     // TODO: check if it is sensible to do this:
 

@@ -118,7 +118,7 @@ static void ExtendLumpInfo(doom_data_t* doom, int newnumlumps)
 // Other files are single lumps with the base filename
 //  for the lump name.
 
-wad_file_t *W_AddFile(doom_data_t* doom, char *filename)
+wad_file_t *W_AddFile(doom_data_t* doom, const char *filename)
 {
     wadinfo_t header;
     lumpinfo_t *lump_p;
@@ -232,7 +232,7 @@ int W_NumLumps(doom_data_t* doom)
 // Returns -1 if name not found.
 //
 
-int W_CheckNumForName(doom_data_t* doom, char *name)
+int W_CheckNumForName(doom_data_t* doom, const char *name)
 {
     lumpinfo_t *lump_p;
     int i;
@@ -279,7 +279,7 @@ int W_CheckNumForName(doom_data_t* doom, char *name)
 // W_GetNumForName
 // Calls W_CheckNumForName, but bombs out if not found.
 //
-int W_GetNumForName(doom_data_t* doom, char *name)
+int W_GetNumForName(doom_data_t* doom, const char *name)
 {
     int i;
 
@@ -394,7 +394,7 @@ void *W_CacheLumpNum(doom_data_t* doom, int lumpnum, int tag)
 //
 // W_CacheLumpName
 //
-void *W_CacheLumpName(doom_data_t* doom, char *name, int tag)
+void *W_CacheLumpName(doom_data_t* doom, const char *name, int tag)
 {
     return W_CacheLumpNum(doom, W_GetNumForName(doom, name), tag);
 }
@@ -430,7 +430,7 @@ void W_ReleaseLumpNum(doom_data_t* doom, int lumpnum)
     }
 }
 
-void W_ReleaseLumpName(doom_data_t* doom, char *name)
+void W_ReleaseLumpName(doom_data_t* doom, const char *name)
 {
     W_ReleaseLumpNum(doom, W_GetNumForName(doom, name));
 }

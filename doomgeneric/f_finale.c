@@ -59,8 +59,8 @@ typedef struct
 {
     GameMission_t mission;
     int episode, level;
-    char *background;
-    char *text;
+    const char *background;
+    const char *text;
 } textscreen_t;
 
 static textscreen_t textscreens[] =
@@ -92,8 +92,8 @@ static textscreen_t textscreens[] =
     { pack_plut, 1, 31, "RROCK19",   P6TEXT},
 };
 
-char*	finaletext;
-char*	finaleflat;
+const char*	finaletext;
+const char*	finaleflat;
 
 void	F_StartCast (doom_data_t* doom);
 void	F_CastTicker (void);
@@ -145,8 +145,6 @@ void F_StartFinale (doom_data_t* doom)
 
     // Do dehacked substitutions of strings
   
-    finaletext = DEH_String(finaletext);
-    finaleflat = DEH_String(finaleflat);
     
     finalestage = F_STAGE_TEXT;
     finalecount = 0;
@@ -229,7 +227,7 @@ void F_TextWrite (struct doom_data_t_* doom)
     
     int		x,y,w;
     signed int	count;
-    char*	ch;
+    const char*	ch;
     int		c;
     int		cx;
     int		cy;

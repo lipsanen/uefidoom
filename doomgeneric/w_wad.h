@@ -51,23 +51,23 @@ struct lumpinfo_s
 
 struct doom_data_t_;
 
-wad_file_t *W_AddFile (struct doom_data_t_* doom, char *filename);
+wad_file_t *W_AddFile (struct doom_data_t_* doom, const char *filename);
 
-int	W_CheckNumForName (struct doom_data_t_* doom, char* name);
-int	W_GetNumForName (struct doom_data_t_* doom, char* name);
+int	W_CheckNumForName (struct doom_data_t_* doom, const char* name);
+int	W_GetNumForName (struct doom_data_t_* doom, const char* name);
 
 int	W_LumpLength (struct doom_data_t_* doom, unsigned int lump);
 void    W_ReadLump (struct doom_data_t_* doom, unsigned int lump, void *dest);
 
 void*	W_CacheLumpNum (struct doom_data_t_* doom, int lump, int tag);
-void*	W_CacheLumpName (struct doom_data_t_* doom, char* name, int tag);
+void*	W_CacheLumpName (struct doom_data_t_* doom, const char* name, int tag);
 
 void    W_GenerateHashTable(struct doom_data_t_* doom);
 
 extern unsigned int W_LumpNameHash(const char *s);
 
 void    W_ReleaseLumpNum(struct doom_data_t_* doom, int lump);
-void    W_ReleaseLumpName(struct doom_data_t_* doom, char *name);
+void    W_ReleaseLumpName(struct doom_data_t_* doom, const char *name);
 
 struct doom_data_t_;
 

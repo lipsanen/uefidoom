@@ -306,6 +306,7 @@ struct doom_data_t_ {
 
     int nexttic;
     int litelevelscnt;
+    char exitmsg[80];
 };
 
 typedef struct doom_data_t_ doom_data_t;

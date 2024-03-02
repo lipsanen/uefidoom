@@ -149,10 +149,10 @@ boolean M_StrToInt(const char *str, int *result)
     return d_sscanf(str, " 0x%x", result) == 1 || d_sscanf(str, " 0X%x", result) == 1 || d_sscanf(str, " 0%o", result) == 1 || d_sscanf(str, " %d", result) == 1;
 }
 
-void M_ExtractFileBase(char *path, char *dest)
+void M_ExtractFileBase(const char *path, char *dest)
 {
-    char *src;
-    char *filename;
+    const char *src;
+    const char *filename;
     int length;
 
     src = path + d_strlen(path) - 1;
