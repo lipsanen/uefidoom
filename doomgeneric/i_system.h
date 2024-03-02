@@ -33,7 +33,7 @@ void I_Init (void);
 // Called by startup code
 // to get the ammount of memory to d_malloc
 // for the zone management.
-byte*	I_ZoneBase (int *size);
+byte*	I_ZoneBase (struct doom_data_t_* doom, int *size);
 
 boolean I_ConsoleStdout(void);
 
@@ -57,7 +57,7 @@ void I_Error (char *error, ...);
 
 void I_Tactile (int on, int off, int total);
 
-boolean I_GetMemoryValue(unsigned int offset, void *value, int size);
+boolean I_GetMemoryValue(struct doom_data_t_* doom, unsigned int offset, void *value, int size);
 
 // Schedule a function to be called when the program exits.
 // If run_if_error is true, the function is called if the exit

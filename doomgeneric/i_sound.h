@@ -149,7 +149,9 @@ typedef struct
 
 } sound_module_t;
 
-void I_InitSound(boolean use_sfx_prefix);
+struct doom_data_t_;
+
+void I_InitSound(struct doom_data_t_* doom, boolean use_sfx_prefix);
 void I_ShutdownSound(void);
 int I_GetSfxLumpNum(sfxinfo_t *sfxinfo);
 void I_UpdateSound(void);

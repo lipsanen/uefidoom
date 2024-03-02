@@ -22,7 +22,9 @@
 
 #include "doomtype.h"
 
-void M_LoadDefaults(void);
+struct doom_data_t_;
+
+void M_LoadDefaults(struct doom_data_t_* doom);
 void M_SaveDefaults(void);
 void M_SaveDefaultsAlternate(char *main, char *extra);
 void M_SetConfigDir(char *dir);

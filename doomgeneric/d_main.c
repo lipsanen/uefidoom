@@ -372,7 +372,7 @@ void D_DoomLoop(struct doom_data_t_ *doom)
 
     I_GraphicsCheckCommandLine();
     I_SetGrabMouseCallback(D_GrabMouseCallback);
-    I_InitGraphics();
+    I_InitGraphics(doom);
     I_EnableLoadingDisk();
 
     V_RestoreBuffer();
@@ -705,10 +705,10 @@ void D_IdentifyVersion(doom_data_t *doom)
         // detecting it based on the filename. Valid values are: "doom2",
         // "tnt" and "plutonia".
         //
-        p = M_CheckParmWithArgs("-pack", 1);
+        p = M_CheckParmWithArgs(doom, "-pack", 1);
         if (p > 0)
         {
-            SetMissionForPackName(doom, myargv[p + 1]);
+            SetMissionForPackName(doom, doom->myargv[p + 1]);
         }
     }
 }
@@ -870,13 +870,13 @@ static void InitGameVersion(doom_data_t *doom)
     // "ultimate", "final", "final2", "hacx" and "chex".
     //
 
-    p = M_CheckParmWithArgs("-gameversion", 1);
+    p = M_CheckParmWithArgs(doom, "-gameversion", 1);
 
     if (p)
     {
         for (i = 0; gameversions[i].description != NULL; ++i)
         {
-            if (!d_strcmp(myargv[p + 1], gameversions[i].cmdline))
+            if (!d_strcmp(doom->myargv[p + 1], gameversions[i].cmdline))
             {
                 doom->gameversion = gameversions[i].version;
                 break;
@@ -893,7 +893,7 @@ static void InitGameVersion(doom_data_t *doom)
                          gameversions[i].description);
             }
 
-            I_Error("Unknown game version '%s'", myargv[p + 1]);
+            I_Error("Unknown game version '%s'", doom->myargv[p + 1]);
         }
     }
     else
@@ -984,7 +984,7 @@ static void D_Endoom(doom_data_t *doom)
     // in screensaver or control test mode. Only show it once the
     // game has actually started.
 
-    if (!doom->show_endoom || !doom->main_loop_started || screensaver_mode || M_CheckParm("-testcontrols") > 0)
+    if (!doom->show_endoom || !doom->main_loop_started || screensaver_mode || M_CheckParm(doom, "-testcontrols") > 0)
     {
         return;
     }
@@ -1017,7 +1017,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     I_PrintBanner(PACKAGE_STRING);
 
     d_printf("Z_Init: Init zone memory allocation daemon. \n");
-    Z_Init();
+    Z_Init(doom);
     Init_ScreenBuffer(doom);
 
 #ifdef FEATURE_MULTIPLAYER
@@ -1085,7 +1085,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Disable monsters.
     //
 
-    doom->nomonsters = M_CheckParm("-nomonsters");
+    doom->nomonsters = M_CheckParm(doom, "-nomonsters");
 
     //!
     // @vanilla
@@ -1093,7 +1093,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Monsters respawn after being killed.
     //
 
-    doom->respawnparm = M_CheckParm("-respawn");
+    doom->respawnparm = M_CheckParm(doom, "-respawn");
 
     //!
     // @vanilla
@@ -1101,7 +1101,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Monsters move faster.
     //
 
-    doom->fastparm = M_CheckParm("-fast");
+    doom->fastparm = M_CheckParm(doom, "-fast");
 
     //!
     // @vanilla
@@ -1110,7 +1110,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // directory.
     //
 
-    doom->devparm = M_CheckParm("-devparm");
+    doom->devparm = M_CheckParm(doom, "-devparm");
 
     I_DisplayFPSDots(doom->devparm);
 
@@ -1121,7 +1121,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Start a deathmatch game.
     //
 
-    if (M_CheckParm("-deathmatch"))
+    if (M_CheckParm(doom, "-deathmatch"))
         deathmatch = 1;
 
     //!
@@ -1132,7 +1132,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // all items respawn after 30 seconds.
     //
 
-    if (M_CheckParm("-altdeath"))
+    if (M_CheckParm(doom, "-altdeath"))
         deathmatch = 2;
 
     if (doom->devparm)
@@ -1172,14 +1172,14 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // x defaults to 200.  Values are rounded up to 10 and down to 400.
     //
 
-    if ((p = M_CheckParm("-turbo")))
+    if ((p = M_CheckParm(doom, "-turbo")))
     {
         int scale = 200;
         extern int forwardmove[2];
         extern int sidemove[2];
 
-        if (p < myargc - 1)
-            scale = d_atoi(myargv[p + 1]);
+        if (p < doom->myargc - 1)
+            scale = d_atoi(doom->myargv[p + 1]);
         if (scale < 10)
             scale = 10;
         if (scale > 400)
@@ -1199,7 +1199,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     d_printf("M_LoadDefaults: Load system defaults.\n");
     M_SetConfigFilenames("default.cfg", PROGRAM_PREFIX "doom.cfg");
     D_BindVariables(doom);
-    M_LoadDefaults();
+    M_LoadDefaults(doom);
 
     // Find main IWAD file and load it.
     doom->iwadfile = D_FindIWAD();
@@ -1285,7 +1285,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Play back the demo named demo.lmp.
     //
 
-    p = M_CheckParmWithArgs("-playdemo", 1);
+    p = M_CheckParmWithArgs(doom, "-playdemo", 1);
 
     if (!p)
     {
@@ -1297,20 +1297,20 @@ void D_DoomMain(struct doom_data_t_ *doom)
         // Play back the demo named demo.lmp, determining the framerate
         // of the screen.
         //
-        p = M_CheckParmWithArgs("-timedemo", 1);
+        p = M_CheckParmWithArgs(doom, "-timedemo", 1);
     }
 
     if (p)
     {
         // With Vanilla you have to specify the file without extension,
         // but make that optional.
-        if (M_StringEndsWith(myargv[p + 1], ".lmp"))
+        if (M_StringEndsWith(doom->myargv[p + 1], ".lmp"))
         {
-            M_StringCopy(file, myargv[p + 1], sizeof(file));
+            M_StringCopy(file, doom->myargv[p + 1], sizeof(file));
         }
         else
         {
-            d_snprintf(file, sizeof(file), "%s.lmp", myargv[p + 1]);
+            d_snprintf(file, sizeof(file), "%s.lmp", doom->myargv[p + 1]);
         }
 
         if (D_AddFile(doom, file))
@@ -1324,7 +1324,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
             // the demo in the same way as Vanilla Doom.  This makes
             // tricks like "-playdemo demo1" possible.
 
-            M_StringCopy(demolumpname, myargv[p + 1], sizeof(demolumpname));
+            M_StringCopy(demolumpname, doom->myargv[p + 1], sizeof(demolumpname));
         }
 
         d_printf("Playing demo %s.\n", file);
@@ -1390,7 +1390,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
 
     d_printf("I_Init: Setting up machine state.\n");
     I_CheckIsScreensaver();
-    I_InitSound(true);
+    I_InitSound(doom, true);
     I_InitMusic();
     // Initial netgame startup. Connect to server etc.
     D_ConnectNetGame(doom);
@@ -1409,11 +1409,11 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // 0 disables all monsters.
     //
 
-    p = M_CheckParmWithArgs("-skill", 1);
+    p = M_CheckParmWithArgs(doom, "-skill", 1);
 
     if (p)
     {
-        doom->startskill = myargv[p + 1][0] - '1';
+        doom->startskill = doom->myargv[p + 1][0] - '1';
         doom->autostart = true;
     }
 
@@ -1424,11 +1424,11 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Start playing on episode n (1-4)
     //
 
-    p = M_CheckParmWithArgs("-episode", 1);
+    p = M_CheckParmWithArgs(doom, "-episode", 1);
 
     if (p)
     {
-        doom->startepisode = myargv[p + 1][0] - '0';
+        doom->startepisode = doom->myargv[p + 1][0] - '0';
         doom->startmap = 1;
         doom->autostart = true;
     }
@@ -1443,11 +1443,11 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // For multiplayer games: exit each level after n minutes.
     //
 
-    p = M_CheckParmWithArgs("-timer", 1);
+    p = M_CheckParmWithArgs(doom, "-timer", 1);
 
     if (p)
     {
-        timelimit = d_atoi(myargv[p + 1]);
+        timelimit = d_atoi(doom->myargv[p + 1]);
     }
 
     //!
@@ -1457,7 +1457,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Austin Virtual Gaming: end levels after 20 minutes.
     //
 
-    p = M_CheckParm("-avg");
+    p = M_CheckParm(doom, "-avg");
 
     if (p)
     {
@@ -1472,19 +1472,19 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // (Doom 2)
     //
 
-    p = M_CheckParmWithArgs("-warp", 1);
+    p = M_CheckParmWithArgs(doom, "-warp", 1);
 
     if (p)
     {
         if (doom->gamemode == commercial)
-            doom->startmap = d_atoi(myargv[p + 1]);
+            doom->startmap = d_atoi(doom->myargv[p + 1]);
         else
         {
-            doom->startepisode = myargv[p + 1][0] - '0';
+            doom->startepisode = doom->myargv[p + 1][0] - '0';
 
-            if (p + 2 < myargc)
+            if (p + 2 < doom->myargc)
             {
-                doom->startmap = myargv[p + 2][0] - '0';
+                doom->startmap = doom->myargv[p + 2][0] - '0';
             }
             else
             {
@@ -1497,7 +1497,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Undocumented:
     // Invoked by setup to test the controls.
 
-    p = M_CheckParm("-testcontrols");
+    p = M_CheckParm(doom, "-testcontrols");
 
     if (p > 0)
     {
@@ -1518,11 +1518,11 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Load the game in slot s.
     //
 
-    p = M_CheckParmWithArgs("-loadgame", 1);
+    p = M_CheckParmWithArgs(doom, "-loadgame", 1);
 
     if (p)
     {
-        doom->startloadgame = d_atoi(myargv[p + 1]);
+        doom->startloadgame = d_atoi(doom->myargv[p + 1]);
     }
     else
     {
@@ -1568,15 +1568,15 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Record a demo named x.lmp.
     //
 
-    p = M_CheckParmWithArgs("-record", 1);
+    p = M_CheckParmWithArgs(doom, "-record", 1);
 
     if (p)
     {
-        G_RecordDemo(myargv[p + 1]);
+        G_RecordDemo(doom, doom->myargv[p + 1]);
         doom->autostart = true;
     }
 
-    p = M_CheckParmWithArgs("-playdemo", 1);
+    p = M_CheckParmWithArgs(doom, "-playdemo", 1);
     if (p)
     {
         singledemo = true; // quit after one demo
@@ -1585,7 +1585,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
         return;
     }
 
-    p = M_CheckParmWithArgs("-timedemo", 1);
+    p = M_CheckParmWithArgs(doom, "-timedemo", 1);
     if (p)
     {
         G_TimeDemo(doom, demolumpname);

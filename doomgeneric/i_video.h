@@ -98,7 +98,7 @@ typedef boolean (*grabmouse_callback_t)(struct doom_data_t_* doom);
 // Called by D_DoomMain,
 // determines the hardware configuration
 // and sets up the video mode
-void I_InitGraphics (void);
+void I_InitGraphics (struct doom_data_t_* doom);
 
 void I_GraphicsCheckCommandLine(void);
 

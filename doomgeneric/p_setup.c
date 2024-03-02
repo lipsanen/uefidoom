@@ -140,7 +140,7 @@ void P_LoadVertexes(struct doom_data_t_* doom, int lump)
 //
 // GetSectorAtNullAddress
 //
-sector_t *GetSectorAtNullAddress(void)
+sector_t *GetSectorAtNullAddress(struct doom_data_t_* doom)
 {
     static boolean null_sector_is_initialized = false;
     static sector_t null_sector;
@@ -148,8 +148,8 @@ sector_t *GetSectorAtNullAddress(void)
     if (!null_sector_is_initialized)
     {
         d_memset(&null_sector, 0, sizeof(null_sector));
-        I_GetMemoryValue(0, &null_sector.floorheight, 4);
-        I_GetMemoryValue(4, &null_sector.ceilingheight, 4);
+        I_GetMemoryValue(doom, 0, &null_sector.floorheight, 4);
+        I_GetMemoryValue(doom, 4, &null_sector.ceilingheight, 4);
         null_sector_is_initialized = true;
     }
 
@@ -203,7 +203,7 @@ void P_LoadSegs(struct doom_data_t_* doom, int lump)
 
             if (sidenum < 0 || sidenum >= numsides)
             {
-                li->backsector = GetSectorAtNullAddress();
+                li->backsector = GetSectorAtNullAddress(doom);
             }
             else
             {
@@ -637,7 +637,7 @@ void P_GroupLines(void)
 // Pad the REJECT lump with extra data when the lump is too small,
 // to simulate a REJECT buffer overflow in Vanilla Doom.
 
-static void PadRejectArray(byte *array, unsigned int len)
+static void PadRejectArray(struct doom_data_t_* doom, byte *array, unsigned int len)
 {
     unsigned int i;
     unsigned int byte_num;
@@ -675,7 +675,7 @@ static void PadRejectArray(byte *array, unsigned int len)
 
         // Pad remaining space with 0 (or 0xff, if specified on command line).
 
-        if (M_CheckParm("-reject_pad_with_ff"))
+        if (M_CheckParm(doom, "-reject_pad_with_ff"))
         {
             padvalue = 0xff;
         }
@@ -712,7 +712,7 @@ static void P_LoadReject(struct doom_data_t_* doom, int lumpnum)
         rejectmatrix = Z_Malloc(minlength, PU_LEVEL, &rejectmatrix);
         W_ReadLump(doom, lumpnum, rejectmatrix);
 
-        PadRejectArray(rejectmatrix + lumplen, minlength - lumplen);
+        PadRejectArray(doom, rejectmatrix + lumplen, minlength - lumplen);
     }
 }
 

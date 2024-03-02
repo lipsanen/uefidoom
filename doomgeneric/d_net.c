@@ -148,8 +148,8 @@ static void SaveGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
     settings->respawn_monsters = doom->respawnparm;
     settings->timelimit = timelimit;
 
-    settings->lowres_turn = M_CheckParm("-record") > 0
-                         && M_CheckParm("-longtics") == 0;
+    settings->lowres_turn = M_CheckParm(doom, "-record") > 0
+                         && M_CheckParm(doom, "-longtics") == 0;
 }
 
 static void InitConnectData(doom_data_t* doom, net_connect_data_t *connect_data)
@@ -163,7 +163,7 @@ static void InitConnectData(doom_data_t* doom, net_connect_data_t *connect_data)
     // Run as the left screen in three screen mode.
     //
 
-    if (M_CheckParm("-left") > 0)
+    if (M_CheckParm(doom, "-left") > 0)
     {
         viewangleoffset = ANG90;
         connect_data->drone = true;
@@ -175,7 +175,7 @@ static void InitConnectData(doom_data_t* doom, net_connect_data_t *connect_data)
     // Run as the right screen in three screen mode.
     //
 
-    if (M_CheckParm("-right") > 0)
+    if (M_CheckParm(doom, "-right") > 0)
     {
         viewangleoffset = ANG270;
         connect_data->drone = true;
@@ -192,8 +192,8 @@ static void InitConnectData(doom_data_t* doom, net_connect_data_t *connect_data)
 
     // Are we recording a demo? Possibly set lowres turn mode
 
-    connect_data->lowres_turn = M_CheckParm("-record") > 0
-                             && M_CheckParm("-longtics") == 0;
+    connect_data->lowres_turn = M_CheckParm(doom, "-record") > 0
+                             && M_CheckParm(doom, "-longtics") == 0;
 
     // Read checksums of our WAD directory and dehacked information
 
@@ -219,7 +219,7 @@ void D_ConnectNetGame(struct doom_data_t_* doom)
     // demos.
     //
 
-    if (M_CheckParm("-solo-net") > 0)
+    if (M_CheckParm(doom, "-solo-net") > 0)
     {
         netgame = true;
     }
@@ -256,7 +256,7 @@ void D_CheckNetGame (struct doom_data_t_* doom)
     {
         // Gross hack to work like Vanilla:
 
-        if (timelimit == 20 && M_CheckParm("-avg"))
+        if (timelimit == 20 && M_CheckParm(doom, "-avg"))
         {
             d_printf("Austin Virtual Gaming: Levels will end "
                            "after 20 minutes\n");

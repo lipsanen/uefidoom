@@ -49,7 +49,9 @@ enum
     PU_NUM_TAGS
 };
 
-void	Z_Init (void);
+struct doom_data_t_;
+
+void	Z_Init (struct doom_data_t_* doom);
 void*	Z_Malloc (int size, int tag, void *ptr);
 void    Z_Free (void *ptr);
 void    Z_FreeTags (int lowtag, int hightag);

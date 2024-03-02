@@ -49,7 +49,7 @@ void G_DoLoadGame (doom_data_t* doom);
 void G_SaveGame (int slot, char* description);
 
 // Only called by startup code.
-void G_RecordDemo (char* name);
+void G_RecordDemo (struct doom_data_t_* doom, char* name);
 
 void G_BeginRecording (doom_data_t* doom);
 

@@ -92,7 +92,7 @@ static byte *AutoAllocMemory(int *size, int default_ram, int min_ram)
     return heap;
 }
 
-byte *I_ZoneBase(int *size)
+byte *I_ZoneBase(struct doom_data_t_* doom, int *size)
 {
     byte *zonemem;
     int min_ram, default_ram;
@@ -104,11 +104,11 @@ byte *I_ZoneBase(int *size)
     // Specify the heap size, in MiB (default 16).
     //
 
-    p = M_CheckParmWithArgs("-mb", 1);
+    p = M_CheckParmWithArgs(doom, "-mb", 1);
 
     if (p > 0)
     {
-        default_ram = d_atoi(myargv[p + 1]);
+        default_ram = d_atoi(doom->myargv[p + 1]);
         min_ram = default_ram;
     }
     else
@@ -210,7 +210,7 @@ static unsigned char mem_dump_custom[DOS_MEM_DUMP_SIZE];
 
 static const unsigned char *dos_mem_dump = mem_dump_dos622;
 
-boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
+boolean I_GetMemoryValue(struct doom_data_t_* doom, unsigned int offset, void *value, int size)
 {
     static boolean firsttime = true;
 
@@ -230,19 +230,19 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
         // The default is to emulate DOS 7.1 (Windows 98).
         //
 
-        p = M_CheckParmWithArgs("-setmem", 1);
+        p = M_CheckParmWithArgs(doom, "-setmem", 1);
 
         if (p > 0)
         {
-            if (!d_stricmp(myargv[p + 1], "dos622"))
+            if (!d_stricmp(doom->myargv[p + 1], "dos622"))
             {
                 dos_mem_dump = mem_dump_dos622;
             }
-            if (!d_stricmp(myargv[p + 1], "dos71"))
+            if (!d_stricmp(doom->myargv[p + 1], "dos71"))
             {
                 dos_mem_dump = mem_dump_win98;
             }
-            else if (!d_stricmp(myargv[p + 1], "dosbox"))
+            else if (!d_stricmp(doom->myargv[p + 1], "dosbox"))
             {
                 dos_mem_dump = mem_dump_dosbox;
             }
@@ -252,12 +252,12 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
                 {
                     ++p;
 
-                    if (p >= myargc || myargv[p][0] == '-')
+                    if (p >= doom->myargc || doom->myargv[p][0] == '-')
                     {
                         break;
                     }
 
-                    M_StrToInt(myargv[p], &val);
+                    M_StrToInt(doom->myargv[p], &val);
                     mem_dump_custom[i++] = (unsigned char)val;
                 }
 

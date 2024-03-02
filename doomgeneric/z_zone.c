@@ -86,12 +86,12 @@ void Z_ClearZone(memzone_t *zone)
 //
 // Z_Init
 //
-void Z_Init(void)
+void Z_Init(struct doom_data_t_* doom)
 {
     memblock_t *block;
     int size;
 
-    mainzone = (memzone_t *)I_ZoneBase(&size);
+    mainzone = (memzone_t *)I_ZoneBase(doom, &size);
     mainzone->size = size;
 
     // set the entire zone to one free block

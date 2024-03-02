@@ -1709,7 +1709,7 @@ void M_SaveDefaultsAlternate(char *main, char *extra)
 // M_LoadDefaults
 //
 
-void M_LoadDefaults(void)
+void M_LoadDefaults(struct doom_data_t_* doom)
 {
     int i;
 
@@ -1723,11 +1723,11 @@ void M_LoadDefaults(void)
     // default.
     //
 
-    i = M_CheckParmWithArgs("-config", 1);
+    i = M_CheckParmWithArgs(doom, "-config", 1);
 
     if (i)
     {
-        doom_defaults.filename = myargv[i + 1];
+        doom_defaults.filename = doom->myargv[i + 1];
         d_printf("	default file: %s\n", doom_defaults.filename);
     }
     else
@@ -1744,11 +1744,11 @@ void M_LoadDefaults(void)
     // the default.
     //
 
-    i = M_CheckParmWithArgs("-extraconfig", 1);
+    i = M_CheckParmWithArgs(doom, "-extraconfig", 1);
 
     if (i)
     {
-        extra_defaults.filename = myargv[i + 1];
+        extra_defaults.filename = doom->myargv[i + 1];
         d_printf("        extra configuration file: %s\n",
                  extra_defaults.filename);
     }

@@ -210,7 +210,7 @@ void cmap_to_fb(uint8_t *out, uint8_t *in, int in_pixels)
     }
 }
 
-void I_InitGraphics(void)
+void I_InitGraphics(struct doom_data_t_* doom)
 {
     int i;
 
@@ -239,10 +239,10 @@ void I_InitGraphics(void)
 
     d_printf("I_InitGraphics: DOOM screen size: w x h: %d x %d\n", SCREENWIDTH, SCREENHEIGHT);
 
-    i = M_CheckParmWithArgs("-scaling", 1);
+    i = M_CheckParmWithArgs(doom, "-scaling", 1);
     if (i > 0)
     {
-        i = d_atoi(myargv[i + 1]);
+        i = d_atoi(doom->myargv[i + 1]);
         fb_scaling = i;
         d_printf("I_InitGraphics: Scaling factor: %d\n", fb_scaling);
     }

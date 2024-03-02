@@ -1861,7 +1861,7 @@ void G_WriteDemoTiccmd(doom_data_t *doom, ticcmd_t *cmd)
 //
 // G_RecordDemo
 //
-void G_RecordDemo(char *name)
+void G_RecordDemo(struct doom_data_t_* doom, char *name)
 {
     size_t demoname_size;
     int i;
@@ -1881,9 +1881,9 @@ void G_RecordDemo(char *name)
     // Specify the demo buffer size (KiB)
     //
 
-    i = M_CheckParmWithArgs("-maxdemo", 1);
+    i = M_CheckParmWithArgs(doom, "-maxdemo", 1);
     if (i)
-        maxsize = d_atoi(myargv[i + 1]) * 1024;
+        maxsize = d_atoi(doom->myargv[i + 1]) * 1024;
     demobuffer = Z_Malloc(maxsize, PU_STATIC, NULL);
     demoend = demobuffer + maxsize;
 
@@ -1919,7 +1919,7 @@ void G_BeginRecording(doom_data_t *doom)
     // Record a high resolution "Doom 1.91" demo.
     //
 
-    longtics = M_CheckParm("-longtics") != 0;
+    longtics = M_CheckParm(doom, "-longtics") != 0;
 
     // If not recording a longtics demo, record in low res
 
@@ -2050,7 +2050,7 @@ void G_DoPlayDemo(doom_data_t *doom)
     for (i = 0; i < MAXPLAYERS; i++)
         playeringame[i] = *demo_p++;
 
-    if (playeringame[1] || M_CheckParm("-solo-net") > 0 || M_CheckParm("-netdemo") > 0)
+    if (playeringame[1] || M_CheckParm(doom, "-solo-net") > 0 || M_CheckParm(doom, "-netdemo") > 0)
     {
         netgame = true;
         netdemo = true;
@@ -2076,7 +2076,7 @@ void G_TimeDemo(doom_data_t *doom, char *name)
     // Disable rendering the screen entirely.
     //
 
-    nodrawers = M_CheckParm("-nodraw");
+    nodrawers = M_CheckParm(doom, "-nodraw");
 
     timingdemo = true;
     doom->singletics = true;

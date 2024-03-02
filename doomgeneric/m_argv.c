@@ -22,9 +22,6 @@
 #include "m_misc.h"
 #include "m_argv.h" // haleyjd 20110212: warning fix
 
-int myargc;
-char **myargv;
-
 //
 // M_CheckParm
 // Checks for the given parameter
@@ -33,13 +30,13 @@ char **myargv;
 // or 0 if not present
 //
 
-int M_CheckParmWithArgs(char *check, int num_args)
+int M_CheckParmWithArgs(struct doom_data_t_* doom, char *check, int num_args)
 {
     int i;
 
-    for (i = 1; i < myargc - num_args; i++)
+    for (i = 1; i < doom->myargc - num_args; i++)
     {
-        if (!d_stricmp(check, myargv[i]))
+        if (!d_stricmp(check, doom->myargv[i]))
             return i;
     }
 
@@ -53,29 +50,29 @@ int M_CheckParmWithArgs(char *check, int num_args)
 // line arguments, false if not.
 //
 
-boolean M_ParmExists(char *check)
+boolean M_ParmExists(struct doom_data_t_* doom, char *check)
 {
-    return M_CheckParm(check) != 0;
+    return M_CheckParm(doom, check) != 0;
 }
 
-int M_CheckParm(char *check)
+int M_CheckParm(struct doom_data_t_* doom, char *check)
 {
-    return M_CheckParmWithArgs(check, 0);
+    return M_CheckParmWithArgs(doom, check, 0);
 }
 
 #define MAXARGVS 100
 
 // Return the name of the executable used to start the program:
 
-char *M_GetExecutableName(void)
+char *M_GetExecutableName(struct doom_data_t_* doom)
 {
     char *sep;
 
-    sep = d_strchr(myargv[0], DIR_SEPARATOR);
+    sep = d_strchr(doom->myargv[0], DIR_SEPARATOR);
 
     if (sep == NULL)
     {
-        return myargv[0];
+        return doom->myargv[0];
     }
     else
     {

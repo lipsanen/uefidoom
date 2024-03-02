@@ -132,7 +132,7 @@ wad_file_t *W_AddFile(doom_data_t* doom, char *filename)
 
     // open the file and add to directory
 
-    wad_file = W_OpenFile(filename);
+    wad_file = W_OpenFile(doom, filename);
 
     if (wad_file == NULL)
     {

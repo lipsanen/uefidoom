@@ -296,6 +296,9 @@ struct doom_data_t_ {
     struct lumpinfo_s **lumphash;
 
     uint32_t* DG_ScreenBuffer;
+
+    int myargc;
+    char **myargv;
 };
 
 typedef struct doom_data_t_ doom_data_t;
