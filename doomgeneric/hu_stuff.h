@@ -43,7 +43,7 @@
 // HEADS UP TEXT
 //
 
-void HU_Init(void);
+void HU_Init(struct doom_data_t_* doom);
 void HU_Start(struct doom_data_t_* doom);
 struct doom_data_t_;
 

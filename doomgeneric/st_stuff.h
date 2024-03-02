@@ -49,7 +49,7 @@ void ST_Drawer (doom_data_t* doom, boolean fullscreen, boolean refresh);
 void ST_Start (doom_data_t* doom);
 
 // Called by startup code.
-void ST_Init (void);
+void ST_Init (struct doom_data_t_* doom);
 
 
 

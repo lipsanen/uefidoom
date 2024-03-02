@@ -799,7 +799,7 @@ void R_FillBackScreen(struct doom_data_t_ *doom)
     else
         name = name1;
 
-    src = W_CacheLumpName(name, PU_CACHE);
+    src = W_CacheLumpName(doom, name, PU_CACHE);
     dest = background_buffer;
 
     for (y = 0; y < SCREENHEIGHT - SBARHEIGHT; y++)
@@ -821,19 +821,19 @@ void R_FillBackScreen(struct doom_data_t_ *doom)
 
     V_UseBuffer(background_buffer);
 
-    patch = W_CacheLumpName(DEH_String("brdr_t"), PU_CACHE);
+    patch = W_CacheLumpName(doom, DEH_String("brdr_t"), PU_CACHE);
 
     for (x = 0; x < scaledviewwidth; x += 8)
         V_DrawPatch(viewwindowx + x, viewwindowy - 8, patch);
-    patch = W_CacheLumpName(DEH_String("brdr_b"), PU_CACHE);
+    patch = W_CacheLumpName(doom, DEH_String("brdr_b"), PU_CACHE);
 
     for (x = 0; x < scaledviewwidth; x += 8)
         V_DrawPatch(viewwindowx + x, viewwindowy + viewheight, patch);
-    patch = W_CacheLumpName(DEH_String("brdr_l"), PU_CACHE);
+    patch = W_CacheLumpName(doom, DEH_String("brdr_l"), PU_CACHE);
 
     for (y = 0; y < viewheight; y += 8)
         V_DrawPatch(viewwindowx - 8, viewwindowy + y, patch);
-    patch = W_CacheLumpName(DEH_String("brdr_r"), PU_CACHE);
+    patch = W_CacheLumpName(doom, DEH_String("brdr_r"), PU_CACHE);
 
     for (y = 0; y < viewheight; y += 8)
         V_DrawPatch(viewwindowx + scaledviewwidth, viewwindowy + y, patch);
@@ -841,19 +841,19 @@ void R_FillBackScreen(struct doom_data_t_ *doom)
     // Draw beveled edge.
     V_DrawPatch(viewwindowx - 8,
                 viewwindowy - 8,
-                W_CacheLumpName(DEH_String("brdr_tl"), PU_CACHE));
+                W_CacheLumpName(doom, DEH_String("brdr_tl"), PU_CACHE));
 
     V_DrawPatch(viewwindowx + scaledviewwidth,
                 viewwindowy - 8,
-                W_CacheLumpName(DEH_String("brdr_tr"), PU_CACHE));
+                W_CacheLumpName(doom, DEH_String("brdr_tr"), PU_CACHE));
 
     V_DrawPatch(viewwindowx - 8,
                 viewwindowy + viewheight,
-                W_CacheLumpName(DEH_String("brdr_bl"), PU_CACHE));
+                W_CacheLumpName(doom, DEH_String("brdr_bl"), PU_CACHE));
 
     V_DrawPatch(viewwindowx + scaledviewwidth,
                 viewwindowy + viewheight,
-                W_CacheLumpName(DEH_String("brdr_br"), PU_CACHE));
+                W_CacheLumpName(doom, DEH_String("brdr_br"), PU_CACHE));
 
     V_RestoreBuffer();
 }

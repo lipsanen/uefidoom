@@ -401,7 +401,7 @@ cheatseq_t cheat_mypos = CHEAT("idmypos", 0);
 //
 // STATUS BAR CODE
 //
-void ST_Stop(void);
+void ST_Stop(struct doom_data_t_* doom);
 
 void ST_refreshBackground(void)
 {
@@ -518,7 +518,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
                     if (((buf[0] - '0') * 10 + buf[1] - '0') > 35)
                         plyr->message = DEH_String(STSTR_NOMUS);
                     else
-                        S_ChangeMusic(musnum, 1);
+                        S_ChangeMusic(doom, musnum, 1);
                 }
                 else
                 {
@@ -527,7 +527,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
                     if (((buf[0] - '1') * 9 + buf[1] - '1') > 31)
                         plyr->message = DEH_String(STSTR_NOMUS);
                     else
-                        S_ChangeMusic(musnum, 1);
+                        S_ChangeMusic(doom, musnum, 1);
                 }
             }
             else if ((logical_gamemission == doom1 && cht_CheckCheat(&cheat_noclip, ev->data2)) || (logical_gamemission != doom1 && cht_CheckCheat(&cheat_commercial_noclip, ev->data2)))
@@ -952,7 +952,7 @@ void ST_doPaletteStuff(doom_data_t *doom)
     if (palette != doom->st_palette)
     {
         doom->st_palette = palette;
-        pal = (byte *)W_CacheLumpNum(lu_palette, PU_CACHE) + palette * 768;
+        pal = (byte *)W_CacheLumpNum(doom, lu_palette, PU_CACHE) + palette * 768;
         I_SetPalette(pal);
     }
 }
@@ -1026,12 +1026,12 @@ void ST_Drawer(doom_data_t *doom, boolean fullscreen, boolean refresh)
         ST_diffDraw();
 }
 
-typedef void (*load_callback_t)(char *lumpname, patch_t **variable);
+typedef void (*load_callback_t)(struct doom_data_t_* doom, char *lumpname, patch_t **variable);
 
 // Iterates through all graphics to be loaded or unloaded, along with
 // the variable they use, invoking the specified callback function.
 
-static void ST_loadUnloadGraphics(load_callback_t callback)
+static void ST_loadUnloadGraphics(struct doom_data_t_* doom, load_callback_t callback)
 {
 
     int i;
@@ -1044,26 +1044,26 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
     for (i = 0; i < 10; i++)
     {
         d_snprintf(namebuf, 9, "STTNUM%d", i);
-        callback(namebuf, &tallnum[i]);
+        callback(doom, namebuf, &tallnum[i]);
 
         d_snprintf(namebuf, 9, "STYSNUM%d", i);
-        callback(namebuf, &shortnum[i]);
+        callback(doom, namebuf, &shortnum[i]);
     }
 
     // Load percent key.
     // Note: why not load STMINUS here, too?
 
-    callback(DEH_String("STTPRCNT"), &tallpercent);
+    callback(doom, DEH_String("STTPRCNT"), &tallpercent);
 
     // key cards
     for (i = 0; i < NUMCARDS; i++)
     {
         d_snprintf(namebuf, 9, "STKEYS%d", i);
-        callback(namebuf, &keys[i]);
+        callback(doom, namebuf, &keys[i]);
     }
 
     // arms background
-    callback(DEH_String("STARMS"), &armsbg);
+    callback(doom, DEH_String("STARMS"), &armsbg);
 
     // arms ownership widgets
     for (i = 0; i < 6; i++)
@@ -1071,7 +1071,7 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
         d_snprintf(namebuf, 9, "STGNUM%d", i + 2);
 
         // gray #
-        callback(namebuf, &arms[i][0]);
+        callback(doom, namebuf, &arms[i][0]);
 
         // yellow #
         arms[i][1] = shortnum[i + 2];
@@ -1079,10 +1079,10 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
 
     // face backgrounds for different color players
     d_snprintf(namebuf, 9, "STFB%d", consoleplayer);
-    callback(namebuf, &faceback);
+    callback(doom, namebuf, &faceback);
 
     // status bar background bits
-    callback(DEH_String("STBAR"), &sbar);
+    callback(doom, DEH_String("STBAR"), &sbar);
 
     // face states
     facenum = 0;
@@ -1091,62 +1091,62 @@ static void ST_loadUnloadGraphics(load_callback_t callback)
         for (j = 0; j < ST_NUMSTRAIGHTFACES; j++)
         {
             d_snprintf(namebuf, 9, "STFST%d%d", i, j);
-            callback(namebuf, &faces[facenum]);
+            callback(doom, namebuf, &faces[facenum]);
             ++facenum;
         }
         d_snprintf(namebuf, 9, "STFTR%d0", i); // turn right
-        callback(namebuf, &faces[facenum]);
+        callback(doom, namebuf, &faces[facenum]);
         ++facenum;
         d_snprintf(namebuf, 9, "STFTL%d0", i); // turn left
-        callback(namebuf, &faces[facenum]);
+        callback(doom, namebuf, &faces[facenum]);
         ++facenum;
         d_snprintf(namebuf, 9, "STFOUCH%d", i); // ouch!
-        callback(namebuf, &faces[facenum]);
+        callback(doom, namebuf, &faces[facenum]);
         ++facenum;
         d_snprintf(namebuf, 9, "STFEVL%d", i); // evil grin ;)
-        callback(namebuf, &faces[facenum]);
+        callback(doom, namebuf, &faces[facenum]);
         ++facenum;
         d_snprintf(namebuf, 9, "STFKILL%d", i); // pissed off
-        callback(namebuf, &faces[facenum]);
+        callback(doom, namebuf, &faces[facenum]);
         ++facenum;
     }
 
-    callback(DEH_String("STFGOD0"), &faces[facenum]);
+    callback(doom, DEH_String("STFGOD0"), &faces[facenum]);
     ++facenum;
-    callback(DEH_String("STFDEAD0"), &faces[facenum]);
+    callback(doom, DEH_String("STFDEAD0"), &faces[facenum]);
     ++facenum;
 }
 
-static void ST_loadCallback(char *lumpname, patch_t **variable)
+static void ST_loadCallback(struct doom_data_t_* doom, char *lumpname, patch_t **variable)
 {
-    *variable = W_CacheLumpName(lumpname, PU_STATIC);
+    *variable = W_CacheLumpName(doom, lumpname, PU_STATIC);
 }
 
-void ST_loadGraphics(void)
+void ST_loadGraphics(struct doom_data_t_* doom)
 {
-    ST_loadUnloadGraphics(ST_loadCallback);
+    ST_loadUnloadGraphics(doom, ST_loadCallback);
 }
 
-void ST_loadData(void)
+void ST_loadData(struct doom_data_t_* doom)
 {
-    lu_palette = W_GetNumForName(DEH_String("PLAYPAL"));
-    ST_loadGraphics();
+    lu_palette = W_GetNumForName(doom, DEH_String("PLAYPAL"));
+    ST_loadGraphics(doom);
 }
 
-static void ST_unloadCallback(char *lumpname, patch_t **variable)
+static void ST_unloadCallback(struct doom_data_t_* doom, char *lumpname, patch_t **variable)
 {
-    W_ReleaseLumpName(lumpname);
+    W_ReleaseLumpName(doom, lumpname);
     *variable = NULL;
 }
 
-void ST_unloadGraphics(void)
+void ST_unloadGraphics(struct doom_data_t_* doom)
 {
-    ST_loadUnloadGraphics(ST_unloadCallback);
+    ST_loadUnloadGraphics(doom, ST_unloadCallback);
 }
 
-void ST_unloadData(void)
+void ST_unloadData(struct doom_data_t_* doom)
 {
-    ST_unloadGraphics();
+    ST_unloadGraphics(doom);
 }
 
 void ST_initData(doom_data_t *doom)
@@ -1176,7 +1176,7 @@ void ST_initData(doom_data_t *doom)
     for (i = 0; i < 3; i++)
         keyboxes[i] = -1;
 
-    STlib_init();
+    STlib_init(doom);
 }
 
 void ST_createWidgets(void)
@@ -1343,25 +1343,25 @@ void ST_Start(doom_data_t *doom)
 {
 
     if (!st_stopped)
-        ST_Stop();
+        ST_Stop(doom);
 
     ST_initData(doom);
     ST_createWidgets();
     st_stopped = false;
 }
 
-void ST_Stop(void)
+void ST_Stop(struct doom_data_t_* doom)
 {
     if (st_stopped)
         return;
 
-    I_SetPalette(W_CacheLumpNum(lu_palette, PU_CACHE));
+    I_SetPalette(W_CacheLumpNum(doom, lu_palette, PU_CACHE));
 
     st_stopped = true;
 }
 
-void ST_Init(void)
+void ST_Init(struct doom_data_t_* doom)
 {
-    ST_loadData();
+    ST_loadData(doom);
     st_backing_screen = (byte *)Z_Malloc(ST_WIDTH * ST_HEIGHT, PU_STATIC, 0);
 }

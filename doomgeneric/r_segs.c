@@ -81,7 +81,8 @@ short *maskedtexturecol;
 //
 // R_RenderMaskedSegRange
 //
-void R_RenderMaskedSegRange(drawseg_t *ds,
+void R_RenderMaskedSegRange(struct doom_data_t_* doom, 
+                            drawseg_t *ds,
 							int x1,
 							int x2)
 {
@@ -160,7 +161,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds,
 			dc_iscale = 0xffffffffu / (unsigned)spryscale;
 
 			// draw the texture
-			col = (column_t *)((byte *)R_GetColumn(texnum, maskedtexturecol[dc_x]) - 3);
+			col = (column_t *)((byte *)R_GetColumn(doom, texnum, maskedtexturecol[dc_x]) - 3);
 
 			R_DrawMaskedColumn(col);
 			maskedtexturecol[dc_x] = SHRT_MAX;
@@ -180,7 +181,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds,
 #define HEIGHTBITS 12
 #define HEIGHTUNIT (1 << HEIGHTBITS)
 
-void R_RenderSegLoop(void)
+void R_RenderSegLoop(struct doom_data_t_* doom)
 {
 	angle_t angle;
 	unsigned index;
@@ -270,7 +271,7 @@ void R_RenderSegLoop(void)
 			dc_yl = yl;
 			dc_yh = yh;
 			dc_texturemid = rw_midtexturemid;
-			dc_source = R_GetColumn(midtexture, texturecolumn);
+			dc_source = R_GetColumn(doom, midtexture, texturecolumn);
 			colfunc();
 			ceilingclip[rw_x] = viewheight;
 			floorclip[rw_x] = -1;
@@ -292,7 +293,7 @@ void R_RenderSegLoop(void)
 					dc_yl = yl;
 					dc_yh = mid;
 					dc_texturemid = rw_toptexturemid;
-					dc_source = R_GetColumn(toptexture, texturecolumn);
+					dc_source = R_GetColumn(doom, toptexture, texturecolumn);
 					colfunc();
 					ceilingclip[rw_x] = mid;
 				}
@@ -321,7 +322,7 @@ void R_RenderSegLoop(void)
 					dc_yl = mid;
 					dc_yh = yh;
 					dc_texturemid = rw_bottomtexturemid;
-					dc_source = R_GetColumn(bottomtexture,
+					dc_source = R_GetColumn(doom, bottomtexture,
 											texturecolumn);
 					colfunc();
 					floorclip[rw_x] = mid;
@@ -355,7 +356,8 @@ void R_RenderSegLoop(void)
 // A wall segment will be drawn
 //  between start and stop pixels (inclusive).
 //
-void R_StoreWallRange(int start,
+void R_StoreWallRange(struct doom_data_t_* doom, 
+                      int start,
 					  int stop)
 {
 	fixed_t hyp;
@@ -679,7 +681,7 @@ void R_StoreWallRange(int start,
 	if (markfloor)
 		floorplane = R_CheckPlane(floorplane, rw_x, rw_stopx - 1);
 
-	R_RenderSegLoop();
+	R_RenderSegLoop(doom);
 
 	// save sprite clipping info
 	if (((ds_p->silhouette & SIL_TOP) || maskedtexture) && !ds_p->sprtopclip)

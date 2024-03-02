@@ -232,7 +232,7 @@ void S_Start(doom_data_t *doom)
         }
     }
 
-    S_ChangeMusic(mnum, true);
+    S_ChangeMusic(doom, mnum, true);
 }
 
 void S_StopSound(mobj_t *origin)
@@ -582,12 +582,12 @@ void S_SetSfxVolume(int volume)
 // Starts some music with the music id found in sounds.h.
 //
 
-void S_StartMusic(int m_id)
+void S_StartMusic(struct doom_data_t_* doom, int m_id)
 {
-    S_ChangeMusic(m_id, false);
+    S_ChangeMusic(doom, m_id, false);
 }
 
-void S_ChangeMusic(int musicnum, int looping)
+void S_ChangeMusic(struct doom_data_t_* doom, int musicnum, int looping)
 {
     musicinfo_t *music = NULL;
     char namebuf[9];
@@ -616,18 +616,18 @@ void S_ChangeMusic(int musicnum, int looping)
     }
 
     // shutdown old music
-    S_StopMusic();
+    S_StopMusic(doom);
 
     // get lumpnum if neccessary
     if (!music->lumpnum)
     {
         d_snprintf(namebuf, sizeof(namebuf), "d_%s", DEH_String(music->name));
-        music->lumpnum = W_GetNumForName(namebuf);
+        music->lumpnum = W_GetNumForName(doom, namebuf);
     }
 
-    music->data = W_CacheLumpNum(music->lumpnum, PU_STATIC);
+    music->data = W_CacheLumpNum(doom, music->lumpnum, PU_STATIC);
 
-    handle = I_RegisterSong(music->data, W_LumpLength(music->lumpnum));
+    handle = I_RegisterSong(music->data, W_LumpLength(doom, music->lumpnum));
     music->handle = handle;
     I_PlaySong(handle, looping);
 
@@ -639,7 +639,7 @@ boolean S_MusicPlaying(void)
     return I_MusicIsPlaying();
 }
 
-void S_StopMusic(void)
+void S_StopMusic(struct doom_data_t_* doom)
 {
     if (mus_playing)
     {
@@ -650,7 +650,7 @@ void S_StopMusic(void)
 
         I_StopSong();
         I_UnRegisterSong(mus_playing->handle);
-        W_ReleaseLumpNum(mus_playing->lumpnum);
+        W_ReleaseLumpNum(doom, mus_playing->lumpnum);
         mus_playing->data = NULL;
         mus_playing = NULL;
     }

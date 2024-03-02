@@ -157,11 +157,11 @@ void P_InitPicAnims(doom_data_t *doom)
 		}
 		else
 		{
-			if (W_CheckNumForName(startname) == -1)
+			if (W_CheckNumForName(doom, startname) == -1)
 				continue;
 
-			lastanim->picnum = R_FlatNumForName(endname);
-			lastanim->basepic = R_FlatNumForName(startname);
+			lastanim->picnum = R_FlatNumForName(doom, endname);
+			lastanim->basepic = R_FlatNumForName(doom, startname);
 		}
 
 		lastanim->istexture = animdefs[i].istexture;

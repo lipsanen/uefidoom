@@ -670,9 +670,9 @@ void R_ExecuteSetViewSize(void)
 // R_Init
 //
 
-void R_Init(void)
+void R_Init(struct doom_data_t_* doom)
 {
-    R_InitData();
+    R_InitData(doom);
     d_printf(".");
     R_InitPointToAngle();
     d_printf(".");
@@ -773,17 +773,17 @@ void R_RenderPlayerView(struct doom_data_t_ *doom, player_t *player)
     NetUpdate(doom);
 
     // The head node is the last node output.
-    R_RenderBSPNode(numnodes - 1);
+    R_RenderBSPNode(doom, numnodes - 1);
 
     // Check for new console commands.
     NetUpdate(doom);
 
-    R_DrawPlanes();
+    R_DrawPlanes(doom);
 
     // Check for new console commands.
     NetUpdate(doom);
 
-    R_DrawMasked();
+    R_DrawMasked(doom);
 
     // Check for new console commands.
     NetUpdate(doom);

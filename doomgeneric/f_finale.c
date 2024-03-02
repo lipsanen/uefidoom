@@ -98,7 +98,7 @@ char*	finaleflat;
 void	F_StartCast (doom_data_t* doom);
 void	F_CastTicker (void);
 boolean F_CastResponder (event_t *ev);
-void	F_CastDrawer (void);
+void	F_CastDrawer (struct doom_data_t_* doom);
 
 //
 // F_StartFinale
@@ -114,11 +114,11 @@ void F_StartFinale (doom_data_t* doom)
 
     if (logical_gamemission == doom1)
     {
-        S_ChangeMusic(mus_victor, true);
+        S_ChangeMusic(doom, mus_victor, true);
     }
     else
     {
-        S_ChangeMusic(mus_read_m, true);
+        S_ChangeMusic(doom, mus_read_m, true);
     }
 
     // Find the right screen and set the text and background
@@ -208,7 +208,7 @@ void F_Ticker (doom_data_t* doom)
 	finalestage = F_STAGE_ARTSCREEN;
 	doom->wipegamestate = -1;		// force a wipe
 	if (gameepisode == 3)
-	    S_StartMusic (mus_bunny);
+	    S_StartMusic (doom, mus_bunny);
     }
 }
 
@@ -222,7 +222,7 @@ void F_Ticker (doom_data_t* doom)
 extern	patch_t *hu_font[HU_FONTSIZE];
 
 
-void F_TextWrite (void)
+void F_TextWrite (struct doom_data_t_* doom)
 {
     byte*	src;
     byte*	dest;
@@ -235,7 +235,7 @@ void F_TextWrite (void)
     int		cy;
     
     // erase the entire screen to a tiled background
-    src = W_CacheLumpName ( finaleflat , PU_CACHE);
+    src = W_CacheLumpName (doom, finaleflat , PU_CACHE);
     dest = I_VideoBuffer;
 	
     for (y=0 ; y<SCREENHEIGHT ; y++)
@@ -346,7 +346,7 @@ void F_StartCast (doom_data_t* doom)
     castframes = 0;
     castonmelee = 0;
     castattacking = false;
-    S_ChangeMusic(mus_evil, true);
+    S_ChangeMusic(doom, mus_evil, true);
 }
 
 
@@ -536,7 +536,7 @@ void F_CastPrint (char* text)
 // F_CastDrawer
 //
 
-void F_CastDrawer (void)
+void F_CastDrawer (struct doom_data_t_* doom)
 {
     spritedef_t*	sprdef;
     spriteframe_t*	sprframe;
@@ -545,7 +545,7 @@ void F_CastDrawer (void)
     patch_t*		patch;
     
     // erase the entire screen to a background
-    V_DrawPatch (0, 0, W_CacheLumpName (DEH_String("BOSSBACK"), PU_CACHE));
+    V_DrawPatch (0, 0, W_CacheLumpName (doom, DEH_String("BOSSBACK"), PU_CACHE));
 
     F_CastPrint (DEH_String(castorder[castnum].name));
     
@@ -555,7 +555,7 @@ void F_CastDrawer (void)
     lump = sprframe->lump[0];
     flip = (boolean)sprframe->flip[0];
 			
-    patch = W_CacheLumpNum (lump+firstspritelump, PU_CACHE);
+    patch = W_CacheLumpNum (doom, lump+firstspritelump, PU_CACHE);
     if (flip)
 	V_DrawPatchFlipped(160, 170, patch);
     else
@@ -601,7 +601,7 @@ F_DrawPatchCol
 //
 // F_BunnyScroll
 //
-void F_BunnyScroll (void)
+void F_BunnyScroll (struct doom_data_t_* doom)
 {
     signed int  scrolled;
     int		x;
@@ -611,8 +611,8 @@ void F_BunnyScroll (void)
     int		stage;
     static int	laststage;
 		
-    p1 = W_CacheLumpName (DEH_String("PFUB2"), PU_LEVEL);
-    p2 = W_CacheLumpName (DEH_String("PFUB1"), PU_LEVEL);
+    p1 = W_CacheLumpName (doom, DEH_String("PFUB2"), PU_LEVEL);
+    p2 = W_CacheLumpName (doom, DEH_String("PFUB1"), PU_LEVEL);
 
     V_MarkRect (0, 0, SCREENWIDTH, SCREENHEIGHT);
 	
@@ -636,7 +636,7 @@ void F_BunnyScroll (void)
     {
         V_DrawPatch((SCREENWIDTH - 13 * 8) / 2,
                     (SCREENHEIGHT - 8 * 8) / 2, 
-                    W_CacheLumpName(DEH_String("END0"), PU_CACHE));
+                    W_CacheLumpName(doom, DEH_String("END0"), PU_CACHE));
 	laststage = 0;
 	return;
     }
@@ -653,7 +653,7 @@ void F_BunnyScroll (void)
     d_snprintf(name, 10, "END%i", stage);
     V_DrawPatch((SCREENWIDTH - 13 * 8) / 2, 
                 (SCREENHEIGHT - 8 * 8) / 2, 
-                W_CacheLumpName (name,PU_CACHE));
+                W_CacheLumpName (doom, name,PU_CACHE));
 }
 
 static void F_ArtScreenDrawer(struct doom_data_t_* doom)
@@ -662,7 +662,7 @@ static void F_ArtScreenDrawer(struct doom_data_t_* doom)
     
     if (gameepisode == 3)
     {
-        F_BunnyScroll();
+        F_BunnyScroll(doom);
     }
     else
     {
@@ -690,7 +690,7 @@ static void F_ArtScreenDrawer(struct doom_data_t_* doom)
 
         lumpname = DEH_String(lumpname);
 
-        V_DrawPatch (0, 0, W_CacheLumpName(lumpname, PU_CACHE));
+        V_DrawPatch (0, 0, W_CacheLumpName(doom, lumpname, PU_CACHE));
     }
 }
 
@@ -702,10 +702,10 @@ void F_Drawer (struct doom_data_t_* doom)
     switch (finalestage)
     {
         case F_STAGE_CAST:
-            F_CastDrawer();
+            F_CastDrawer(doom);
             break;
         case F_STAGE_TEXT:
-            F_TextWrite();
+            F_TextWrite(doom);
             break;
         case F_STAGE_ARTSCREEN:
             F_ArtScreenDrawer(doom);

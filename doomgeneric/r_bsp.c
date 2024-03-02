@@ -43,7 +43,7 @@ sector_t *backsector;
 drawseg_t drawsegs[MAXDRAWSEGS];
 drawseg_t *ds_p;
 
-void R_StoreWallRange(int start,
+void R_StoreWallRange(struct doom_data_t_* doom, int start,
                       int stop);
 
 //
@@ -78,7 +78,8 @@ cliprange_t solidsegs[MAXSEGS];
 //  e.g. single sided LineDefs (middle texture)
 //  that entirely block the view.
 //
-void R_ClipSolidWallSegment(int first,
+void R_ClipSolidWallSegment(struct doom_data_t_* doom, 
+                            int first,
                             int last)
 {
     cliprange_t *next;
@@ -96,7 +97,7 @@ void R_ClipSolidWallSegment(int first,
         {
             // Post is entirely visible (above start),
             //  so insert a new clippost.
-            R_StoreWallRange(first, last);
+            R_StoreWallRange(doom, first, last);
             next = newend;
             newend++;
 
@@ -111,7 +112,7 @@ void R_ClipSolidWallSegment(int first,
         }
 
         // There is a fragment above *start.
-        R_StoreWallRange(first, start->first - 1);
+        R_StoreWallRange(doom, first, start->first - 1);
         // Now adjust the clip size.
         start->first = first;
     }
@@ -124,7 +125,7 @@ void R_ClipSolidWallSegment(int first,
     while (last >= (next + 1)->first - 1)
     {
         // There is a fragment between two posts.
-        R_StoreWallRange(next->last + 1, (next + 1)->first - 1);
+        R_StoreWallRange(doom, next->last + 1, (next + 1)->first - 1);
         next++;
 
         if (last <= next->last)
@@ -137,7 +138,7 @@ void R_ClipSolidWallSegment(int first,
     }
 
     // There is a fragment after *next.
-    R_StoreWallRange(next->last + 1, last);
+    R_StoreWallRange(doom, next->last + 1, last);
     // Adjust the clip size.
     start->last = last;
 
@@ -166,7 +167,7 @@ crunch:
 // Does handle windows,
 //  e.g. LineDefs with upper and lower texture.
 //
-void R_ClipPassWallSegment(int first,
+void R_ClipPassWallSegment(struct doom_data_t_* doom, int first,
                            int last)
 {
     cliprange_t *start;
@@ -182,12 +183,12 @@ void R_ClipPassWallSegment(int first,
         if (last < start->first - 1)
         {
             // Post is entirely visible (above start).
-            R_StoreWallRange(first, last);
+            R_StoreWallRange(doom, first, last);
             return;
         }
 
         // There is a fragment above *start.
-        R_StoreWallRange(first, start->first - 1);
+        R_StoreWallRange(doom, first, start->first - 1);
     }
 
     // Bottom contained in start?
@@ -197,7 +198,7 @@ void R_ClipPassWallSegment(int first,
     while (last >= (start + 1)->first - 1)
     {
         // There is a fragment between two posts.
-        R_StoreWallRange(start->last + 1, (start + 1)->first - 1);
+        R_StoreWallRange(doom, start->last + 1, (start + 1)->first - 1);
         start++;
 
         if (last <= start->last)
@@ -205,7 +206,7 @@ void R_ClipPassWallSegment(int first,
     }
 
     // There is a fragment after *next.
-    R_StoreWallRange(start->last + 1, last);
+    R_StoreWallRange(doom, start->last + 1, last);
 }
 
 //
@@ -225,7 +226,7 @@ void R_ClearClipSegs(void)
 // Clips the given segment
 // and adds any visible pieces to the line list.
 //
-void R_AddLine(seg_t *line)
+void R_AddLine(struct doom_data_t_* doom, seg_t *line)
 {
     int x1;
     int x2;
@@ -311,11 +312,11 @@ void R_AddLine(seg_t *line)
     }
 
 clippass:
-    R_ClipPassWallSegment(x1, x2 - 1);
+    R_ClipPassWallSegment(doom, x1, x2 - 1);
     return;
 
 clipsolid:
-    R_ClipSolidWallSegment(x1, x2 - 1);
+    R_ClipSolidWallSegment(doom, x1, x2 - 1);
 }
 
 //
@@ -450,7 +451,7 @@ boolean R_CheckBBox(fixed_t *bspcoord)
 // Add sprites of things in sector.
 // Draw one or more line segments.
 //
-void R_Subsector(int num)
+void R_Subsector(struct doom_data_t_* doom, int num)
 {
     int count;
     seg_t *line;
@@ -491,7 +492,7 @@ void R_Subsector(int num)
 
     while (count--)
     {
-        R_AddLine(line);
+        R_AddLine(doom, line);
         line++;
     }
 }
@@ -501,7 +502,7 @@ void R_Subsector(int num)
 // Renders all subsectors below a given node,
 //  traversing subtree recursively.
 // Just call with BSP root.
-void R_RenderBSPNode(int bspnum)
+void R_RenderBSPNode(struct doom_data_t_* doom, int bspnum)
 {
     node_t *bsp;
     int side;
@@ -510,9 +511,9 @@ void R_RenderBSPNode(int bspnum)
     if (bspnum & NF_SUBSECTOR)
     {
         if (bspnum == -1)
-            R_Subsector(0);
+            R_Subsector(doom, 0);
         else
-            R_Subsector(bspnum & (~NF_SUBSECTOR));
+            R_Subsector(doom, bspnum & (~NF_SUBSECTOR));
         return;
     }
 
@@ -522,9 +523,9 @@ void R_RenderBSPNode(int bspnum)
     side = R_PointOnSide(viewx, viewy, bsp);
 
     // Recursively divide front space.
-    R_RenderBSPNode(bsp->children[side]);
+    R_RenderBSPNode(doom, bsp->children[side]);
 
     // Possibly divide back space.
     if (R_CheckBBox(bsp->bbox[side ^ 1]))
-        R_RenderBSPNode(bsp->children[side ^ 1]);
+        R_RenderBSPNode(doom, bsp->children[side ^ 1]);
 }

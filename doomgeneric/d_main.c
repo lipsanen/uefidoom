@@ -116,7 +116,7 @@ static void Do_Wipe(doom_data_t *doom)
     tics = 1;
     done = wipe_ScreenWipe(wipe_Melt, 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
     I_UpdateNoBlit();
-    M_Drawer();       // menu is drawn even on top of wipes
+    M_Drawer(doom);       // menu is drawn even on top of wipes
     I_FinishUpdate(); // page flip or blit buffer
 
     if (done)
@@ -202,7 +202,7 @@ void D_Display(struct doom_data_t_ *doom)
 
     // clean up border stuff
     if (gamestate != doom->oldgamestate && gamestate != GS_LEVEL)
-        I_SetPalette(W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE));
+        I_SetPalette(W_CacheLumpName(doom, DEH_String("PLAYPAL"), PU_CACHE));
 
     // see if the border needs to be initially drawn
     if (gamestate == GS_LEVEL && doom->oldgamestate != GS_LEVEL)
@@ -243,11 +243,11 @@ void D_Display(struct doom_data_t_ *doom)
         else
             y = viewwindowy + 4;
         V_DrawPatchDirect(viewwindowx + (scaledviewwidth - 68) / 2, y,
-                          W_CacheLumpName(DEH_String("M_PAUSE"), PU_CACHE));
+                          W_CacheLumpName(doom, DEH_String("M_PAUSE"), PU_CACHE));
     }
 
     // menus go directly to the screen
-    M_Drawer();      // menu is drawn even on top of everything
+    M_Drawer(doom);      // menu is drawn even on top of everything
     NetUpdate(doom); // send out any new accumulation
 
     // normal update
@@ -403,7 +403,7 @@ void D_PageTicker(doom_data_t *doom)
 //
 void D_PageDrawer(doom_data_t *doom)
 {
-    V_DrawPatch(0, 0, W_CacheLumpName(doom->pagename, PU_CACHE));
+    V_DrawPatch(0, 0, W_CacheLumpName(doom, doom->pagename, PU_CACHE));
 }
 
 //
@@ -451,9 +451,9 @@ void D_DoAdvanceDemo(doom_data_t *doom)
         gamestate = GS_DEMOSCREEN;
         doom->pagename = DEH_String("TITLEPIC");
         if (doom->gamemode == commercial)
-            S_StartMusic(mus_dm2ttl);
+            S_StartMusic(doom, mus_dm2ttl);
         else
-            S_StartMusic(mus_intro);
+            S_StartMusic(doom, mus_intro);
         break;
     case 1:
         G_DeferedPlayDemo(DEH_String("demo1"));
@@ -472,7 +472,7 @@ void D_DoAdvanceDemo(doom_data_t *doom)
         {
             doom->pagetic = TICRATE * 11;
             doom->pagename = DEH_String("TITLEPIC");
-            S_StartMusic(mus_dm2ttl);
+            S_StartMusic(doom, mus_dm2ttl);
         }
         else
         {
@@ -495,7 +495,7 @@ void D_DoAdvanceDemo(doom_data_t *doom)
 
     // The Doom 3: BFG Edition version of doom2.wad does not have a
     // TITLETPIC lump. Use INTERPIC instead as a workaround.
-    if (doom->bfgedition && !d_stricmp(doom->pagename, "TITLEPIC") && W_CheckNumForName("titlepic") < 0)
+    if (doom->bfgedition && !d_stricmp(doom->pagename, "TITLEPIC") && W_CheckNumForName(doom, "titlepic") < 0)
     {
         doom->pagename = DEH_String("INTERPIC");
     }
@@ -644,14 +644,14 @@ void D_IdentifyVersion(doom_data_t *doom)
     {
         unsigned int i;
 
-        for (i = 0; i < numlumps; ++i)
+        for (i = 0; i < doom->numlumps; ++i)
         {
-            if (!d_strnicmp(lumpinfo[i].name, "MAP01", 8))
+            if (!d_strnicmp(doom->lumpinfo[i].name, "MAP01", 8))
             {
                 doom->gamemission = doom2;
                 break;
             }
-            else if (!d_strnicmp(lumpinfo[i].name, "E1M1", 8))
+            else if (!d_strnicmp(doom->lumpinfo[i].name, "E1M1", 8))
             {
                 doom->gamemission = doom1;
                 break;
@@ -672,13 +672,13 @@ void D_IdentifyVersion(doom_data_t *doom)
     {
         // Doom 1.  But which version?
 
-        if (W_CheckNumForName("E4M1") > 0)
+        if (W_CheckNumForName(doom, "E4M1") > 0)
         {
             // Ultimate Doom
 
             doom->gamemode = retail;
         }
-        else if (W_CheckNumForName("E3M1") > 0)
+        else if (W_CheckNumForName(doom, "E3M1") > 0)
         {
             doom->gamemode = registered;
         }
@@ -717,8 +717,8 @@ void D_IdentifyVersion(doom_data_t *doom)
 
 void D_SetGameDescription(doom_data_t *doom)
 {
-    boolean is_freedoom = W_CheckNumForName("FREEDOOM") >= 0,
-            is_freedm = W_CheckNumForName("FREEDM") >= 0;
+    boolean is_freedoom = W_CheckNumForName(doom, "FREEDOOM") >= 0,
+            is_freedm = W_CheckNumForName(doom, "FREEDM") >= 0;
 
     doom->gamedescription = "Unknown";
 
@@ -778,12 +778,12 @@ void D_SetGameDescription(doom_data_t *doom)
 //      print title for every printed line
 char title[128];
 
-static boolean D_AddFile(char *filename)
+static boolean D_AddFile(struct doom_data_t_* doom, char *filename)
 {
     wad_file_t *handle;
 
     d_printf(" adding %s\n", filename);
-    handle = W_AddFile(filename);
+    handle = W_AddFile(doom, filename);
 
     return handle != NULL;
 }
@@ -989,7 +989,7 @@ static void D_Endoom(doom_data_t *doom)
         return;
     }
 
-    endoom = W_CacheLumpName(DEH_String("ENDOOM"), PU_STATIC);
+    endoom = W_CacheLumpName(doom, DEH_String("ENDOOM"), PU_STATIC);
 
     // exit(0);
 }
@@ -1215,9 +1215,9 @@ void D_DoomMain(struct doom_data_t_ *doom)
     doom->modifiedgame = false;
 
     d_printf("W_Init: Init WADfiles.\n");
-    D_AddFile((char *)doom->iwadfile);
+    D_AddFile(doom, (char *)doom->iwadfile);
 
-    W_CheckCorrectIWAD(doom1);
+    W_CheckCorrectIWAD(doom, doom1);
 
     // Now that we've loaded the IWAD, we can figure out what gamemission
     // we're playing and which version of Vanilla Doom we need to emulate.
@@ -1232,7 +1232,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // We specifically check for DMENUPIC here, before PWADs have been
     // loaded which could probably include a lump of that name.
 
-    if (W_CheckNumForName("dmenupic") >= 0)
+    if (W_CheckNumForName(doom, "dmenupic") >= 0)
     {
         d_printf("BFG Edition: Using workarounds as needed.\n");
         doom->bfgedition = true;
@@ -1313,9 +1313,9 @@ void D_DoomMain(struct doom_data_t_ *doom)
             d_snprintf(file, sizeof(file), "%s.lmp", myargv[p + 1]);
         }
 
-        if (D_AddFile(file))
+        if (D_AddFile(doom, file))
         {
-            M_StringCopy(demolumpname, lumpinfo[numlumps - 1].name,
+            M_StringCopy(demolumpname, doom->lumpinfo[doom->numlumps - 1].name,
                          sizeof(demolumpname));
         }
         else
@@ -1333,7 +1333,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     I_AtExit((atexit_func_t)G_CheckDemoStatus, true);
 
     // Generate the WAD hash table.  Speed things up a bit.
-    W_GenerateHashTable();
+    W_GenerateHashTable(doom);
 
     // Set the gamedescription string. This is only possible now that
     // we've finished loading Dehacked patches.
@@ -1361,11 +1361,11 @@ void D_DoomMain(struct doom_data_t_ *doom)
         // but w/o all the lumps of the registered version.
         if (doom->gamemode == registered)
             for (i = 0; i < 23; i++)
-                if (W_CheckNumForName(name[i]) < 0)
+                if (W_CheckNumForName(doom, name[i]) < 0)
                     I_Error(DEH_String("\nThis is not the registered version."));
     }
 
-    if (W_CheckNumForName("SS_START") >= 0 || W_CheckNumForName("FF_END") >= 0)
+    if (W_CheckNumForName(doom, "SS_START") >= 0 || W_CheckNumForName(doom, "FF_END") >= 0)
     {
         I_PrintDivider();
         d_printf(" WARNING: The loaded WAD file contains modified sprites or\n"
@@ -1379,7 +1379,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     // Freedoom's IWADs are Boom-compatible, which means they usually
     // don't work in Vanilla (though FreeDM is okay). Show a warning
     // message and give a link to the website.
-    if (W_CheckNumForName("FREEDOOM") >= 0 && W_CheckNumForName("FREEDM") < 0)
+    if (W_CheckNumForName(doom, "FREEDOOM") >= 0 && W_CheckNumForName(doom, "FREEDM") < 0)
     {
         d_printf(" WARNING: You are playing using one of the Freedoom IWAD\n"
                  " files, which might not work in this port. See this page\n"
@@ -1534,10 +1534,10 @@ void D_DoomMain(struct doom_data_t_ *doom)
     M_Init(doom);
 
     d_printf("R_Init: Init DOOM refresh daemon - ");
-    R_Init();
+    R_Init(doom);
 
     d_printf("\nP_Init: Init Playloop state.\n");
-    P_Init();
+    P_Init(doom);
 
     d_printf("S_Init: Setting up sound.\n");
     S_Init(sfxVolume * 8, musicVolume * 8);
@@ -1548,16 +1548,16 @@ void D_DoomMain(struct doom_data_t_ *doom)
     PrintGameVersion(doom);
 
     d_printf("HU_Init: Setting up heads up display.\n");
-    HU_Init();
+    HU_Init(doom);
 
     d_printf("ST_Init: Init status bar.\n");
-    ST_Init();
+    ST_Init(doom);
 
     // If Doom II without a MAP01 lump, this is a store demo.
     // Moved this here so that MAP01 isn't constantly looked up
     // in the main loop.
 
-    if (doom->gamemode == commercial && W_CheckNumForName("map01") < 0)
+    if (doom->gamemode == commercial && W_CheckNumForName(doom, "map01") < 0)
         doom->storedemo = true;
 
     //!

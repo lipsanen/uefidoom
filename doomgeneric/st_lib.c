@@ -37,9 +37,9 @@
 //
 patch_t *sttminus;
 
-void STlib_init(void)
+void STlib_init(struct doom_data_t_* doom)
 {
-    sttminus = (patch_t *)W_CacheLumpName(DEH_String("STTMINUS"), PU_STATIC);
+    sttminus = (patch_t *)W_CacheLumpName(doom, DEH_String("STTMINUS"), PU_STATIC);
 }
 
 // ?

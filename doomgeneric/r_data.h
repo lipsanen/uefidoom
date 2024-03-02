@@ -28,19 +28,22 @@
 // Retrieve column data for span blitting.
 byte*
 R_GetColumn
-( int		tex,
+( struct doom_data_t_* doom, 
+  int		tex,
   int		col );
+
+struct doom_data_t_;
 
 
 // I/O, setting up the stuff.
-void R_InitData (void);
-void R_PrecacheLevel (void);
+void R_InitData (struct doom_data_t_* doom);
+void R_PrecacheLevel (struct doom_data_t_* doom);
 
 
 // Retrieval.
 // Floor/ceiling opaque texture tiles,
 // lookup by name. For animation?
-int R_FlatNumForName (char* name);
+int R_FlatNumForName (struct doom_data_t_* doom, char* name);
 
 
 // Called by P_Ticker for switches and animations,

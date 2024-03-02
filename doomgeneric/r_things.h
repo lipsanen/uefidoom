@@ -54,7 +54,7 @@ void R_AddPSprites (void);
 void R_DrawSprites (void);
 void R_InitSprites (struct doom_data_t_* doom, char** namelist);
 void R_ClearSprites (void);
-void R_DrawMasked (void);
+void R_DrawMasked (struct doom_data_t_* doom);
 
 void
 R_ClipVisSprite

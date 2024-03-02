@@ -49,28 +49,28 @@ struct lumpinfo_s
     lumpinfo_t *next;
 };
 
+struct doom_data_t_;
 
-extern lumpinfo_t *lumpinfo;
-extern unsigned int numlumps;
+wad_file_t *W_AddFile (struct doom_data_t_* doom, char *filename);
 
-wad_file_t *W_AddFile (char *filename);
+int	W_CheckNumForName (struct doom_data_t_* doom, char* name);
+int	W_GetNumForName (struct doom_data_t_* doom, char* name);
 
-int	W_CheckNumForName (char* name);
-int	W_GetNumForName (char* name);
+int	W_LumpLength (struct doom_data_t_* doom, unsigned int lump);
+void    W_ReadLump (struct doom_data_t_* doom, unsigned int lump, void *dest);
 
-int	W_LumpLength (unsigned int lump);
-void    W_ReadLump (unsigned int lump, void *dest);
+void*	W_CacheLumpNum (struct doom_data_t_* doom, int lump, int tag);
+void*	W_CacheLumpName (struct doom_data_t_* doom, char* name, int tag);
 
-void*	W_CacheLumpNum (int lump, int tag);
-void*	W_CacheLumpName (char* name, int tag);
-
-void    W_GenerateHashTable(void);
+void    W_GenerateHashTable(struct doom_data_t_* doom);
 
 extern unsigned int W_LumpNameHash(const char *s);
 
-void    W_ReleaseLumpNum(int lump);
-void    W_ReleaseLumpName(char *name);
+void    W_ReleaseLumpNum(struct doom_data_t_* doom, int lump);
+void    W_ReleaseLumpName(struct doom_data_t_* doom, char *name);
 
-void W_CheckCorrectIWAD(GameMission_t mission);
+struct doom_data_t_;
+
+void W_CheckCorrectIWAD(struct doom_data_t_* doom, GameMission_t mission);
 
 #endif

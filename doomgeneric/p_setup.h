@@ -32,7 +32,9 @@ P_SetupLevel
   int		playermask,
   skill_t	skill);
 
+struct doom_data_t_;
+
 // Called by startup code.
-void P_Init (void);
+void P_Init (struct doom_data_t_* doom);
 
 #endif

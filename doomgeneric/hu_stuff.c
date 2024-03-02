@@ -276,7 +276,7 @@ char *mapnames_commercial[] =
         THUSTR_31,
         THUSTR_32};
 
-void HU_Init(void)
+void HU_Init(struct doom_data_t_* doom)
 {
 
     int i;
@@ -288,7 +288,7 @@ void HU_Init(void)
     for (i = 0; i < HU_FONTSIZE; i++)
     {
         d_snprintf(buffer, 9, "STCFN%.3d", j++);
-        hu_font[i] = (patch_t *)W_CacheLumpName(buffer, PU_STATIC);
+        hu_font[i] = (patch_t *)W_CacheLumpName(doom, buffer, PU_STATIC);
     }
 }
 

@@ -44,19 +44,6 @@ typedef struct
     char name[8];
 } PACKEDATTR filelump_t;
 
-//
-// GLOBALS
-//
-
-// Location of each lump on disk.
-
-lumpinfo_t *lumpinfo;
-unsigned int numlumps = 0;
-
-// Hash table for fast lookups
-
-static lumpinfo_t **lumphash;
-
 // Hash function used for lump names.
 
 unsigned int W_LumpNameHash(const char *s)
@@ -76,7 +63,7 @@ unsigned int W_LumpNameHash(const char *s)
 }
 
 // Increase the size of the lumpinfo[] array to the specified size.
-static void ExtendLumpInfo(int newnumlumps)
+static void ExtendLumpInfo(doom_data_t* doom, int newnumlumps)
 {
     lumpinfo_t *newlumpinfo;
     unsigned int i;
@@ -93,9 +80,9 @@ static void ExtendLumpInfo(int newnumlumps)
     // Copy over lumpinfo_t structures from the old array. If any of
     // these lumps have been cached, we need to update the user
     // pointers to the new location.
-    for (i = 0; i < numlumps && i < newnumlumps; ++i)
+    for (i = 0; i < doom->numlumps && i < newnumlumps; ++i)
     {
-        d_memcpy(&newlumpinfo[i], &lumpinfo[i], sizeof(lumpinfo_t));
+        d_memcpy(&newlumpinfo[i], &doom->lumpinfo[i], sizeof(lumpinfo_t));
 
         if (newlumpinfo[i].cache != NULL)
         {
@@ -104,18 +91,18 @@ static void ExtendLumpInfo(int newnumlumps)
 
         // We shouldn't be generating a hash table until after all WADs have
         // been loaded, but just in case...
-        if (lumpinfo[i].next != NULL)
+        if (doom->lumpinfo[i].next != NULL)
         {
-            int nextlumpnum = lumpinfo[i].next - lumpinfo;
+            int nextlumpnum = doom->lumpinfo[i].next - doom->lumpinfo;
             newlumpinfo[i].next = &newlumpinfo[nextlumpnum];
         }
     }
 
     // All done.
-    if (lumpinfo != NULL)
-        Z_Free(lumpinfo);
-    lumpinfo = newlumpinfo;
-    numlumps = newnumlumps;
+    if (doom->lumpinfo != NULL)
+        Z_Free(doom->lumpinfo);
+    doom->lumpinfo = newlumpinfo;
+    doom->numlumps = newnumlumps;
 }
 
 //
@@ -131,7 +118,7 @@ static void ExtendLumpInfo(int newnumlumps)
 // Other files are single lumps with the base filename
 //  for the lump name.
 
-wad_file_t *W_AddFile(char *filename)
+wad_file_t *W_AddFile(doom_data_t* doom, char *filename)
 {
     wadinfo_t header;
     lumpinfo_t *lump_p;
@@ -153,7 +140,7 @@ wad_file_t *W_AddFile(char *filename)
         return NULL;
     }
 
-    newnumlumps = numlumps;
+    newnumlumps = doom->numlumps;
 
     if (d_stricmp(filename + d_strlen(filename) - 3, "wad"))
     {
@@ -202,14 +189,14 @@ wad_file_t *W_AddFile(char *filename)
     }
 
     // Increase size of numlumps array to accomodate the new file.
-    startlump = numlumps;
-    ExtendLumpInfo(newnumlumps);
+    startlump = doom->numlumps;
+    ExtendLumpInfo(doom, newnumlumps);
 
-    lump_p = &lumpinfo[startlump];
+    lump_p = &doom->lumpinfo[startlump];
 
     filerover = fileinfo;
 
-    for (i = startlump; i < numlumps; ++i)
+    for (i = startlump; i < doom->numlumps; ++i)
     {
         lump_p->wad_file = wad_file;
         lump_p->position = LONG(filerover->filepos);
@@ -223,10 +210,10 @@ wad_file_t *W_AddFile(char *filename)
 
     Z_Free(fileinfo);
 
-    if (lumphash != NULL)
+    if (doom->lumphash != NULL)
     {
-        Z_Free(lumphash);
-        lumphash = NULL;
+        Z_Free(doom->lumphash);
+        doom->lumphash = NULL;
     }
 
     return wad_file;
@@ -235,9 +222,9 @@ wad_file_t *W_AddFile(char *filename)
 //
 // W_NumLumps
 //
-int W_NumLumps(void)
+int W_NumLumps(doom_data_t* doom)
 {
-    return numlumps;
+    return doom->numlumps;
 }
 
 //
@@ -245,26 +232,26 @@ int W_NumLumps(void)
 // Returns -1 if name not found.
 //
 
-int W_CheckNumForName(char *name)
+int W_CheckNumForName(doom_data_t* doom, char *name)
 {
     lumpinfo_t *lump_p;
     int i;
 
     // Do we have a hash table yet?
 
-    if (lumphash != NULL)
+    if (doom->lumphash != NULL)
     {
         int hash;
 
         // We do! Excellent.
 
-        hash = W_LumpNameHash(name) % numlumps;
+        hash = W_LumpNameHash(name) % doom->numlumps;
 
-        for (lump_p = lumphash[hash]; lump_p != NULL; lump_p = lump_p->next)
+        for (lump_p = doom->lumphash[hash]; lump_p != NULL; lump_p = lump_p->next)
         {
             if (!d_strnicmp(lump_p->name, name, 8))
             {
-                return lump_p - lumpinfo;
+                return lump_p - doom->lumpinfo;
             }
         }
     }
@@ -274,9 +261,9 @@ int W_CheckNumForName(char *name)
         //
         // scan backwards so patch lump files take precedence
 
-        for (i = numlumps - 1; i >= 0; --i)
+        for (i = doom->numlumps - 1; i >= 0; --i)
         {
-            if (!d_strnicmp(lumpinfo[i].name, name, 8))
+            if (!d_strnicmp(doom->lumpinfo[i].name, name, 8))
             {
                 return i;
             }
@@ -292,11 +279,11 @@ int W_CheckNumForName(char *name)
 // W_GetNumForName
 // Calls W_CheckNumForName, but bombs out if not found.
 //
-int W_GetNumForName(char *name)
+int W_GetNumForName(doom_data_t* doom, char *name)
 {
     int i;
 
-    i = W_CheckNumForName(name);
+    i = W_CheckNumForName(doom, name);
 
     if (i < 0)
     {
@@ -310,14 +297,14 @@ int W_GetNumForName(char *name)
 // W_LumpLength
 // Returns the buffer size needed to load the given lump.
 //
-int W_LumpLength(unsigned int lump)
+int W_LumpLength(doom_data_t* doom, unsigned int lump)
 {
-    if (lump >= numlumps)
+    if (lump >= doom->numlumps)
     {
         I_Error("W_LumpLength: %i >= numlumps", lump);
     }
 
-    return lumpinfo[lump].size;
+    return doom->lumpinfo[lump].size;
 }
 
 //
@@ -325,17 +312,17 @@ int W_LumpLength(unsigned int lump)
 // Loads the lump into the given buffer,
 //  which must be >= W_LumpLength().
 //
-void W_ReadLump(unsigned int lump, void *dest)
+void W_ReadLump(doom_data_t* doom, unsigned int lump, void *dest)
 {
     int c;
     lumpinfo_t *l;
 
-    if (lump >= numlumps)
+    if (lump >= doom->numlumps)
     {
         I_Error("W_ReadLump: %i >= numlumps", lump);
     }
 
-    l = lumpinfo + lump;
+    l = doom->lumpinfo + lump;
 
     I_BeginRead();
 
@@ -362,17 +349,17 @@ void W_ReadLump(unsigned int lump, void *dest)
 // when no longer needed (do not use Z_ChangeTag).
 //
 
-void *W_CacheLumpNum(int lumpnum, int tag)
+void *W_CacheLumpNum(doom_data_t* doom, int lumpnum, int tag)
 {
     byte *result;
     lumpinfo_t *lump;
 
-    if ((unsigned)lumpnum >= numlumps)
+    if ((unsigned)lumpnum >= doom->numlumps)
     {
         I_Error("W_CacheLumpNum: %i >= numlumps", lumpnum);
     }
 
-    lump = &lumpinfo[lumpnum];
+    lump = &doom->lumpinfo[lumpnum];
 
     // Get the pointer to return.  If the lump is in a memory-mapped
     // file, we can just return a pointer to within the memory-mapped
@@ -396,8 +383,8 @@ void *W_CacheLumpNum(int lumpnum, int tag)
     {
         // Not yet loaded, so load it now
 
-        lump->cache = Z_Malloc(W_LumpLength(lumpnum), tag, &lump->cache);
-        W_ReadLump(lumpnum, lump->cache);
+        lump->cache = Z_Malloc(W_LumpLength(doom, lumpnum), tag, &lump->cache);
+        W_ReadLump(doom, lumpnum, lump->cache);
         result = lump->cache;
     }
 
@@ -407,9 +394,9 @@ void *W_CacheLumpNum(int lumpnum, int tag)
 //
 // W_CacheLumpName
 //
-void *W_CacheLumpName(char *name, int tag)
+void *W_CacheLumpName(doom_data_t* doom, char *name, int tag)
 {
-    return W_CacheLumpNum(W_GetNumForName(name), tag);
+    return W_CacheLumpNum(doom, W_GetNumForName(doom, name), tag);
 }
 
 //
@@ -422,16 +409,16 @@ void *W_CacheLumpName(char *name, int tag)
 // complicated ...
 //
 
-void W_ReleaseLumpNum(int lumpnum)
+void W_ReleaseLumpNum(doom_data_t* doom, int lumpnum)
 {
     lumpinfo_t *lump;
 
-    if ((unsigned)lumpnum >= numlumps)
+    if ((unsigned)lumpnum >= doom->numlumps)
     {
         I_Error("W_ReleaseLumpNum: %i >= numlumps", lumpnum);
     }
 
-    lump = &lumpinfo[lumpnum];
+    lump = &doom->lumpinfo[lumpnum];
 
     if (lump->wad_file->mapped != NULL)
     {
@@ -443,40 +430,40 @@ void W_ReleaseLumpNum(int lumpnum)
     }
 }
 
-void W_ReleaseLumpName(char *name)
+void W_ReleaseLumpName(doom_data_t* doom, char *name)
 {
-    W_ReleaseLumpNum(W_GetNumForName(name));
+    W_ReleaseLumpNum(doom, W_GetNumForName(doom, name));
 }
 
 // Generate a hash table for fast lookups
 
-void W_GenerateHashTable(void)
+void W_GenerateHashTable(doom_data_t* doom)
 {
     unsigned int i;
 
     // Free the old hash table, if there is one
 
-    if (lumphash != NULL)
+    if (doom->lumphash != NULL)
     {
-        Z_Free(lumphash);
+        Z_Free(doom->lumphash);
     }
 
     // Generate hash table
-    if (numlumps > 0)
+    if (doom->numlumps > 0)
     {
-        lumphash = Z_Malloc(sizeof(lumpinfo_t *) * numlumps, PU_STATIC, NULL);
-        d_memset(lumphash, 0, sizeof(lumpinfo_t *) * numlumps);
+        doom->lumphash = Z_Malloc(sizeof(lumpinfo_t *) * doom->numlumps, PU_STATIC, NULL);
+        d_memset(doom->lumphash, 0, sizeof(lumpinfo_t *) * doom->numlumps);
 
-        for (i = 0; i < numlumps; ++i)
+        for (i = 0; i < doom->numlumps; ++i)
         {
             unsigned int hash;
 
-            hash = W_LumpNameHash(lumpinfo[i].name) % numlumps;
+            hash = W_LumpNameHash(doom->lumpinfo[i].name) % doom->numlumps;
 
             // Hook into the hash table
 
-            lumpinfo[i].next = lumphash[hash];
-            lumphash[hash] = &lumpinfo[i];
+            doom->lumpinfo[i].next = doom->lumphash[hash];
+            doom->lumphash[hash] = &doom->lumpinfo[i];
         }
     }
 
@@ -497,7 +484,7 @@ static const struct
     {strife, "AGRDA1"},
 };
 
-void W_CheckCorrectIWAD(GameMission_t mission)
+void W_CheckCorrectIWAD(doom_data_t* doom, GameMission_t mission)
 {
     int i;
     int lumpnum;
@@ -506,7 +493,7 @@ void W_CheckCorrectIWAD(GameMission_t mission)
     {
         if (mission != unique_lumps[i].mission)
         {
-            lumpnum = W_CheckNumForName(unique_lumps[i].lumpname);
+            lumpnum = W_CheckNumForName(doom, unique_lumps[i].lumpname);
 
             if (lumpnum >= 0)
             {

@@ -197,11 +197,11 @@ static void InitConnectData(doom_data_t* doom, net_connect_data_t *connect_data)
 
     // Read checksums of our WAD directory and dehacked information
 
-    W_Checksum(connect_data->wad_sha1sum);
+    W_Checksum(doom, connect_data->wad_sha1sum);
 
     // Are we playing with the Freedoom IWAD?
 
-    connect_data->is_freedoom = W_CheckNumForName("FREEDOOM") >= 0;
+    connect_data->is_freedoom = W_CheckNumForName(doom, "FREEDOOM") >= 0;
 }
 
 void D_ConnectNetGame(struct doom_data_t_* doom)

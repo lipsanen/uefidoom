@@ -82,6 +82,7 @@ typedef enum
 
 
 struct loop_interface_t_;
+struct lumpinfo_s;
 
 struct doom_data_t_ {
     int leveljuststarted; 	// kluge until AM_LevelInit() is called
@@ -281,6 +282,18 @@ struct doom_data_t_ {
     boolean	modifiedgame;
 
     int st_palette;
+
+    //
+    // GLOBALS
+    //
+
+    // Location of each lump on disk.
+    struct lumpinfo_s *lumpinfo;
+    unsigned int numlumps;
+
+    // Hash table for fast lookups
+
+    struct lumpinfo_s **lumphash;
 };
 
 typedef struct doom_data_t_ doom_data_t;

@@ -152,7 +152,7 @@ R_AddPointToBox
 void R_RenderPlayerView (struct doom_data_t_* doom, player_t *player);
 
 // Called by startup code.
-void R_Init (void);
+void R_Init (struct doom_data_t_* doom);
 
 // Called by M_Responder.
 void R_SetViewSize (int blocks, int detail);

@@ -449,9 +449,9 @@ void V_DrawShadowedPatch(int x, int y, patch_t *patch)
 // Load tint table from TINTTAB lump.
 //
 
-void V_LoadTintTable(void)
+void V_LoadTintTable(struct doom_data_t_* doom)
 {
-    tinttable = W_CacheLumpName("TINTTAB", PU_STATIC);
+    tinttable = W_CacheLumpName(doom, "TINTTAB", PU_STATIC);
 }
 
 //
@@ -460,9 +460,9 @@ void V_LoadTintTable(void)
 // villsa [STRIFE] Load xla table from XLATAB lump.
 //
 
-void V_LoadXlaTable(void)
+void V_LoadXlaTable(struct doom_data_t_* doom)
 {
-    xlatab = W_CacheLumpName("XLATAB", PU_STATIC);
+    xlatab = W_CacheLumpName(doom, "XLATAB", PU_STATIC);
 }
 
 //
@@ -673,7 +673,7 @@ void WritePCXfile(char *filename, byte *data,
 // V_ScreenShot
 //
 
-void V_ScreenShot(char *format)
+void V_ScreenShot(struct doom_data_t_* doom, char *format)
 {
     int i;
     char lbmname[16]; // haleyjd 20110213: BUG FIX - 12 is too small!
@@ -721,7 +721,7 @@ void V_ScreenShot(char *format)
         // save the pcx file
         WritePCXfile(lbmname, I_VideoBuffer,
                      SCREENWIDTH, SCREENHEIGHT,
-                     W_CacheLumpName(DEH_String("PLAYPAL"), PU_CACHE));
+                     W_CacheLumpName(doom, DEH_String("PLAYPAL"), PU_CACHE));
     }
 }
 

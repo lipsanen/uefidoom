@@ -16,6 +16,7 @@
 //       Generate a checksum of the WAD directory.
 //
 
+#include "doomdef.h"
 #include "z_zone.h"
 #include "m_misc.h"
 #include "sha1.h"
@@ -68,7 +69,7 @@ static void ChecksumAddLump(sha1_context_t *sha1_context, lumpinfo_t *lump)
     SHA1_UpdateInt32(sha1_context, lump->size);
 }
 
-void W_Checksum(sha1_digest_t digest)
+void W_Checksum(struct doom_data_t_* doom, sha1_digest_t digest)
 {
     sha1_context_t sha1_context;
     unsigned int i;
@@ -80,9 +81,9 @@ void W_Checksum(sha1_digest_t digest)
     // Go through each entry in the WAD directory, adding information
     // about each entry to the SHA1 hash.
 
-    for (i = 0; i < numlumps; ++i)
+    for (i = 0; i < doom->numlumps; ++i)
     {
-        ChecksumAddLump(&sha1_context, &lumpinfo[i]);
+        ChecksumAddLump(&sha1_context, &doom->lumpinfo[i]);
     }
 
     SHA1_Final(digest, &sha1_context);

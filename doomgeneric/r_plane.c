@@ -327,7 +327,7 @@ void R_MakeSpans(int x,
 // R_DrawPlanes
 // At the end of each frame.
 //
-void R_DrawPlanes(void)
+void R_DrawPlanes(struct doom_data_t_* doom)
 {
     visplane_t *pl;
     int light;
@@ -375,7 +375,7 @@ void R_DrawPlanes(void)
                 {
                     angle = (viewangle + xtoviewangle[x]) >> ANGLETOSKYSHIFT;
                     dc_x = x;
-                    dc_source = R_GetColumn(skytexture, angle);
+                    dc_source = R_GetColumn(doom, skytexture, angle);
                     colfunc();
                 }
             }
@@ -384,7 +384,7 @@ void R_DrawPlanes(void)
 
         // regular flat
         lumpnum = firstflat + flattranslation[pl->picnum];
-        ds_source = W_CacheLumpNum(lumpnum, PU_STATIC);
+        ds_source = W_CacheLumpNum(doom, lumpnum, PU_STATIC);
 
         planeheight = d_abs(pl->height - viewz);
         light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
@@ -410,6 +410,6 @@ void R_DrawPlanes(void)
                         pl->bottom[x]);
         }
 
-        W_ReleaseLumpNum(lumpnum);
+        W_ReleaseLumpNum(doom, lumpnum);
     }
 }

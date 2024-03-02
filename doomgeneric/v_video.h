@@ -33,7 +33,7 @@
 
 #define CENTERY			(SCREENHEIGHT/2)
 
-
+struct doom_data_t_;
 extern int dirtybox[4];
 
 extern byte *tinttable;
@@ -89,18 +89,18 @@ void V_RestoreBuffer(void);
 // format described in the string passed to the function, eg.
 // "DOOM%02i.pcx"
 
-void V_ScreenShot(char *format);
+void V_ScreenShot(struct doom_data_t_* doom, char *format);
 
 // Load the lookup table for translucency calculations from the TINTTAB
 // lump.
 
-void V_LoadTintTable(void);
+void V_LoadTintTable(struct doom_data_t_* doom);
 
 // villsa [STRIFE]
 // Load the lookup table for translucency calculations from the XLATAB
 // lump.
 
-void V_LoadXlaTable(void);
+void V_LoadXlaTable(struct doom_data_t_* doom);
 
 void V_DrawMouseSpeedBox(int speed);
 

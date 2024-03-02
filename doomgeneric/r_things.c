@@ -190,22 +190,22 @@ void R_InitSpriteDefs(doom_data_t *doom, char **namelist)
         //  filling in the frames for whatever is found
         for (l = start + 1; l < end; l++)
         {
-            if (!d_strnicmp(lumpinfo[l].name, spritename, 4))
+            if (!d_strnicmp(doom->lumpinfo[l].name, spritename, 4))
             {
-                frame = lumpinfo[l].name[4] - 'A';
-                rotation = lumpinfo[l].name[5] - '0';
+                frame = doom->lumpinfo[l].name[4] - 'A';
+                rotation = doom->lumpinfo[l].name[5] - '0';
 
                 if (doom->modifiedgame)
-                    patched = W_GetNumForName(lumpinfo[l].name);
+                    patched = W_GetNumForName(doom, doom->lumpinfo[l].name);
                 else
                     patched = l;
 
                 R_InstallSpriteLump(patched, frame, rotation, false);
 
-                if (lumpinfo[l].name[6])
+                if (doom->lumpinfo[l].name[6])
                 {
-                    frame = lumpinfo[l].name[6] - 'A';
-                    rotation = lumpinfo[l].name[7] - '0';
+                    frame = doom->lumpinfo[l].name[6] - 'A';
+                    rotation = doom->lumpinfo[l].name[7] - '0';
                     R_InstallSpriteLump(l, frame, rotation, true);
                 }
             }
@@ -355,7 +355,8 @@ void R_DrawMaskedColumn(column_t *column)
 // R_DrawVisSprite
 //  mfloorclip and mceilingclip should also be set.
 //
-void R_DrawVisSprite(vissprite_t *vis,
+void R_DrawVisSprite(struct doom_data_t_* doom, 
+                     vissprite_t *vis,
                      int x1,
                      int x2)
 {
@@ -364,7 +365,7 @@ void R_DrawVisSprite(vissprite_t *vis,
     fixed_t frac;
     patch_t *patch;
 
-    patch = W_CacheLumpNum(vis->patch + firstspritelump, PU_CACHE);
+    patch = W_CacheLumpNum(doom, vis->patch + firstspritelump, PU_CACHE);
 
     dc_colormap = vis->colormap;
 
@@ -596,7 +597,7 @@ void R_AddSprites(sector_t *sec)
 //
 // R_DrawPSprite
 //
-void R_DrawPSprite(pspdef_t *psp)
+void R_DrawPSprite(struct doom_data_t_* doom, pspdef_t *psp)
 {
     fixed_t tx;
     int x1;
@@ -687,13 +688,13 @@ void R_DrawPSprite(pspdef_t *psp)
         vis->colormap = spritelights[MAXLIGHTSCALE - 1];
     }
 
-    R_DrawVisSprite(vis, vis->x1, vis->x2);
+    R_DrawVisSprite(doom, vis, vis->x1, vis->x2);
 }
 
 //
 // R_DrawPlayerSprites
 //
-void R_DrawPlayerSprites(void)
+void R_DrawPlayerSprites(struct doom_data_t_* doom)
 {
     int i;
     int lightnum;
@@ -720,7 +721,7 @@ void R_DrawPlayerSprites(void)
          i++, psp++)
     {
         if (psp->state)
-            R_DrawPSprite(psp);
+            R_DrawPSprite(doom, psp);
     }
 }
 
@@ -785,7 +786,7 @@ void R_SortVisSprites(void)
 //
 static short clipbot[SCREENWIDTH];
 static short cliptop[SCREENWIDTH];
-void R_DrawSprite(vissprite_t *spr)
+void R_DrawSprite(struct doom_data_t_* doom, vissprite_t *spr)
 {
     drawseg_t *ds;
     int x;
@@ -828,7 +829,7 @@ void R_DrawSprite(vissprite_t *spr)
         {
             // masked mid texture?
             if (ds->maskedtexturecol)
-                R_RenderMaskedSegRange(ds, r1, r2);
+                R_RenderMaskedSegRange(doom, ds, r1, r2);
             // seg is behind sprite
             continue;
         }
@@ -883,13 +884,13 @@ void R_DrawSprite(vissprite_t *spr)
 
     mfloorclip = clipbot;
     mceilingclip = cliptop;
-    R_DrawVisSprite(spr, spr->x1, spr->x2);
+    R_DrawVisSprite(doom, spr, spr->x1, spr->x2);
 }
 
 //
 // R_DrawMasked
 //
-void R_DrawMasked(void)
+void R_DrawMasked(struct doom_data_t_* doom)
 {
     vissprite_t *spr;
     drawseg_t *ds;
@@ -904,17 +905,17 @@ void R_DrawMasked(void)
              spr = spr->next)
         {
 
-            R_DrawSprite(spr);
+            R_DrawSprite(doom, spr);
         }
     }
 
     // render any remaining masked mid textures
     for (ds = ds_p - 1; ds >= drawsegs; ds--)
         if (ds->maskedtexturecol)
-            R_RenderMaskedSegRange(ds, ds->x1, ds->x2);
+            R_RenderMaskedSegRange(doom, ds, ds->x1, ds->x2);
 
     // draw the psprites on top of everything
     //  but does not draw on side views
     if (!viewangleoffset)
-        R_DrawPlayerSprites();
+        R_DrawPlayerSprites(doom);
 }

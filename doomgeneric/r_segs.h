@@ -25,7 +25,8 @@
 
 void
 R_RenderMaskedSegRange
-( drawseg_t*	ds,
+( struct doom_data_t_* doom, 
+  drawseg_t*	ds,
   int		x1,
   int		x2 );
 

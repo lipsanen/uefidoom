@@ -58,17 +58,17 @@ void S_StopSound(mobj_t *origin);
 
 
 // Start music using <music_id> from sounds.h
-void S_StartMusic(int music_id);
+void S_StartMusic(struct doom_data_t_* doom, int music_id);
 
 // Start music using <music_id> from sounds.h,
 //  and set whether looping
-void S_ChangeMusic(int music_id, int looping);
+void S_ChangeMusic(struct doom_data_t_* doom, int music_id, int looping);
 
 // query if music is playing
 boolean S_MusicPlaying(void);
 
 // Stops the music fer sure.
-void S_StopMusic(void);
+void S_StopMusic(struct doom_data_t_* doom);
 
 // Stop and resume music, during game PAUSE.
 void S_PauseSound(void);

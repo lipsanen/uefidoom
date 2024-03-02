@@ -1460,9 +1460,9 @@ void WI_Ticker(doom_data_t *doom)
 	{
 		// intermission music
 		if (doom->gamemode == commercial)
-			S_ChangeMusic(mus_dm2int, true);
+			S_ChangeMusic(doom, mus_dm2int, true);
 		else
-			S_ChangeMusic(mus_inter, true);
+			S_ChangeMusic(doom, mus_inter, true);
 	}
 
 	WI_checkForAccelerate();
@@ -1488,7 +1488,7 @@ void WI_Ticker(doom_data_t *doom)
 	}
 }
 
-typedef void (*load_callback_t)(char *lumpname, patch_t **variable);
+typedef void (*load_callback_t)(struct doom_data_t_* doom, char *lumpname, patch_t **variable);
 
 // Common load/unload function.  Iterates over all the graphics
 // lumps to be loaded/unloaded into memory.
@@ -1504,7 +1504,7 @@ static void WI_loadUnloadData(doom_data_t *doom, load_callback_t callback)
 		for (i = 0; i < NUMCMAPS; i++)
 		{
 			d_snprintf(name, 9, "CWILV%2.2d", i);
-			callback(name, &lnames[i]);
+			callback(doom, name, &lnames[i]);
 		}
 	}
 	else
@@ -1512,17 +1512,17 @@ static void WI_loadUnloadData(doom_data_t *doom, load_callback_t callback)
 		for (i = 0; i < NUMMAPS; i++)
 		{
 			d_snprintf(name, 9, "WILV%d%d", wbs->epsd, i);
-			callback(name, &lnames[i]);
+			callback(doom, name, &lnames[i]);
 		}
 
 		// you are here
-		callback(DEH_String("WIURH0"), &yah[0]);
+		callback(doom, DEH_String("WIURH0"), &yah[0]);
 
 		// you are here (alt.)
-		callback(DEH_String("WIURH1"), &yah[1]);
+		callback(doom, DEH_String("WIURH1"), &yah[1]);
 
 		// splat
-		callback(DEH_String("WISPLAT"), &splat[0]);
+		callback(doom, DEH_String("WISPLAT"), &splat[0]);
 
 		if (wbs->epsd < 3)
 		{
@@ -1536,7 +1536,7 @@ static void WI_loadUnloadData(doom_data_t *doom, load_callback_t callback)
 					{
 						// animations
 						d_snprintf(name, 9, "WIA%d%.2d%.2d", wbs->epsd, j, i);
-						callback(name, &a->p[i]);
+						callback(doom, name, &a->p[i]);
 					}
 					else
 					{
@@ -1549,80 +1549,80 @@ static void WI_loadUnloadData(doom_data_t *doom, load_callback_t callback)
 	}
 
 	// More hacks on minus sign.
-	callback(DEH_String("WIMINUS"), &wiminus);
+	callback(doom, DEH_String("WIMINUS"), &wiminus);
 
 	for (i = 0; i < 10; i++)
 	{
 		// numbers 0-9
 		d_snprintf(name, 9, "WINUM%d", i);
-		callback(name, &num[i]);
+		callback(doom, name, &num[i]);
 	}
 
 	// percent sign
-	callback(DEH_String("WIPCNT"), &percent);
+	callback(doom, DEH_String("WIPCNT"), &percent);
 
 	// "finished"
-	callback(DEH_String("WIF"), &finished);
+	callback(doom, DEH_String("WIF"), &finished);
 
 	// "entering"
-	callback(DEH_String("WIENTER"), &entering);
+	callback(doom, DEH_String("WIENTER"), &entering);
 
 	// "kills"
-	callback(DEH_String("WIOSTK"), &kills);
+	callback(doom, DEH_String("WIOSTK"), &kills);
 
 	// "scrt"
-	callback(DEH_String("WIOSTS"), &secret);
+	callback(doom, DEH_String("WIOSTS"), &secret);
 
 	// "secret"
-	callback(DEH_String("WISCRT2"), &sp_secret);
+	callback(doom, DEH_String("WISCRT2"), &sp_secret);
 
 	// french wad uses WIOBJ (?)
-	if (W_CheckNumForName(DEH_String("WIOBJ")) >= 0)
+	if (W_CheckNumForName(doom, DEH_String("WIOBJ")) >= 0)
 	{
 		// "items"
 		if (netgame && !deathmatch)
-			callback(DEH_String("WIOBJ"), &items);
+			callback(doom, DEH_String("WIOBJ"), &items);
 		else
-			callback(DEH_String("WIOSTI"), &items);
+			callback(doom, DEH_String("WIOSTI"), &items);
 	}
 	else
 	{
-		callback(DEH_String("WIOSTI"), &items);
+		callback(doom, DEH_String("WIOSTI"), &items);
 	}
 
 	// "frgs"
-	callback(DEH_String("WIFRGS"), &frags);
+	callback(doom, DEH_String("WIFRGS"), &frags);
 
 	// ":"
-	callback(DEH_String("WICOLON"), &colon);
+	callback(doom, DEH_String("WICOLON"), &colon);
 
 	// "time"
-	callback(DEH_String("WITIME"), &timepatch);
+	callback(doom, DEH_String("WITIME"), &timepatch);
 
 	// "sucks"
-	callback(DEH_String("WISUCKS"), &sucks);
+	callback(doom, DEH_String("WISUCKS"), &sucks);
 
 	// "par"
-	callback(DEH_String("WIPAR"), &par);
+	callback(doom, DEH_String("WIPAR"), &par);
 
 	// "killers" (vertical)
-	callback(DEH_String("WIKILRS"), &killers);
+	callback(doom, DEH_String("WIKILRS"), &killers);
 
 	// "victims" (horiz)
-	callback(DEH_String("WIVCTMS"), &victims);
+	callback(doom, DEH_String("WIVCTMS"), &victims);
 
 	// "total"
-	callback(DEH_String("WIMSTT"), &total);
+	callback(doom, DEH_String("WIMSTT"), &total);
 
 	for (i = 0; i < MAXPLAYERS; i++)
 	{
 		// "1,2,3,4"
 		d_snprintf(name, 9, "STPB%d", i);
-		callback(name, &p[i]);
+		callback(doom, name, &p[i]);
 
 		// "1,2,3,4"
 		d_snprintf(name, 9, "WIBP%d", i + 1);
-		callback(name, &bp[i]);
+		callback(doom, name, &bp[i]);
 	}
 
 	// Background image
@@ -1642,12 +1642,12 @@ static void WI_loadUnloadData(doom_data_t *doom, load_callback_t callback)
 
 	// Draw backdrop and save to a temporary buffer
 
-	callback(name, &background);
+	callback(doom, name, &background);
 }
 
-static void WI_loadCallback(char *name, patch_t **variable)
+static void WI_loadCallback(struct doom_data_t_* doom, char *name, patch_t **variable)
 {
-	*variable = W_CacheLumpName(name, PU_STATIC);
+	*variable = W_CacheLumpName(doom, name, PU_STATIC);
 }
 
 void WI_loadData(doom_data_t *doom)
@@ -1670,15 +1670,15 @@ void WI_loadData(doom_data_t *doom)
 	// them with the status bar code
 
 	// your face
-	star = W_CacheLumpName(DEH_String("STFST01"), PU_STATIC);
+	star = W_CacheLumpName(doom, DEH_String("STFST01"), PU_STATIC);
 
 	// dead face
-	bstar = W_CacheLumpName(DEH_String("STFDEAD0"), PU_STATIC);
+	bstar = W_CacheLumpName(doom, DEH_String("STFDEAD0"), PU_STATIC);
 }
 
-static void WI_unloadCallback(char *name, patch_t **variable)
+static void WI_unloadCallback(struct doom_data_t_* doom, char *name, patch_t **variable)
 {
-	W_ReleaseLumpName(name);
+	W_ReleaseLumpName(doom, name);
 	*variable = NULL;
 }
 

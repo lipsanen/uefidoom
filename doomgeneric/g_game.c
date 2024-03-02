@@ -576,7 +576,7 @@ void G_DoLoadLevel(doom_data_t *doom)
     //  we look for an actual index, instead of simply
     //  setting one.
 
-    skyflatnum = R_FlatNumForName(DEH_String(SKYFLATNAME));
+    skyflatnum = R_FlatNumForName(doom, DEH_String(SKYFLATNAME));
 
     // The "Sky never changes in Doom II" bug was fixed in
     // the id Anthology version of doom2.exe for Final Doom.
@@ -853,7 +853,7 @@ void G_Ticker(doom_data_t *doom)
             G_DoWorldDone(doom);
             break;
         case ga_screenshot:
-            V_ScreenShot("DOOM%02i.%s");
+            V_ScreenShot(doom, "DOOM%02i.%s");
             players[consoleplayer].message = DEH_String("screen shot");
             gameaction = ga_nothing;
             break;
@@ -1280,7 +1280,7 @@ void G_ExitLevel(void)
 void G_SecretExitLevel(doom_data_t *doom)
 {
     // IF NO WOLF3D LEVELS, NO SECRET EXIT!
-    if ((doom->gamemode == commercial) && (W_CheckNumForName("map31") < 0))
+    if ((doom->gamemode == commercial) && (W_CheckNumForName(doom, "map31") < 0))
         secretexit = false;
     else
         secretexit = true;
@@ -2009,7 +2009,7 @@ void G_DoPlayDemo(doom_data_t *doom)
     int demoversion;
 
     gameaction = ga_nothing;
-    demobuffer = demo_p = W_CacheLumpName(defdemoname, PU_STATIC);
+    demobuffer = demo_p = W_CacheLumpName(doom, defdemoname, PU_STATIC);
 
     demoversion = *demo_p++;
 
@@ -2101,7 +2101,7 @@ boolean G_CheckDemoStatus(doom_data_t *doom)
 
     if (demoplayback)
     {
-        W_ReleaseLumpName(defdemoname);
+        W_ReleaseLumpName(doom, defdemoname);
         demoplayback = false;
         netdemo = false;
         netgame = false;

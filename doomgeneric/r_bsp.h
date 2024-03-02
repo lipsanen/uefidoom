@@ -54,8 +54,9 @@ typedef void (*drawfunc_t) (int start, int stop);
 void R_ClearClipSegs (void);
 void R_ClearDrawSegs (void);
 
+struct doom_data_t_;
 
-void R_RenderBSPNode (int bspnum);
+void R_RenderBSPNode (struct doom_data_t_* doom, int bspnum);
 
 
 #endif
