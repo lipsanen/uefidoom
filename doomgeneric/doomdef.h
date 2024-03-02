@@ -280,6 +280,7 @@ struct doom_data_t_ {
     // Set if homebrew PWAD stuff has been added.
     boolean	modifiedgame;
 
+    int st_palette;
 };
 
 typedef struct doom_data_t_ doom_data_t;

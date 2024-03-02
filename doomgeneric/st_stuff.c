@@ -928,8 +928,6 @@ void ST_Ticker (void)
 
 }
 
-static int st_palette = 0;
-
 void ST_doPaletteStuff(doom_data_t* doom)
 {
 
@@ -986,11 +984,11 @@ void ST_doPaletteStuff(doom_data_t* doom)
         palette = RADIATIONPAL;
     }
 
-    if (palette != st_palette)
+    if (palette != doom->st_palette)
     {
-	st_palette = palette;
-	pal = (byte *) W_CacheLumpNum (lu_palette, PU_CACHE)+palette*768;
-	I_SetPalette (pal);
+        doom->st_palette = palette;
+        pal = (byte *) W_CacheLumpNum (lu_palette, PU_CACHE)+palette*768;
+        I_SetPalette (pal);
     }
 
 }
@@ -1188,7 +1186,7 @@ void ST_unloadData(void)
     ST_unloadGraphics();
 }
 
-void ST_initData(void)
+void ST_initData(doom_data_t* doom)
 {
 
     int		i;
@@ -1205,7 +1203,7 @@ void ST_initData(void)
     st_cursoron = false;
 
     st_faceindex = 0;
-    st_palette = -1;
+    doom->st_palette = -1;
 
     st_oldhealth = -1;
 
@@ -1383,13 +1381,13 @@ void ST_createWidgets(void)
 static boolean	st_stopped = true;
 
 
-void ST_Start (void)
+void ST_Start (doom_data_t* doom)
 {
 
     if (!st_stopped)
 	ST_Stop();
 
-    ST_initData();
+    ST_initData(doom);
     ST_createWidgets();
     st_stopped = false;
 

@@ -725,7 +725,7 @@ void P_SpawnPlayer (doom_data_t* doom, mapthing_t* mthing)
     if (mthing->type-1 == consoleplayer)
     {
 	// wake up the status bar
-	ST_Start ();
+	ST_Start (doom);
 	// wake up the heads up text
 	HU_Start (doom);		
     }

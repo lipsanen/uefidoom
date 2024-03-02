@@ -46,7 +46,7 @@ void ST_Ticker (void);
 void ST_Drawer (doom_data_t* doom, boolean fullscreen, boolean refresh);
 
 // Called when the console player is spawned on each level.
-void ST_Start (void);
+void ST_Start (doom_data_t* doom);
 
 // Called by startup code.
 void ST_Init (void);
