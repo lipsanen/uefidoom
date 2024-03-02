@@ -303,58 +303,6 @@ static int GetLowTic(doom_data_t *doom)
     return lowtic;
 }
 
-static int frameon;
-static int frameskip[4];
-static int oldnettics;
-
-static void OldNetSync(doom_data_t *doom)
-{
-    unsigned int i;
-    int keyplayer = -1;
-
-    frameon++;
-
-    // ideally maketic should be 1 - 3 tics above lowtic
-    // if we are consistantly slower, speed up time
-
-    for (i = 0; i < NET_MAXPLAYERS; i++)
-    {
-        if (doom->local_playeringame[i])
-        {
-            keyplayer = i;
-            break;
-        }
-    }
-
-    if (keyplayer < 0)
-    {
-        // If there are no players, we can never advance anyway
-
-        return;
-    }
-
-    if (doom->localplayer == keyplayer)
-    {
-        // the key player does not adapt
-    }
-    else
-    {
-        if (doom->maketic <= doom->recvtic)
-        {
-            // d_printf ("-");
-        }
-
-        frameskip[frameon & 3] = oldnettics > doom->recvtic;
-        oldnettics = doom->maketic;
-
-        if (frameskip[0] && frameskip[1] && frameskip[2] && frameskip[3])
-        {
-            doom->skiptics = 1;
-            // d_printf ("+");
-        }
-    }
-}
-
 // Returns true if there are players in the game:
 
 static boolean PlayersInGame(doom_data_t *doom)

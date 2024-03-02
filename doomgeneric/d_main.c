@@ -775,9 +775,6 @@ void D_SetGameDescription(doom_data_t *doom)
     }
 }
 
-//      print title for every printed line
-char title[128];
-
 static boolean D_AddFile(struct doom_data_t_* doom, char *filename)
 {
     wad_file_t *handle;
@@ -837,7 +834,7 @@ void PrintDehackedBanners(void)
     }
 }
 
-static struct
+static const struct
 {
     char *description;
     char *cmdline;
@@ -1138,31 +1135,9 @@ void D_DoomMain(struct doom_data_t_ *doom)
     if (doom->devparm)
         d_printf(D_DEVSTR);
 
-        // find which dir to use for config files
+    // find which dir to use for config files
 
-#ifdef _WIN32
-
-    //!
-    // @platform windows
-    // @vanilla
-    //
-    // Save configuration data and savegames in c:\doomdata,
-    // allowing play from CD.
-    //
-
-    if (M_ParmExists("-cdrom"))
-    {
-        d_printf(D_CDROM);
-
-        M_SetConfigDir("c:\\doomdata\\");
-    }
-    else
-#endif
-    {
-        // Auto-detect the configuration dir.
-
-        M_SetConfigDir(NULL);
-    }
+    M_SetConfigDir(NULL);
 
     //!
     // @arg <x>
@@ -1260,16 +1235,6 @@ void D_DoomMain(struct doom_data_t_ *doom)
         DEH_AddStringReplacement("M_GDHIGH", "M_MSGON");
         DEH_AddStringReplacement("M_GDLOW", "M_MSGOFF");
     }
-
-#ifdef FEATURE_DEHACKED
-    // Load Dehacked patches specified on the command line with -deh.
-    // Note that there's a very careful and deliberate ordering to how
-    // Dehacked patches are loaded. The order we use is:
-    //  1. IWAD dehacked patches.
-    //  2. Command line dehacked patches specified with -deh.
-    //  3. PWAD dehacked patches in DEHACKED lumps.
-    DEH_ParseCommandLine();
-#endif
 
     // Load PWAD files.
     doom->modifiedgame = false;

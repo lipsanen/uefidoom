@@ -4,11 +4,11 @@ project(doomgeneric VERSION 1.4.0)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 FILE(GLOB_RECURSE CONVERTED_SOURCES
-    doomgeneric/am_map.c
-    doomgeneric/d_event.c
-    doomgeneric/d_items.c
-    doomgeneric/d_iwad.c
-    doomgeneric/d_loop.c
+    doomgeneric/am_map.c # done
+    doomgeneric/d_event.c # done
+    doomgeneric/d_items.c # done
+    doomgeneric/d_iwad.c # done
+    doomgeneric/d_loop.c # done
     doomgeneric/d_main.c
     doomgeneric/d_mode.c
     doomgeneric/d_net.c
