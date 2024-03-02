@@ -20,16 +20,6 @@
 
 #include "d_event.h"
 
-
-//
-// Globally visible constants.
-//
-#define HU_FONTSTART	'!'	// the first font characters
-#define HU_FONTEND	'_'	// the last font characters
-
-// Calculate # of glyphs in font.
-#define HU_FONTSIZE	(HU_FONTEND - HU_FONTSTART + 1)	
-
 #define HU_BROADCAST	5
 
 #define HU_MSGX		0
@@ -50,11 +40,11 @@ struct doom_data_t_;
 boolean HU_Responder(struct doom_data_t_* doom, event_t* ev);
 
 void HU_Ticker(struct doom_data_t_* doom);
-void HU_Drawer(doom_data_t* doom);
+void HU_Drawer(struct doom_data_t_* doom);
 char HU_dequeueChatChar(void);
-void HU_Erase(doom_data_t* doom);
+void HU_Erase(struct doom_data_t_* doom);
 
-extern char *chat_macros[10];
+extern const char *chat_macros[10];
 
 #endif
 

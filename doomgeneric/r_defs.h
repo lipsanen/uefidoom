@@ -90,6 +90,8 @@ typedef struct
 
 } degenmobj_t;
 
+struct mobj_s;
+
 //
 // The SECTORS record, at runtime.
 // Stores things/mobjs.
@@ -108,7 +110,7 @@ typedef	struct
     int		soundtraversed;
 
     // thing that made a sound (or null)
-    mobj_t*	soundtarget;
+    struct mobj_s*	soundtarget;
 
     // mapblock bounding box for height changes
     int		blockbox[4];
@@ -120,7 +122,7 @@ typedef	struct
     int		validcount;
 
     // list of mobjs in sector
-    mobj_t*	thinglist;
+   struct mobj_s*	thinglist;
 
     // thinker_t for reversable actions
     void*	specialdata;

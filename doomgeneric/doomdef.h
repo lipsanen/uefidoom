@@ -24,6 +24,7 @@
 #include "doomtype.h"
 #include "net_defs.h"
 #include "d_event.h"
+#include "hu_lib.h"
 #include "m_cheat.h"
 #include "m_fixed.h"
 #include "v_patch.h"
@@ -72,6 +73,15 @@ typedef struct
 
 #define AM_NUMMARKPOINTS 10
 #define MAXEVENTS 64
+//
+// Globally visible constants.
+//
+#define HU_FONTSTART	'!'	// the first font characters
+#define HU_FONTEND	'_'	// the last font characters
+
+// Calculate # of glyphs in font.
+#define HU_FONTSIZE	(HU_FONTEND - HU_FONTSTART + 1)	
+
 
 struct player_s;
 
@@ -1096,7 +1106,17 @@ struct doom_data_t_
 
     int next_weapon;
 
+    unsigned short angleturn_carry;
+
     // g_game.c ends
+
+    // hu_stuff.c
+    int num_nobrainers;
+    boolean altdown;
+    char lastmessage[HU_MAXLINELENGTH + 1];
+    int message_counter;
+    player_t *hustuff_plr;
+    patch_t *hu_font[HU_FONTSIZE];
 };
 
 typedef struct doom_data_t_ doom_data_t;

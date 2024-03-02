@@ -18,18 +18,18 @@
 #ifndef __HULIB__
 #define __HULIB__
 
-// We are referring to patches.
-#include "r_defs.h"
-
 // font stuff
 #define HU_CHARERASE	KEY_BACKSPACE
 
 #define HU_MAXLINES		4
+
 #define HU_MAXLINELENGTH	80
 
 //
 // Typedefs of widgets
 //
+
+struct patch_s;
 
 // Text Line widget
 //  (parent of Scrolling Text and Input Text widgets)
@@ -39,7 +39,7 @@ typedef struct
     int		x;
     int		y;
     
-    patch_t**	f;			// font
+    struct patch_s**	f;			// font
     int		sc;			// start character
     char	l[HU_MAXLINELENGTH+1];	// line of text
     int		len;		      	// current line length
@@ -87,6 +87,8 @@ typedef struct
 // Widget creation, access, and update routines
 //
 
+struct doom_data_t_;
+
 // initializes heads-up widget library
 void HUlib_init(struct doom_data_t_* doom);
 
@@ -97,7 +99,7 @@ void HUlib_init(struct doom_data_t_* doom);
 // clear a line of text
 void	HUlib_clearTextLine(struct doom_data_t_* doom, hu_textline_t *t);
 
-void	HUlib_initTextLine(struct doom_data_t_* doom, hu_textline_t *t, int x, int y, patch_t **f, int sc);
+void	HUlib_initTextLine(struct doom_data_t_* doom, hu_textline_t *t, int x, int y, struct patch_s **f, int sc);
 
 // returns success
 boolean HUlib_addCharToTextLine(struct doom_data_t_* doom, hu_textline_t *t, char ch);
@@ -109,7 +111,7 @@ boolean HUlib_delCharFromTextLine(struct doom_data_t_* doom, hu_textline_t *t);
 void	HUlib_drawTextLine(struct doom_data_t_* doom, hu_textline_t *l, boolean drawcursor);
 
 // erases text line
-void	HUlib_eraseTextLine(doom_data_t* doom, hu_textline_t *l); 
+void	HUlib_eraseTextLine(struct doom_data_t_* doom, hu_textline_t *l); 
 
 
 //
@@ -124,7 +126,7 @@ HUlib_initSText
   int		x,
   int		y,
   int		h,
-  patch_t**	font,
+  struct patch_s**	font,
   int		startchar,
   boolean*	on );
 
@@ -136,14 +138,14 @@ void
 HUlib_addMessageToSText
 ( struct doom_data_t_* doom,
   hu_stext_t*	s,
-  char*		prefix,
-  char*		msg );
+  const char*		prefix,
+  const char*		msg );
 
 // draws stext
 void HUlib_drawSText(struct doom_data_t_* doom, hu_stext_t* s);
 
 // erases all stext lines
-void HUlib_eraseSText(doom_data_t* doom, hu_stext_t* s); 
+void HUlib_eraseSText(struct doom_data_t_* doom, hu_stext_t* s); 
 
 // Input Text Line widget routines
 void
@@ -152,7 +154,7 @@ HUlib_initIText
   hu_itext_t*	it,
   int		x,
   int		y,
-  patch_t**	font,
+  struct patch_s**	font,
   int		startchar,
   boolean*	on );
 
@@ -182,6 +184,6 @@ HUlib_keyInIText
 void HUlib_drawIText(struct doom_data_t_* doom, hu_itext_t* it);
 
 // erases all itext lines
-void HUlib_eraseIText(doom_data_t* doom, hu_itext_t* it); 
+void HUlib_eraseIText(struct doom_data_t_* doom, hu_itext_t* it); 
 
 #endif

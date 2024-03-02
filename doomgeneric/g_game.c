@@ -86,7 +86,6 @@ void G_DoSaveGame(struct doom_data_t_* doom);
 
 #define TURBOTHRESHOLD 0x32
 
-
 static const int *weapon_keys[] = {
     &key_weapon1,
     &key_weapon2,
@@ -442,10 +441,9 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
 
     if (doom->lowres_turn)
     {
-        static signed short carry = 0;
         signed short desired_angleturn;
 
-        desired_angleturn = cmd->angleturn + carry;
+        desired_angleturn = cmd->angleturn + doom->angleturn_carry;
 
         // round angleturn to the nearest 256 unit boundary
         // for recording demos with single byte values for turn
@@ -455,7 +453,7 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
         // Carry forward the error from the reduced resolution to the
         // next tic, so that successive small movements can accumulate.
 
-        carry = desired_angleturn - cmd->angleturn;
+        doom->angleturn_carry = desired_angleturn - cmd->angleturn;
     }
 }
 
@@ -790,7 +788,7 @@ void G_Ticker(doom_data_t *doom)
 
             if ((doom->gametic & 31) == 0 && ((doom->gametic >> 5) % MAXPLAYERS) == i && doom->turbodetected[i])
             {
-                static char turbomessage[80];
+                char turbomessage[80];
                 extern char *player_names[4];
                 d_snprintf(turbomessage, sizeof(turbomessage),
                            "%s is turbo!", player_names[i]);
@@ -1857,45 +1855,6 @@ void G_DeferedPlayDemo(struct doom_data_t_* doom, char *name)
     doom->gameaction = ga_playdemo;
 }
 
-// Generate a string describing a demo version
-
-static char *DemoVersionDescription(int version)
-{
-    static char resultbuf[16];
-
-    switch (version)
-    {
-    case 104:
-        return "v1.4";
-    case 105:
-        return "v1.5";
-    case 106:
-        return "v1.6/v1.666";
-    case 107:
-        return "v1.7/v1.7a";
-    case 108:
-        return "v1.8";
-    case 109:
-        return "v1.9";
-    default:
-        break;
-    }
-
-    // Unknown version.  Perhaps this is a pre-v1.4 IWAD?  If the version
-    // byte is in the range 0-4 then it can be a v1.0-v1.2 demo.
-
-    if (version >= 0 && version <= 4)
-    {
-        return "v1.0/v1.1/v1.2";
-    }
-    else
-    {
-        d_snprintf(resultbuf, sizeof(resultbuf),
-                   "%i.%i (unknown)", version / 100, version % 100);
-        return resultbuf;
-    }
-}
-
 void G_DoPlayDemo(doom_data_t *doom)
 {
     skill_t skill;
@@ -1915,21 +1874,6 @@ void G_DoPlayDemo(doom_data_t *doom)
     {
         // demo recorded with cph's modified "v1.91" doom exe
         doom->longtics = true;
-    }
-    else
-    {
-        char *message = "Demo is from a different game version!\n"
-                        "(read %i, should be %i)\n"
-                        "\n"
-                        "*** You may need to upgrade your version "
-                        "of Doom to v1.9. ***\n"
-                        "    See: https://www.doomworld.com/classicdoom"
-                        "/info/patches.php\n"
-                        "    This appears to be %s.";
-
-        // I_Error(message, demoversion, G_VanillaVersionCode(),
-        d_printf(message, demoversion, G_VanillaVersionCode(doom),
-                 DemoVersionDescription(demoversion));
     }
 
     skill = *doom->demo_p++;

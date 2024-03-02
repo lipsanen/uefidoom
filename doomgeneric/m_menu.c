@@ -54,7 +54,6 @@
 
 #include "m_menu.h"
 
-extern patch_t *hu_font[HU_FONTSIZE];
 extern boolean message_dontfuckwithme;
 
 extern boolean chat_on; // in heads-up code
@@ -207,8 +206,8 @@ void M_DrawThermo(struct doom_data_t_* doom, int x, int y, int thermWidth, int t
 void M_DrawEmptyCell(struct doom_data_t_* doom, menu_t *menu, int item);
 void M_DrawSelCell(struct doom_data_t_* doom, menu_t *menu, int item);
 void M_WriteText(struct doom_data_t_* doom, int x, int y, char *string);
-int M_StringWidth(char *string);
-int M_StringHeight(char *string);
+int M_StringWidth(struct doom_data_t_* doom, char *string);
+int M_StringHeight(struct doom_data_t_* doom, char *string);
 void M_StartMessage(char *string, void *routine, boolean input);
 void M_StopMessage(void);
 void M_ClearMenus(void);
@@ -573,7 +572,7 @@ void M_DrawSave(struct doom_data_t_* doom)
 
     if (saveStringEnter)
     {
-        i = M_StringWidth(savegamestrings[saveSlot]);
+        i = M_StringWidth(doom, savegamestrings[saveSlot]);
         M_WriteText(doom, LoadDef.x + i, LoadDef.y + LINEHEIGHT * saveSlot, "_");
     }
 }
@@ -1209,7 +1208,7 @@ void M_StopMessage(void)
 //
 // Find string width from hu_font chars
 //
-int M_StringWidth(char *string)
+int M_StringWidth(struct doom_data_t_* doom, char *string)
 {
     size_t i;
     int w = 0;
@@ -1221,7 +1220,7 @@ int M_StringWidth(char *string)
         if (c < 0 || c >= HU_FONTSIZE)
             w += 4;
         else
-            w += SHORT(hu_font[c]->width);
+            w += SHORT(doom->hu_font[c]->width);
     }
 
     return w;
@@ -1230,11 +1229,11 @@ int M_StringWidth(char *string)
 //
 //      Find string height from hu_font chars
 //
-int M_StringHeight(char *string)
+int M_StringHeight(struct doom_data_t_* doom, char *string)
 {
     size_t i;
     int h;
-    int height = SHORT(hu_font[0]->height);
+    int height = SHORT(doom->hu_font[0]->height);
 
     h = height;
     for (i = 0; i < d_strlen(string); i++)
@@ -1281,10 +1280,10 @@ void M_WriteText(struct doom_data_t_* doom,
             continue;
         }
 
-        w = SHORT(hu_font[c]->width);
+        w = SHORT(doom->hu_font[c]->width);
         if (cx + w > SCREENWIDTH)
             break;
-        V_DrawPatchDirect(doom, cx, cy, hu_font[c]);
+        V_DrawPatchDirect(doom, cx, cy, doom->hu_font[c]);
         cx += w;
     }
 }
@@ -1448,7 +1447,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
 
             if (ch >= 32 && ch <= 127 &&
                 saveCharIndex < SAVESTRINGSIZE - 1 &&
-                M_StringWidth(savegamestrings[saveSlot]) <
+                M_StringWidth(doom, savegamestrings[saveSlot]) <
                     (SAVESTRINGSIZE - 2) * 8)
             {
                 savegamestrings[saveSlot][saveCharIndex++] = ch;
@@ -1796,7 +1795,7 @@ void M_Drawer(struct doom_data_t_ *doom)
     if (messageToPrint)
     {
         start = 0;
-        y = SCREENHEIGHT / 2 - M_StringHeight(messageString) / 2;
+        y = SCREENHEIGHT / 2 - M_StringHeight(doom, messageString) / 2;
         while (messageString[start] != '\0')
         {
             int foundnewline = 0;
@@ -1824,9 +1823,9 @@ void M_Drawer(struct doom_data_t_ *doom)
                 start += d_strlen(string);
             }
 
-            x = SCREENWIDTH / 2 - M_StringWidth(string) / 2;
+            x = SCREENWIDTH / 2 - M_StringWidth(doom, string) / 2;
             M_WriteText(doom, x, y, string);
-            y += SHORT(hu_font[0]->height);
+            y += SHORT(doom->hu_font[0]->height);
         }
 
         return;

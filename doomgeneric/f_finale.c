@@ -198,7 +198,6 @@ void F_Ticker (doom_data_t* doom)
 //
 
 #include "hu_stuff.h"
-extern	patch_t *hu_font[HU_FONTSIZE];
 
 
 void F_TextWrite (struct doom_data_t_* doom)
@@ -260,10 +259,10 @@ void F_TextWrite (struct doom_data_t_* doom)
 	    continue;
 	}
 		
-	w = SHORT (hu_font[c]->width);
+	w = SHORT (doom->hu_font[c]->width);
 	if (cx+w > SCREENWIDTH)
 	    break;
-	V_DrawPatch(doom, cx, cy, hu_font[c]);
+	V_DrawPatch(doom, cx, cy, doom->hu_font[c]);
 	cx+=w;
     }
 	
@@ -484,7 +483,7 @@ void F_CastPrint (struct doom_data_t_* doom, char* text)
 	    continue;
 	}
 		
-	w = SHORT (hu_font[c]->width);
+	w = SHORT (doom->hu_font[c]->width);
 	width += w;
     }
     
@@ -503,8 +502,8 @@ void F_CastPrint (struct doom_data_t_* doom, char* text)
 	    continue;
 	}
 		
-	w = SHORT (hu_font[c]->width);
-	V_DrawPatch(doom, cx, 180, hu_font[c]);
+	w = SHORT (doom->hu_font[c]->width);
+	V_DrawPatch(doom, cx, 180, doom->hu_font[c]);
 	cx+=w;
     }
 	

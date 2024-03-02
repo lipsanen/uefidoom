@@ -18,7 +18,7 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/embedded.c
     doomgeneric/f_finale.c # done
     doomgeneric/f_wipe.c # done
-    doomgeneric/g_game.c
+    doomgeneric/g_game.c # done
     doomgeneric/hu_lib.c
     doomgeneric/hu_stuff.c
     doomgeneric/i_input.c

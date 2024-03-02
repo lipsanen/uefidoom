@@ -50,15 +50,15 @@
 #define HU_TITLE_CHEX (mapnames[doom->gamemap - 1])
 #define HU_TITLEHEIGHT 1
 #define HU_TITLEX 0
-#define HU_TITLEY (167 - SHORT(hu_font[0]->height))
+#define HU_TITLEY (167 - SHORT(doom->hu_font[0]->height))
 
 #define HU_INPUTTOGGLE 't'
 #define HU_INPUTX HU_MSGX
-#define HU_INPUTY (HU_MSGY + HU_MSGHEIGHT * (SHORT(hu_font[0]->height) + 1))
+#define HU_INPUTY (HU_MSGY + HU_MSGHEIGHT * (SHORT(doom->hu_font[0]->height) + 1))
 #define HU_INPUTWIDTH 64
 #define HU_INPUTHEIGHT 1
 
-char *chat_macros[10] =
+const char *chat_macros[10] =
     {
         HUSTR_CHATMACRO0,
         HUSTR_CHATMACRO1,
@@ -71,16 +71,13 @@ char *chat_macros[10] =
         HUSTR_CHATMACRO8,
         HUSTR_CHATMACRO9};
 
-char *player_names[] =
+const char *player_names[] =
     {
         HUSTR_PLRGREEN,
         HUSTR_PLRINDIGO,
         HUSTR_PLRBROWN,
         HUSTR_PLRRED};
 
-char chat_char; // remove later.
-static player_t *plr;
-patch_t *hu_font[HU_FONTSIZE];
 static hu_textline_t w_title;
 boolean chat_on;
 static hu_itext_t w_chat;
@@ -93,7 +90,6 @@ boolean message_dontfuckwithme;
 static boolean message_nottobefuckedwith;
 
 static hu_stext_t w_message;
-static int message_counter;
 
 extern int showMessages;
 
@@ -288,7 +284,7 @@ void HU_Init(struct doom_data_t_* doom)
     for (i = 0; i < HU_FONTSIZE; i++)
     {
         d_snprintf(buffer, 9, "STCFN%.3d", j++);
-        hu_font[i] = (patch_t *)W_CacheLumpName(doom, buffer, PU_STATIC);
+        doom->hu_font[i] = (patch_t *)W_CacheLumpName(doom, buffer, PU_STATIC);
     }
 }
 
@@ -306,7 +302,7 @@ void HU_Start(struct doom_data_t_ *doom)
     if (headsupactive)
         HU_Stop();
 
-    plr = &doom->players[doom->consoleplayer];
+    doom->hustuff_plr = &doom->players[doom->consoleplayer];
     message_on = false;
     message_dontfuckwithme = false;
     message_nottobefuckedwith = false;
@@ -315,13 +311,13 @@ void HU_Start(struct doom_data_t_ *doom)
     // create the message widget
     HUlib_initSText(doom, &w_message,
                     HU_MSGX, HU_MSGY, HU_MSGHEIGHT,
-                    hu_font,
+                    doom->hu_font,
                     HU_FONTSTART, &message_on);
 
     // create the map title widget
     HUlib_initTextLine(doom, &w_title,
                        HU_TITLEX, HU_TITLEY,
-                       hu_font,
+                       doom->hu_font,
                        HU_FONTSTART);
 
     switch (logical_gamemission)
@@ -361,7 +357,7 @@ void HU_Start(struct doom_data_t_ *doom)
     // create the chat widget
     HUlib_initIText(doom, &w_chat,
                     HU_INPUTX, HU_INPUTY,
-                    hu_font,
+                    doom->hu_font,
                     HU_FONTSTART, &chat_on);
 
     // create the inputbuffer widgets
@@ -394,7 +390,7 @@ void HU_Ticker(struct doom_data_t_ *doom)
     char c;
 
     // tick down message counter if message is up
-    if (message_counter && !--message_counter)
+    if (doom->message_counter && !--doom->message_counter)
     {
         message_on = false;
         message_nottobefuckedwith = false;
@@ -404,12 +400,12 @@ void HU_Ticker(struct doom_data_t_ *doom)
     {
 
         // display message if necessary
-        if ((plr->message && !message_nottobefuckedwith) || (plr->message && message_dontfuckwithme))
+        if ((doom->hustuff_plr->message && !message_nottobefuckedwith) || (doom->hustuff_plr->message && message_dontfuckwithme))
         {
-            HUlib_addMessageToSText(doom, &w_message, 0, plr->message);
-            plr->message = 0;
+            HUlib_addMessageToSText(doom, &w_message, 0, doom->hustuff_plr->message);
+            doom->hustuff_plr->message = 0;
             message_on = true;
-            message_counter = HU_MSGTIMEOUT;
+            doom->message_counter = HU_MSGTIMEOUT;
             message_nottobefuckedwith = message_dontfuckwithme;
             message_dontfuckwithme = 0;
         }
@@ -440,7 +436,7 @@ void HU_Ticker(struct doom_data_t_ *doom)
 
                             message_nottobefuckedwith = true;
                             message_on = true;
-                            message_counter = HU_MSGTIMEOUT;
+                            doom->message_counter = HU_MSGTIMEOUT;
                             if (doom->gamemode == commercial)
                                 S_StartSound(doom, 0, sfx_radio);
                             else
@@ -461,11 +457,11 @@ static char chatchars[QUEUESIZE];
 static int head = 0;
 static int tail = 0;
 
-void HU_queueChatChar(char c)
+void HU_queueChatChar(struct doom_data_t_* doom, char c)
 {
     if (((head + 1) & (QUEUESIZE - 1)) == tail)
     {
-        plr->message = DEH_String(HUSTR_MSGU);
+        doom->hustuff_plr->message = DEH_String(HUSTR_MSGU);
     }
     else
     {
@@ -493,16 +489,11 @@ char HU_dequeueChatChar(void)
 
 boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
 {
-
-    static char lastmessage[HU_MAXLINELENGTH + 1];
-    char *macromessage;
+    const char *macromessage;
     boolean eatkey = false;
-    static boolean altdown = false;
     unsigned char c;
     int i;
     int numplayers;
-
-    static int num_nobrainers = 0;
 
     numplayers = 0;
     for (i = 0; i < MAXPLAYERS; i++)
@@ -514,7 +505,7 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
     }
     else if (ev->data1 == KEY_RALT || ev->data1 == KEY_LALT)
     {
-        altdown = ev->type == ev_keydown;
+        doom->altdown = ev->type == ev_keydown;
         return false;
     }
 
@@ -526,14 +517,14 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
         if (ev->data1 == key_message_refresh)
         {
             message_on = true;
-            message_counter = HU_MSGTIMEOUT;
+            doom->message_counter = HU_MSGTIMEOUT;
             eatkey = true;
         }
         else if (doom->netgame && ev->data2 == key_multi_msg)
         {
             eatkey = chat_on = true;
             HUlib_resetIText(doom, &w_chat);
-            HU_queueChatChar(HU_BROADCAST);
+            HU_queueChatChar(doom, HU_BROADCAST);
         }
         else if (doom->netgame && numplayers > 2)
         {
@@ -545,22 +536,22 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
                     {
                         eatkey = chat_on = true;
                         HUlib_resetIText(doom, &w_chat);
-                        HU_queueChatChar(i + 1);
+                        HU_queueChatChar(doom, i + 1);
                         break;
                     }
                     else if (i == doom->consoleplayer)
                     {
-                        num_nobrainers++;
-                        if (num_nobrainers < 3)
-                            plr->message = DEH_String(HUSTR_TALKTOSELF1);
-                        else if (num_nobrainers < 6)
-                            plr->message = DEH_String(HUSTR_TALKTOSELF2);
-                        else if (num_nobrainers < 9)
-                            plr->message = DEH_String(HUSTR_TALKTOSELF3);
-                        else if (num_nobrainers < 32)
-                            plr->message = DEH_String(HUSTR_TALKTOSELF4);
+                        doom->num_nobrainers++;
+                        if (doom->num_nobrainers < 3)
+                            doom->hustuff_plr->message = DEH_String(HUSTR_TALKTOSELF1);
+                        else if (doom->num_nobrainers < 6)
+                            doom->hustuff_plr->message = DEH_String(HUSTR_TALKTOSELF2);
+                        else if (doom->num_nobrainers < 9)
+                            doom->hustuff_plr->message = DEH_String(HUSTR_TALKTOSELF3);
+                        else if (doom->num_nobrainers < 32)
+                            doom->hustuff_plr->message = DEH_String(HUSTR_TALKTOSELF4);
                         else
-                            plr->message = DEH_String(HUSTR_TALKTOSELF5);
+                            doom->hustuff_plr->message = DEH_String(HUSTR_TALKTOSELF5);
                     }
                 }
             }
@@ -569,7 +560,7 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
     else
     {
         // send a macro
-        if (altdown)
+        if (doom->altdown)
         {
             c = ev->data1 - '0';
             if (c > 9)
@@ -578,17 +569,17 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
             macromessage = chat_macros[c];
 
             // kill last message with a '\n'
-            HU_queueChatChar(KEY_ENTER); // DEBUG!!!
+            HU_queueChatChar(doom, KEY_ENTER); // DEBUG!!!
 
             // send the macro message
             while (*macromessage)
-                HU_queueChatChar(*macromessage++);
-            HU_queueChatChar(KEY_ENTER);
+                HU_queueChatChar(doom, *macromessage++);
+            HU_queueChatChar(doom, KEY_ENTER);
 
             // leave chat mode and notify that it was sent
             chat_on = false;
-            M_StringCopy(lastmessage, chat_macros[c], sizeof(lastmessage));
-            plr->message = lastmessage;
+            M_StringCopy(doom->lastmessage, chat_macros[c], sizeof(doom->lastmessage));
+            doom->hustuff_plr->message = doom->lastmessage;
             eatkey = true;
         }
         else
@@ -599,7 +590,7 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
             if (eatkey)
             {
                 // static unsigned char buf[20]; // DEBUG
-                HU_queueChatChar(c);
+                HU_queueChatChar(doom, c);
 
                 // d_snprintf(buf, sizeof(buf), "KEY: %d => %d", ev->data1, c);
                 //        plr->message = buf;
@@ -609,8 +600,8 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
                 chat_on = false;
                 if (w_chat.l.len)
                 {
-                    M_StringCopy(lastmessage, w_chat.l.l, sizeof(lastmessage));
-                    plr->message = lastmessage;
+                    M_StringCopy(doom->lastmessage, w_chat.l.l, sizeof(doom->lastmessage));
+                    doom->hustuff_plr->message = doom->lastmessage;
                 }
             }
             else if (c == KEY_ESCAPE)

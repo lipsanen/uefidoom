@@ -188,8 +188,8 @@ void HUlib_addLineToSText(struct doom_data_t_* doom, hu_stext_t *s)
 }
 
 void HUlib_addMessageToSText(struct doom_data_t_* doom, hu_stext_t *s,
-                             char *prefix,
-                             char *msg)
+                             const char *prefix,
+                             const char *msg)
 {
     HUlib_addLineToSText(doom, s);
     if (prefix)
