@@ -450,7 +450,7 @@ void P_MobjThinker(doom_data_t *doom, mobj_t *mobj)
         if (!(mobj->flags & MF_COUNTKILL))
             return;
 
-        if (!respawnmonsters)
+        if (!doom->respawnmonsters)
             return;
 
         mobj->movecount++;
@@ -733,7 +733,7 @@ void P_SpawnMapThing(doom_data_t *doom, mapthing_t *mthing)
     }
 
     // check for apropriate skill level
-    if (!netgame && (mthing->options & 16))
+    if (!doom->netgame && (mthing->options & 16))
         return;
 
     if (doom->gameskill == sk_baby)
@@ -781,9 +781,9 @@ void P_SpawnMapThing(doom_data_t *doom, mapthing_t *mthing)
     if (mobj->tics > 0)
         mobj->tics = 1 + (P_Random() % mobj->tics);
     if (mobj->flags & MF_COUNTKILL)
-        totalkills++;
+        doom->totalkills++;
     if (mobj->flags & MF_COUNTITEM)
-        totalitems++;
+        doom->totalitems++;
 
     mobj->angle = ANG45 * (mthing->angle / 45);
     if (mthing->options & MTF_AMBUSH)

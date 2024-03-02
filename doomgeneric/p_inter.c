@@ -153,7 +153,7 @@ P_GiveWeapon(struct doom_data_t_ *doom, player_t *player,
 	boolean gaveammo;
 	boolean gaveweapon;
 
-	if (netgame && (doom->deathmatch != 2) && !dropped)
+	if (doom->netgame && (doom->deathmatch != 2) && !dropped)
 	{
 		// leave placed weapons forever on net games
 		if (player->weaponowned[weapon])
@@ -391,7 +391,7 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 		if (!player->cards[it_bluecard])
 			player->message = DEH_String(GOTBLUECARD);
 		P_GiveCard(player, it_bluecard);
-		if (!netgame)
+		if (!doom->netgame)
 			break;
 		return;
 
@@ -399,7 +399,7 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 		if (!player->cards[it_yellowcard])
 			player->message = DEH_String(GOTYELWCARD);
 		P_GiveCard(player, it_yellowcard);
-		if (!netgame)
+		if (!doom->netgame)
 			break;
 		return;
 
@@ -407,7 +407,7 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 		if (!player->cards[it_redcard])
 			player->message = DEH_String(GOTREDCARD);
 		P_GiveCard(player, it_redcard);
-		if (!netgame)
+		if (!doom->netgame)
 			break;
 		return;
 
@@ -415,7 +415,7 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 		if (!player->cards[it_blueskull])
 			player->message = DEH_String(GOTBLUESKUL);
 		P_GiveCard(player, it_blueskull);
-		if (!netgame)
+		if (!doom->netgame)
 			break;
 		return;
 
@@ -423,7 +423,7 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 		if (!player->cards[it_yellowskull])
 			player->message = DEH_String(GOTYELWSKUL);
 		P_GiveCard(player, it_yellowskull);
-		if (!netgame)
+		if (!doom->netgame)
 			break;
 		return;
 
@@ -431,7 +431,7 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 		if (!player->cards[it_redskull])
 			player->message = DEH_String(GOTREDSKULL);
 		P_GiveCard(player, it_redskull);
-		if (!netgame)
+		if (!doom->netgame)
 			break;
 		return;
 
@@ -655,7 +655,7 @@ void P_KillMobj(doom_data_t *doom,
 		if (target->player)
 			source->player->frags[target->player - doom->players]++;
 	}
-	else if (!netgame && (target->flags & MF_COUNTKILL))
+	else if (!doom->netgame && (target->flags & MF_COUNTKILL))
 	{
 		// count all monster deaths,
 		// even those caused by other monsters

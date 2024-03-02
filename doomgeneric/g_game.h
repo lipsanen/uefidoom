@@ -74,7 +74,5 @@ void G_ScreenShot (struct doom_data_t_* doom);
 void G_DrawMouseSpeedBox(void);
 int G_VanillaVersionCode(doom_data_t* doom);
 
-extern int vanilla_savegame_limit;
-extern int vanilla_demo_limit;
 #endif
 

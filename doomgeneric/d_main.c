@@ -227,7 +227,7 @@ void D_Display(struct doom_data_t_ *doom)
     {
         // Box showing current mouse speed
 
-        V_DrawMouseSpeedBox(doom, testcontrols_mousespeed);
+        V_DrawMouseSpeedBox(doom, doom->testcontrols_mousespeed);
     }
 
     doom->menuactivestate = menuactive;
@@ -236,7 +236,7 @@ void D_Display(struct doom_data_t_ *doom)
     doom->oldgamestate = doom->wipegamestate = doom->gamestate;
 
     // draw pause pic
-    if (paused)
+    if (doom->paused)
     {
         if (doom->automapactive)
             y = 4;
@@ -295,8 +295,8 @@ void D_BindVariables(doom_data_t *doom)
     M_BindVariable("screenblocks", &screenblocks);
     M_BindVariable("detaillevel", &detailLevel);
     M_BindVariable("snd_channels", &snd_channels);
-    M_BindVariable("vanilla_savegame_limit", &vanilla_savegame_limit);
-    M_BindVariable("vanilla_demo_limit", &vanilla_demo_limit);
+    M_BindVariable("vanilla_savegame_limit", &doom->vanilla_savegame_limit);
+    M_BindVariable("vanilla_demo_limit", &doom->vanilla_demo_limit);
     M_BindVariable("show_endoom", &doom->show_endoom);
 
     // Multiplayer chat macros
@@ -325,12 +325,12 @@ boolean D_GrabMouseCallback(doom_data_t *doom)
 
     // when menu is active or game is paused, release the mouse
 
-    if (menuactive || paused)
+    if (menuactive || doom->paused)
         return false;
 
     // only grab mouse when playing levels (but not demos)
 
-    return (doom->gamestate == GS_LEVEL) && !demoplayback && !doom->advancedemo;
+    return (doom->gamestate == GS_LEVEL) && !doom->demoplayback && !doom->advancedemo;
 }
 
 void doomgeneric_Tick(struct doom_data_t_ *doom)
@@ -355,7 +355,7 @@ void doomgeneric_Tick(struct doom_data_t_ *doom)
 void D_DoomLoop(struct doom_data_t_ *doom)
 {
     if (doom->bfgedition &&
-        (demorecording || (doom->gameaction == ga_playdemo) || netgame))
+        (doom->demorecording || (doom->gameaction == ga_playdemo) || doom->netgame))
     {
         d_printf(" WARNING: You are playing using one of the Doom Classic\n"
                  " IWAD files shipped with the Doom 3: BFG Edition. These are\n"
@@ -363,7 +363,7 @@ void D_DoomLoop(struct doom_data_t_ *doom)
                  " may cause demos and network games to get out of sync.\n");
     }
 
-    if (demorecording)
+    if (doom->demorecording)
         G_BeginRecording(doom);
 
     doom->main_loop_started = true;
@@ -423,8 +423,8 @@ void D_DoAdvanceDemo(doom_data_t *doom)
 {
     doom->players[doom->consoleplayer].playerstate = PST_LIVE; // not reborn
     doom->advancedemo = false;
-    usergame = false; // no save / end game here
-    paused = false;
+    doom->usergame = false; // no save / end game here
+    doom->paused = false;
     doom->gameaction = ga_nothing;
 
     // The Ultimate Doom executable changed the demo sequence to add
@@ -1150,8 +1150,6 @@ void D_DoomMain(struct doom_data_t_ *doom)
     if ((p = M_CheckParm(doom, "-turbo")))
     {
         int scale = 200;
-        extern int forwardmove[2];
-        extern int sidemove[2];
 
         if (p < doom->myargc - 1)
             scale = d_atoi(doom->myargv[p + 1]);
@@ -1160,10 +1158,10 @@ void D_DoomMain(struct doom_data_t_ *doom)
         if (scale > 400)
             scale = 400;
         d_printf("turbo scale: %i%%\n", scale);
-        forwardmove[0] = forwardmove[0] * scale / 100;
-        forwardmove[1] = forwardmove[1] * scale / 100;
-        sidemove[0] = sidemove[0] * scale / 100;
-        sidemove[1] = sidemove[1] * scale / 100;
+        doom->forwardmove[0] = doom->forwardmove[0] * scale / 100;
+        doom->forwardmove[1] = doom->forwardmove[1] * scale / 100;
+        doom->sidemove[0] = doom->sidemove[0] * scale / 100;
+        doom->sidemove[1] = doom->sidemove[1] * scale / 100;
     }
 
     // init subsystems
@@ -1398,7 +1396,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
         doom->autostart = true;
     }
 
-    timelimit = 0;
+    doom->timelimit = 0;
 
     //!
     // @arg <n>
@@ -1412,7 +1410,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
 
     if (p)
     {
-        timelimit = d_atoi(doom->myargv[p + 1]);
+        doom->timelimit = d_atoi(doom->myargv[p + 1]);
     }
 
     //!
@@ -1426,7 +1424,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
 
     if (p)
     {
-        timelimit = 20;
+        doom->timelimit = 20;
     }
 
     //!
@@ -1566,7 +1564,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
 
     if (doom->gameaction != ga_loadgame)
     {
-        if (doom->autostart || netgame)
+        if (doom->autostart || doom->netgame)
             G_InitNew(doom, doom->startskill, doom->startepisode, doom->startmap);
         else
             D_StartTitle(doom); // start up intro loop

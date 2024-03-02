@@ -417,7 +417,7 @@ void HU_Ticker(struct doom_data_t_ *doom)
     } // else message_on = false;
 
     // check for incoming chat characters
-    if (netgame)
+    if (doom->netgame)
     {
         for (i = 0; i < MAXPLAYERS; i++)
         {
@@ -529,13 +529,13 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
             message_counter = HU_MSGTIMEOUT;
             eatkey = true;
         }
-        else if (netgame && ev->data2 == key_multi_msg)
+        else if (doom->netgame && ev->data2 == key_multi_msg)
         {
             eatkey = chat_on = true;
             HUlib_resetIText(doom, &w_chat);
             HU_queueChatChar(HU_BROADCAST);
         }
-        else if (netgame && numplayers > 2)
+        else if (doom->netgame && numplayers > 2)
         {
             for (i = 0; i < MAXPLAYERS; i++)
             {

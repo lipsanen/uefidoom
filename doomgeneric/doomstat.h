@@ -54,15 +54,6 @@
 // Selected skill type, map etc.
 //
 
-// If non-zero, exit the level after this number of minutes
-extern  int             timelimit;
-
-// Nightmare mode flag, single player.
-extern  boolean         respawnmonsters;
-
-// Netgame? Only true if >1 player.
-extern  boolean	netgame;
-
 // -------------------------
 // Internal parameters for sound rendering.
 // These have been taken from the DOS version,
@@ -97,8 +88,6 @@ extern int snd_DesiredSfxDevice;
 extern  boolean statusbaractive;
 
 extern  boolean	menuactive;	// Menu overlayed?
-extern  boolean	paused;		// Game Pause?
-extern  int             testcontrols_mousespeed;
 
 
 
@@ -107,17 +96,7 @@ extern  int             testcontrols_mousespeed;
 // ANG90 = left side, ANG270 = right
 extern  int	viewangleoffset;
 
-
-// -------------------------------------
-// Scores, rating.
-// Statistics on a given map, for intermission.
-//
-extern  int	totalkills;
-extern	int	totalitems;
-extern	int	totalsecret;
-
 // Timer, for scores.
-extern  int	levelstarttic;	// gametic at level start
 extern  int	leveltime;	// tics in game play for par
 
 
@@ -131,11 +110,6 @@ extern  boolean	usergame;
 //?
 extern  boolean	demoplayback;
 extern  boolean	demorecording;
-
-// Round angleturn in ticcmds to the nearest 256.  This is used when
-// recording Vanilla demos in netgames.
-
-extern boolean lowres_turn;
 
 
 
@@ -157,16 +131,6 @@ extern  mapthing_t*	deathmatch_p;
 // Player spawn spots.
 extern  mapthing_t      playerstarts[MAXPLAYERS];
 
-// Intermission stats.
-// Parameters for world map / intermission.
-extern  wbstartstruct_t		wminfo;	
-
-
-
-
-
-
-
 //-----------------------------------------
 // Internal parameters, used for engine.
 //
@@ -174,16 +138,11 @@ extern  wbstartstruct_t		wminfo;
 // File handling stuff.
 extern	char		basedefault[1024];
 
-// if true, load all graphics at level load
-extern  boolean         precache;
-
 
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
 
 extern  int             mouseSensitivity;
-
-extern  int             bodyqueslot;
 
 
 

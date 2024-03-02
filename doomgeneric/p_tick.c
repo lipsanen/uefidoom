@@ -109,11 +109,11 @@ void P_Ticker(doom_data_t *doom)
     int i;
 
     // run the tic
-    if (paused)
+    if (doom->paused)
         return;
 
     // pause if in menu and at least one tic has been run
-    if (!netgame && menuactive && !demoplayback && doom->players[doom->consoleplayer].viewz != 1)
+    if (!doom->netgame && menuactive && !doom->demoplayback && doom->players[doom->consoleplayer].viewz != 1)
     {
         return;
     }

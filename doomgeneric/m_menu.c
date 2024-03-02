@@ -189,7 +189,7 @@ void M_LoadSelect(doom_data_t *doom, int choice);
 void M_SaveSelect(doom_data_t *doom, int choice);
 void M_ReadSaveStrings(doom_data_t *doom);
 void M_QuickSave(doom_data_t *doom);
-void M_QuickLoad(void);
+void M_QuickLoad(doom_data_t *doom);
 
 void M_DrawMainMenu(struct doom_data_t_* doom);
 void M_DrawReadThis1(struct doom_data_t_* doom);
@@ -547,7 +547,7 @@ void M_LoadSelect(doom_data_t *doom, int choice)
 //
 void M_LoadGame(doom_data_t *doom, int choice)
 {
-    if (netgame)
+    if (doom->netgame)
     {
         M_StartMessage(DEH_String(LOADNET), NULL, false);
         return;
@@ -611,7 +611,7 @@ void M_SaveSelect(doom_data_t *doom, int choice)
 //
 void M_SaveGame(doom_data_t *doom, int choice)
 {
-    if (!usergame)
+    if (!doom->usergame)
     {
         M_StartMessage(DEH_String(SAVEDEAD), NULL, false);
         return;
@@ -640,7 +640,7 @@ void M_QuickSaveResponse(struct doom_data_t_* doom, int key)
 
 void M_QuickSave(doom_data_t *doom)
 {
-    if (!usergame)
+    if (!doom->usergame)
     {
         S_StartSound(doom, NULL, sfx_oof);
         return;
@@ -673,9 +673,9 @@ void M_QuickLoadResponse(doom_data_t *doom, int key)
     }
 }
 
-void M_QuickLoad(void)
+void M_QuickLoad(doom_data_t *doom)
 {
-    if (netgame)
+    if (doom->netgame)
     {
         M_StartMessage(DEH_String(QLOADNET), NULL, false);
         return;
@@ -852,7 +852,7 @@ void M_DrawNewGame(struct doom_data_t_* doom)
 
 void M_NewGame(doom_data_t *doom, int choice)
 {
-    if (netgame && !demoplayback)
+    if (doom->netgame && !doom->demoplayback)
     {
         M_StartMessage(DEH_String(NEWGAME), NULL, false);
         return;
@@ -981,13 +981,13 @@ void M_EndGameResponse(doom_data_t *doom, int key)
 void M_EndGame(doom_data_t *doom, int choice)
 {
     choice = 0;
-    if (!usergame)
+    if (!doom->usergame)
     {
         S_StartSound(doom, NULL, sfx_oof);
         return;
     }
 
-    if (netgame)
+    if (doom->netgame)
     {
         M_StartMessage(DEH_String(NETEND), NULL, false);
         return;
@@ -1058,7 +1058,7 @@ void M_QuitResponse(doom_data_t *doom, int key)
 {
     if (key != key_menu_confirm)
         return;
-    if (!netgame)
+    if (!doom->netgame)
     {
         if (doom->gamemode == commercial)
             S_StartSound(doom, NULL, quitsounds2[(doom->gametic >> 2) & 7]);
@@ -1568,7 +1568,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         else if (key == key_menu_qload) // Quickload
         {
             S_StartSound(doom, NULL, sfx_swtchn);
-            M_QuickLoad();
+            M_QuickLoad(doom);
             return true;
         }
         else if (key == key_menu_quit) // Quit DOOM
@@ -1871,8 +1871,6 @@ void M_Drawer(struct doom_data_t_ *doom)
 void M_ClearMenus(void)
 {
     menuactive = 0;
-    // if (!netgame && usergame && paused)
-    //       sendpause = true;
 }
 
 //

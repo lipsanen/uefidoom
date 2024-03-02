@@ -765,7 +765,7 @@ void R_PrecacheLevel(doom_data_t* doom)
     thinker_t *th;
     spriteframe_t *sf;
 
-    if (demoplayback)
+    if (doom->demoplayback)
         return;
 
     // Precache flats.

@@ -254,7 +254,7 @@ void ST_refreshBackground(struct doom_data_t_* doom)
 
         V_DrawPatch(doom, ST_X, 0, doom->sbar);
 
-        if (netgame)
+        if (doom->netgame)
             V_DrawPatch(doom, ST_FX, 0, doom->faceback);
 
         V_RestoreBuffer(doom);
@@ -290,7 +290,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
     // if a user keypress...
     else if (ev->type == ev_keydown)
     {
-        if (!netgame && doom->gameskill != sk_nightmare)
+        if (!doom->netgame && doom->gameskill != sk_nightmare)
         {
             // 'dqd' cheat for toggleable god mode
             if (cht_CheckCheat(&doom->cheat_god, ev->data2))
@@ -426,7 +426,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
         }
 
         // 'clev' change-level cheat
-        if (!netgame && cht_CheckCheat(&doom->cheat_clev, ev->data2))
+        if (!doom->netgame && cht_CheckCheat(&doom->cheat_clev, ev->data2))
         {
             char buf[3];
             int epsd;

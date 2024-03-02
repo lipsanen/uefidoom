@@ -1325,10 +1325,10 @@ void P_SpawnSpecials(doom_data_t *doom)
 
 	// See if -TIMER was specified.
 
-	if (timelimit > 0 && doom->deathmatch)
+	if (doom->timelimit > 0 && doom->deathmatch)
 	{
 		levelTimer = true;
-		levelTimeCount = timelimit * 60 * TICRATE;
+		levelTimeCount = doom->timelimit * 60 * TICRATE;
 	}
 	else
 	{
@@ -1371,7 +1371,7 @@ void P_SpawnSpecials(doom_data_t *doom)
 			break;
 		case 9:
 			// SECRET SECTOR
-			totalsecret++;
+			doom->totalsecret++;
 			break;
 
 		case 10:

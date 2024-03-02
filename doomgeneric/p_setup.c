@@ -729,8 +729,8 @@ void P_SetupLevel(doom_data_t *doom,
     char lumpname[9];
     int lumpnum;
 
-    totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
-    wminfo.partime = 180;
+    doom->totalkills = doom->totalitems = doom->totalsecret = doom->wminfo.maxfrags = 0;
+    doom->wminfo.partime = 180;
     for (i = 0; i < MAXPLAYERS; i++)
     {
         doom->players[i].killcount = doom->players[i].secretcount = doom->players[i].itemcount = 0;
@@ -783,7 +783,7 @@ void P_SetupLevel(doom_data_t *doom,
     P_GroupLines();
     P_LoadReject(doom, lumpnum + ML_REJECT);
 
-    bodyqueslot = 0;
+    doom->bodyqueslot = 0;
     deathmatch_p = deathmatchstarts;
     P_LoadThings(doom, lumpnum + ML_THINGS);
 
@@ -808,7 +808,7 @@ void P_SetupLevel(doom_data_t *doom,
     //	UNUSED P_ConnectSubsectors ();
 
     // preload graphics
-    if (precache)
+    if (doom->precache)
         R_PrecacheLevel(doom);
 
     // printf ("free memory: 0x%x\n", Z_FreeMemory());

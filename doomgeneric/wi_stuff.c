@@ -1372,7 +1372,7 @@ void WI_Ticker(doom_data_t *doom)
     case StatCount:
         if (doom->deathmatch)
             WI_updateDeathmatchStats(doom);
-        else if (netgame)
+        else if (doom->netgame)
             WI_updateNetgameStats(doom);
         else
             WI_updateStats(doom);
@@ -1480,7 +1480,7 @@ static void WI_loadUnloadData(doom_data_t *doom, load_callback_t callback)
     if (W_CheckNumForName(doom, DEH_String("WIOBJ")) >= 0)
     {
         // "items"
-        if (netgame && !doom->deathmatch)
+        if (doom->netgame && !doom->deathmatch)
             callback(doom, DEH_String("WIOBJ"), &doom->items);
         else
             callback(doom, DEH_String("WIOSTI"), &doom->items);
@@ -1600,7 +1600,7 @@ void WI_Drawer(doom_data_t *doom)
     case StatCount:
         if (doom->deathmatch)
             WI_drawDeathmatchStats(doom);
-        else if (netgame)
+        else if (doom->netgame)
             WI_drawNetgameStats(doom);
         else
             WI_drawStats(doom);
@@ -1647,7 +1647,7 @@ void WI_Start(doom_data_t *doom, wbstartstruct_t *wbstartstruct)
 
     if (doom->deathmatch)
         WI_initDeathmatchStats(doom);
-    else if (netgame)
+    else if (doom->netgame)
         WI_initNetgameStats(doom);
     else
         WI_initStats(doom);

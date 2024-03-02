@@ -1123,7 +1123,7 @@ static void AM_drawPlayers(doom_data_t *doom)
     int their_color = -1;
     int color;
 
-    if (!netgame)
+    if (!doom->netgame)
     {
         if (doom->cheating)
             AM_drawLineCharacter(doom, cheat_player_arrow, arrlen(cheat_player_arrow), 0,

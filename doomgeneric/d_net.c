@@ -58,7 +58,7 @@ static void PlayerQuitGame(doom_data_t* doom, player_t *player)
 
     // TODO: check if it is sensible to do this:
 
-    if (demorecording) 
+    if (doom->demorecording) 
     {
         G_CheckDemoStatus (doom);
     }
@@ -72,7 +72,7 @@ static void RunTic(doom_data_t* doom, ticcmd_t *cmds, boolean *ingame)
 
     for (i = 0; i < MAXPLAYERS; ++i)
     {
-        if (!demoplayback && doom->playeringame[i] && !ingame[i])
+        if (!doom->demoplayback && doom->playeringame[i] && !ingame[i])
         {
             PlayerQuitGame(doom, &doom->players[i]);
         }
@@ -109,14 +109,14 @@ static void LoadGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
     doom->startmap = settings->map;
     doom->startskill = settings->skill;
     doom->startloadgame = settings->loadgame;
-    lowres_turn = settings->lowres_turn;
+    doom->lowres_turn = settings->lowres_turn;
     doom->nomonsters = settings->nomonsters;
     doom->fastparm = settings->fast_monsters;
     doom->respawnparm = settings->respawn_monsters;
-    timelimit = settings->timelimit;
+    doom->timelimit = settings->timelimit;
     doom->consoleplayer = settings->consoleplayer;
 
-    if (lowres_turn)
+    if (doom->lowres_turn)
     {
         d_printf("NOTE: Turning resolution is reduced; this is probably "
                "because there is a client recording a Vanilla demo.\n");
@@ -145,7 +145,7 @@ static void SaveGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
     settings->nomonsters = doom->nomonsters;
     settings->fast_monsters = doom->fastparm;
     settings->respawn_monsters = doom->respawnparm;
-    settings->timelimit = timelimit;
+    settings->timelimit = doom->timelimit;
 
     settings->lowres_turn = M_CheckParm(doom, "-record") > 0
                          && M_CheckParm(doom, "-longtics") == 0;
@@ -208,7 +208,7 @@ void D_ConnectNetGame(struct doom_data_t_* doom)
     net_connect_data_t connect_data;
 
     InitConnectData(doom, &connect_data);
-    netgame = D_InitNetGame(doom, &connect_data);
+    doom->netgame = D_InitNetGame(doom, &connect_data);
 
     //!
     // @category net
@@ -220,7 +220,7 @@ void D_ConnectNetGame(struct doom_data_t_* doom)
 
     if (M_CheckParm(doom, "-solo-net") > 0)
     {
-        netgame = true;
+        doom->netgame = true;
     }
 }
 
@@ -232,7 +232,7 @@ void D_CheckNetGame (struct doom_data_t_* doom)
 {
     net_gamesettings_t settings;
 
-    if (netgame)
+    if (doom->netgame)
     {
         doom->autostart = true;
     }
@@ -251,19 +251,19 @@ void D_CheckNetGame (struct doom_data_t_* doom)
 
     // Show players here; the server might have specified a time limit
 
-    if (timelimit > 0 && doom->deathmatch)
+    if (doom->timelimit > 0 && doom->deathmatch)
     {
         // Gross hack to work like Vanilla:
 
-        if (timelimit == 20 && M_CheckParm(doom, "-avg"))
+        if (doom->timelimit == 20 && M_CheckParm(doom, "-avg"))
         {
             d_printf("Austin Virtual Gaming: Levels will end "
                            "after 20 minutes\n");
         }
         else
         {
-            d_printf("Levels will end after %d minute", timelimit);
-            if (timelimit > 1)
+            d_printf("Levels will end after %d minute", doom->timelimit);
+            if (doom->timelimit > 1)
                 d_printf("s");
             d_printf(".\n");
         }

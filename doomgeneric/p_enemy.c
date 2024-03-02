@@ -686,7 +686,7 @@ void A_Chase(doom_data_t *doom, mobj_t *actor)
     // ?
 nomissile:
     // possibly choose another target
-    if (netgame && !actor->threshold && !P_CheckSight(actor, actor->target))
+    if (doom->netgame && !actor->threshold && !P_CheckSight(actor, actor->target))
     {
         if (P_LookForPlayers(doom, actor, true))
             return; // got a new target

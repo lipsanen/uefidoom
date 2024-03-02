@@ -86,102 +86,6 @@ void G_DoSaveGame(struct doom_data_t_* doom);
 
 #define TURBOTHRESHOLD 0x32
 
-gamestate_t gamestate;
-skill_t gameskill;
-boolean respawnmonsters;
-int gameepisode;
-int gamemap;
-
-// If non-zero, exit the level after this number of minutes.
-
-int timelimit;
-
-boolean paused;
-boolean sendpause; // send a pause event next tic
-boolean sendsave;  // send a save event next tic
-boolean usergame;  // ok to save / end game
-
-boolean timingdemo; // if true, exit with report on completion
-boolean nodrawers;  // for comparative timing purposes
-
-boolean viewactive;
-
-int deathmatch;  // only if started as net death
-boolean netgame; // only true if packets are broadcast
-boolean playeringame[MAXPLAYERS];
-player_t players[MAXPLAYERS];
-
-boolean turbodetected[MAXPLAYERS];
-
-int consoleplayer;                       // player taking events and displaying
-int displayplayer;                       // view being displayed
-int levelstarttic;                       // gametic at level start
-int totalkills, totalitems, totalsecret; // for intermission
-
-char *demoname;
-boolean demorecording;
-boolean longtics;    // cph's doom 1.91 longtics hack
-boolean lowres_turn; // low resolution turning for longtics
-boolean demoplayback;
-boolean netdemo;
-byte *demobuffer;
-byte *demo_p;
-byte *demoend;
-boolean singledemo; // quit after playing a demo from cmdline
-
-boolean precache; // if true, load all graphics at start
-
-boolean testcontrols; // Invoked by setup to test controls
-int testcontrols_mousespeed;
-
-wbstartstruct_t wminfo; // parms for world map / intermission
-
-byte consistancy[MAXPLAYERS][BACKUPTICS];
-
-fixed_t forwardmove[2];
-fixed_t sidemove[2];
-fixed_t angleturn[3]; // + slow turn
-
-#define SLOWTURNTICS 6
-
-#define NUMKEYS 256
-#define MAX_JOY_BUTTONS 20
-
-boolean gamekeydown[NUMKEYS];
-int turnheld; // for accelerative turning
-
-boolean mousearray[MAX_MOUSE_BUTTONS + 1];
-boolean *mousebuttons; // allow [-1]
-
-// mouse values are used once
-int mousex;
-int mousey;
-
-int dclicktime;
-boolean dclickstate;
-int dclicks;
-int dclicktime2;
-boolean dclickstate2;
-int dclicks2;
-
-// joystick values are repeated
-int joyxmove;
-int joyymove;
-int joystrafemove;
-boolean joyarray[MAX_JOY_BUTTONS + 1];
-
-int savegameslot;
-char savedescription[32];
-
-#define BODYQUESIZE 32
-
-struct mobj_s *bodyque[BODYQUESIZE];
-int bodyqueslot;
-
-int vanilla_savegame_limit;
-int vanilla_demo_limit;
-
-int next_weapon;
 
 static const int *weapon_keys[] = {
     &key_weapon1,
@@ -193,11 +97,8 @@ static const int *weapon_keys[] = {
     &key_weapon7,
     &key_weapon8};
 
-// Set to -1 or +1 to switch to the previous or next weapon.
-
 
 // Used for prev/next weapon keys.
-
 static const struct
 {
     weapontype_t weapon;
@@ -507,7 +408,7 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
     {
         // No movement in the previous frame
 
-        testcontrols_mousespeed = 0;
+        doom->testcontrols_mousespeed = 0;
     }
 
     doom->mousex = doom->mousey = 0;
@@ -539,7 +440,7 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
 
     // low-res turning
 
-    if (lowres_turn)
+    if (doom->lowres_turn)
     {
         static signed short carry = 0;
         signed short desired_angleturn;
@@ -597,7 +498,7 @@ void G_DoLoadLevel(doom_data_t *doom)
         skytexture = R_TextureNumForName(skytexturename);
     }
 
-    levelstarttic = doom->gametic; // for time calculation
+    doom->levelstarttic = doom->gametic; // for time calculation
 
     if (doom->wipegamestate == GS_LEVEL)
         doom->wipegamestate = -1; // force a wipe
@@ -622,7 +523,7 @@ void G_DoLoadLevel(doom_data_t *doom)
     d_memset(doom->gamekeydown, 0, sizeof(doom->gamekeydown));
     doom->joyxmove = doom->joyymove = doom->joystrafemove = 0;
     doom->mousex = doom->mousey = 0;
-    doom->sendpause = doom->sendsave = paused = false;
+    doom->sendpause = doom->sendsave = doom->paused = false;
     d_memset(doom->mousearray, 0, sizeof(doom->mousearray));
     d_memset(doom->joyarray, 0, sizeof(doom->joyarray));
 
@@ -707,7 +608,7 @@ boolean G_Responder(doom_data_t *doom, event_t *ev)
 
     // any other key pops up menu if in demos
     if (doom->gameaction == ga_nothing && !doom->singledemo &&
-        (demoplayback || doom->gamestate == GS_DEMOSCREEN))
+        (doom->demoplayback || doom->gamestate == GS_DEMOSCREEN))
     {
         if (ev->type == ev_keydown ||
             (ev->type == ev_mouse && ev->data1) ||
@@ -749,7 +650,7 @@ boolean G_Responder(doom_data_t *doom, event_t *ev)
         // Perform a low pass filter on this so that the thermometer
         // appears to move smoothly.
 
-        testcontrols_mousespeed = d_abs(ev->data2);
+       doom-> testcontrols_mousespeed = d_abs(ev->data2);
     }
 
     // If the next/previous weapon keys are pressed, set the next_weapon
@@ -869,9 +770,9 @@ void G_Ticker(doom_data_t *doom)
 
             d_memcpy(cmd, &doom->netcmds[i], sizeof(ticcmd_t));
 
-            if (demoplayback)
+            if (doom->demoplayback)
                 G_ReadDemoTiccmd(doom, cmd);
-            if (demorecording)
+            if (doom->demorecording)
                 G_WriteDemoTiccmd(doom, cmd);
 
             // check for turbo cheats
@@ -897,7 +798,7 @@ void G_Ticker(doom_data_t *doom)
                 doom->turbodetected[i] = false;
             }
 
-            if (netgame && !doom->netdemo && !(doom->gametic % doom->ticdup))
+            if (doom->netgame && !doom->netdemo && !(doom->gametic % doom->ticdup))
             {
                 if (doom->gametic > BACKUPTICS && doom->consistancy[i][buf] != cmd->consistancy)
                 {
@@ -922,8 +823,8 @@ void G_Ticker(doom_data_t *doom)
                 switch (doom->players[i].cmd.buttons & BT_SPECIALMASK)
                 {
                 case BTS_PAUSE:
-                    paused ^= 1;
-                    if (paused)
+                    doom->paused ^= 1;
+                    if (doom->paused)
                         S_PauseSound();
                     else
                         S_ResumeSound();
@@ -1087,10 +988,10 @@ G_CheckSpot(doom_data_t *doom,
         return false;
 
     // flush an old corpse if needed
-    if (bodyqueslot >= BODYQUESIZE)
-        P_RemoveMobj(doom->bodyque[bodyqueslot % BODYQUESIZE]);
-    doom->bodyque[bodyqueslot % BODYQUESIZE] = doom->players[playernum].mo;
-    bodyqueslot++;
+    if (doom->bodyqueslot >= BODYQUESIZE)
+        P_RemoveMobj(doom->bodyque[doom->bodyqueslot % BODYQUESIZE]);
+    doom->bodyque[doom->bodyqueslot % BODYQUESIZE] = doom->players[playernum].mo;
+    doom->bodyqueslot++;
 
     // spawn a teleport fog
     ss = R_PointInSubsector(x, y);
@@ -1196,7 +1097,7 @@ void G_DoReborn(doom_data_t *doom, int playernum)
 {
     int i;
 
-    if (!netgame)
+    if (!doom->netgame)
     {
         // reload the level from scratch
         doom->gameaction = ga_loadlevel;
@@ -1338,9 +1239,9 @@ void G_DoCompleted(doom_data_t *doom)
     }
     //#endif
 
-    wminfo.didsecret = doom->players[doom->consoleplayer].didsecret;
-    wminfo.epsd = doom->gameepisode - 1;
-    wminfo.last = doom->gamemap - 1;
+    doom->wminfo.didsecret = doom->players[doom->consoleplayer].didsecret;
+    doom->wminfo.epsd = doom->gameepisode - 1;
+    doom->wminfo.last = doom->gamemap - 1;
 
     // wminfo.next is 0 biased, unlike gamemap
     if (doom->gamemode == commercial)
@@ -1349,10 +1250,10 @@ void G_DoCompleted(doom_data_t *doom)
             switch (doom->gamemap)
             {
             case 15:
-                wminfo.next = 30;
+                doom->wminfo.next = 30;
                 break;
             case 31:
-                wminfo.next = 31;
+                doom->wminfo.next = 31;
                 break;
             }
         else
@@ -1360,71 +1261,71 @@ void G_DoCompleted(doom_data_t *doom)
             {
             case 31:
             case 32:
-                wminfo.next = 15;
+                doom->wminfo.next = 15;
                 break;
             default:
-                wminfo.next = doom->gamemap;
+                doom->wminfo.next = doom->gamemap;
             }
     }
     else
     {
         if (secretexit)
-            wminfo.next = 8; // go to secret level
+            doom->wminfo.next = 8; // go to secret level
         else if (doom->gamemap == 9)
         {
             // returning from secret level
             switch (doom->gameepisode)
             {
             case 1:
-                wminfo.next = 3;
+                doom->wminfo.next = 3;
                 break;
             case 2:
-                wminfo.next = 5;
+                doom->wminfo.next = 5;
                 break;
             case 3:
-                wminfo.next = 6;
+                doom->wminfo.next = 6;
                 break;
             case 4:
-                wminfo.next = 2;
+                doom->wminfo.next = 2;
                 break;
             }
         }
         else
-            wminfo.next = doom->gamemap; // go to next level
+            doom->wminfo.next = doom->gamemap; // go to next level
     }
 
-    wminfo.maxkills = totalkills;
-    wminfo.maxitems = totalitems;
-    wminfo.maxsecret = totalsecret;
-    wminfo.maxfrags = 0;
+    doom->wminfo.maxkills = doom->totalkills;
+    doom->wminfo.maxitems = doom->totalitems;
+    doom->wminfo.maxsecret = doom->totalsecret;
+    doom->wminfo.maxfrags = 0;
 
     // Set par time. Doom episode 4 doesn't have a par time, so this
     // overflows into the cpars array. It's necessary to emulate this
     // for statcheck regression testing.
     if (doom->gamemode == commercial)
-        wminfo.partime = TICRATE * cpars[doom->gamemap - 1];
+        doom->wminfo.partime = TICRATE * cpars[doom->gamemap - 1];
     else if (doom->gameepisode < 4)
-        wminfo.partime = TICRATE * pars[doom->gameepisode][doom->gamemap];
+        doom->wminfo.partime = TICRATE * pars[doom->gameepisode][doom->gamemap];
     else
-        wminfo.partime = TICRATE * cpars[doom->gamemap];
+        doom->wminfo.partime = TICRATE * cpars[doom->gamemap];
 
-    wminfo.pnum = doom->consoleplayer;
+    doom->wminfo.pnum = doom->consoleplayer;
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        wminfo.plyr[i].in = doom->playeringame[i];
-        wminfo.plyr[i].skills = doom->players[i].killcount;
-        wminfo.plyr[i].sitems = doom->players[i].itemcount;
-        wminfo.plyr[i].ssecret = doom->players[i].secretcount;
-        wminfo.plyr[i].stime = leveltime;
-        d_memcpy(wminfo.plyr[i].frags, doom->players[i].frags, sizeof(wminfo.plyr[i].frags));
+        doom->wminfo.plyr[i].in = doom->playeringame[i];
+        doom->wminfo.plyr[i].skills = doom->players[i].killcount;
+        doom->wminfo.plyr[i].sitems = doom->players[i].itemcount;
+        doom->wminfo.plyr[i].ssecret = doom->players[i].secretcount;
+        doom->wminfo.plyr[i].stime = leveltime;
+        d_memcpy(doom->wminfo.plyr[i].frags, doom->players[i].frags, sizeof(doom->wminfo.plyr[i].frags));
     }
 
     doom->gamestate = GS_INTERMISSION;
     doom->viewactive = false;
     doom->automapactive = false;
 
-    WI_Start(doom, &wminfo);
+    WI_Start(doom, &doom->wminfo);
 }
 
 //
@@ -1458,7 +1359,7 @@ void G_WorldDone(doom_data_t *doom)
 void G_DoWorldDone(doom_data_t *doom)
 {
     doom->gamestate = GS_LEVEL;
-    doom->gamemap = wminfo.next + 1;
+    doom->gamemap = doom->wminfo.next + 1;
     G_DoLoadLevel(doom);
     doom->gameaction = ga_nothing;
     doom->viewactive = true;
@@ -1566,9 +1467,9 @@ void G_DeferedInitNew(struct doom_data_t_* doom, skill_t skill,
 
 void G_DoNewGame(doom_data_t *doom)
 {
-    demoplayback = false;
+    doom->demoplayback = false;
     doom->netdemo = false;
-    netgame = false;
+    doom->netgame = false;
     doom->deathmatch = false;
     doom->playeringame[1] = doom->playeringame[2] = doom->playeringame[3] = 0;
     doom->respawnparm = false;
@@ -1587,9 +1488,9 @@ void G_InitNew(doom_data_t *doom,
     char *skytexturename;
     int i;
 
-    if (paused)
+    if (doom->paused)
     {
-        paused = false;
+        doom->paused = false;
         S_ResumeSound();
     }
 
@@ -1659,9 +1560,9 @@ void G_InitNew(doom_data_t *doom,
     M_ClearRandom();
 
     if (skill == sk_nightmare || doom->respawnparm)
-        respawnmonsters = true;
+        doom->respawnmonsters = true;
     else
-        respawnmonsters = false;
+        doom->respawnmonsters = false;
 
     if (doom->fastparm || (skill == sk_nightmare && doom->gameskill != sk_nightmare))
     {
@@ -1684,9 +1585,9 @@ void G_InitNew(doom_data_t *doom,
     for (i = 0; i < MAXPLAYERS; i++)
         doom->players[i].playerstate = PST_REBORN;
 
-    usergame = true; // will be set false if a demo
-    paused = false;
-    demoplayback = false;
+    doom->usergame = true; // will be set false if a demo
+    doom->paused = false;
+    doom->demoplayback = false;
     doom->automapactive = false;
     doom->viewactive = true;
     doom->gameepisode = episode;
@@ -1833,7 +1734,7 @@ void G_WriteDemoTiccmd(doom_data_t *doom, ticcmd_t *cmd)
 
     if (doom->demo_p > doom->demoend - 16)
     {
-        if (vanilla_demo_limit)
+        if (doom->vanilla_demo_limit)
         {
             // no more space
             G_CheckDemoStatus(doom);
@@ -1860,7 +1761,7 @@ void G_RecordDemo(struct doom_data_t_* doom, char *name)
     int i;
     int maxsize;
 
-    usergame = false;
+    doom->usergame = false;
     demoname_size = d_strlen(name) + 5;
     doom->demoname = Z_Malloc(demoname_size, PU_STATIC, NULL);
     d_snprintf(doom->demoname, demoname_size, "%s.lmp", name);
@@ -1880,7 +1781,7 @@ void G_RecordDemo(struct doom_data_t_* doom, char *name)
     doom->demobuffer = Z_Malloc(maxsize, PU_STATIC, NULL);
     doom->demoend = doom->demobuffer + maxsize;
 
-    demorecording = true;
+    doom->demorecording = true;
 }
 
 // Get the demo version code appropriate for the version set in gameversion.
@@ -1916,7 +1817,7 @@ void G_BeginRecording(doom_data_t *doom)
 
     // If not recording a longtics demo, record in low res
 
-    lowres_turn = !doom->longtics;
+    doom->lowres_turn = !doom->longtics;
 
     doom->demo_p = doom->demobuffer;
 
@@ -2045,17 +1946,17 @@ void G_DoPlayDemo(doom_data_t *doom)
 
     if (doom->playeringame[1] || M_CheckParm(doom, "-solo-net") > 0 || M_CheckParm(doom, "-netdemo") > 0)
     {
-        netgame = true;
+        doom->netgame = true;
         doom->netdemo = true;
     }
 
     // don't spend a lot of time in loadlevel
-    precache = false;
+    doom->precache = false;
     G_InitNew(doom, skill, episode, map);
-    precache = true;
+    doom->precache = true;
 
-    usergame = false;
-    demoplayback = true;
+    doom->usergame = false;
+    doom->demoplayback = true;
 }
 
 //
@@ -2092,12 +1993,12 @@ boolean G_CheckDemoStatus(doom_data_t *doom)
 {
     int endtime;
 
-    if (demoplayback)
+    if (doom->demoplayback)
     {
         W_ReleaseLumpName(doom, defdemoname);
-        demoplayback = false;
+        doom->demoplayback = false;
         doom->netdemo = false;
-        netgame = false;
+        doom->netgame = false;
         doom->deathmatch = false;
         doom->playeringame[1] = doom->playeringame[2] = doom->playeringame[3] = 0;
         doom->respawnparm = false;
@@ -2113,12 +2014,12 @@ boolean G_CheckDemoStatus(doom_data_t *doom)
         return true;
     }
 
-    if (demorecording)
+    if (doom->demorecording)
     {
         *doom->demo_p++ = DEMOMARKER;
         M_WriteFile(doom->demoname, doom->demobuffer, doom->demo_p - doom->demobuffer);
         Z_Free(doom->demobuffer);
-        demorecording = false;
+        doom->demorecording = false;
         I_Error("Demo %s recorded", doom->demoname);
     }
 
