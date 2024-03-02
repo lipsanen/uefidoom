@@ -57,7 +57,8 @@ int clipammo[NUMAMMO] = {10, 4, 20, 1};
 //
 
 boolean
-P_GiveAmmo(player_t *player,
+P_GiveAmmo(struct doom_data_t_ *doom,
+		   player_t *player,
 		   ammotype_t ammo,
 		   int num)
 {
@@ -77,7 +78,7 @@ P_GiveAmmo(player_t *player,
 	else
 		num = clipammo[ammo] / 2;
 
-	if (gameskill == sk_baby || gameskill == sk_nightmare)
+	if (doom->gameskill == sk_baby || doom->gameskill == sk_nightmare)
 	{
 		// give double ammo in trainer mode,
 		// you'll need in nightmare
@@ -145,14 +146,14 @@ P_GiveAmmo(player_t *player,
 // The weapon name may have a MF_DROPPED flag ored in.
 //
 boolean
-P_GiveWeapon(player_t *player,
+P_GiveWeapon(struct doom_data_t_ *doom, player_t *player,
 			 weapontype_t weapon,
 			 boolean dropped)
 {
 	boolean gaveammo;
 	boolean gaveweapon;
 
-	if (netgame && (deathmatch != 2) && !dropped)
+	if (netgame && (doom->deathmatch != 2) && !dropped)
 	{
 		// leave placed weapons forever on net games
 		if (player->weaponowned[weapon])
@@ -161,14 +162,14 @@ P_GiveWeapon(player_t *player,
 		player->bonuscount += BONUSADD;
 		player->weaponowned[weapon] = true;
 
-		if (deathmatch)
-			P_GiveAmmo(player, weaponinfo[weapon].ammo, 5);
+		if (doom->deathmatch)
+			P_GiveAmmo(doom, player, weaponinfo[weapon].ammo, 5);
 		else
-			P_GiveAmmo(player, weaponinfo[weapon].ammo, 2);
+			P_GiveAmmo(doom, player, weaponinfo[weapon].ammo, 2);
 		player->pendingweapon = weapon;
 
-		if (player == &players[consoleplayer])
-			S_StartSound(NULL, sfx_wpnup);
+		if (player == &doom->players[doom->consoleplayer])
+			S_StartSound(doom, NULL, sfx_wpnup);
 		return false;
 	}
 
@@ -177,9 +178,9 @@ P_GiveWeapon(player_t *player,
 		// give one clip with a dropped weapon,
 		// two clips with a found weapon
 		if (dropped)
-			gaveammo = P_GiveAmmo(player, weaponinfo[weapon].ammo, 1);
+			gaveammo = P_GiveAmmo(doom, player, weaponinfo[weapon].ammo, 1);
 		else
-			gaveammo = P_GiveAmmo(player, weaponinfo[weapon].ammo, 2);
+			gaveammo = P_GiveAmmo(doom, player, weaponinfo[weapon].ammo, 2);
 	}
 	else
 	{
@@ -500,55 +501,55 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 	case SPR_CLIP:
 		if (special->flags & MF_DROPPED)
 		{
-			if (!P_GiveAmmo(player, am_clip, 0))
+			if (!P_GiveAmmo(doom, player, am_clip, 0))
 				return;
 		}
 		else
 		{
-			if (!P_GiveAmmo(player, am_clip, 1))
+			if (!P_GiveAmmo(doom, player, am_clip, 1))
 				return;
 		}
 		player->message = DEH_String(GOTCLIP);
 		break;
 
 	case SPR_AMMO:
-		if (!P_GiveAmmo(player, am_clip, 5))
+		if (!P_GiveAmmo(doom, player, am_clip, 5))
 			return;
 		player->message = DEH_String(GOTCLIPBOX);
 		break;
 
 	case SPR_ROCK:
-		if (!P_GiveAmmo(player, am_misl, 1))
+		if (!P_GiveAmmo(doom, player, am_misl, 1))
 			return;
 		player->message = DEH_String(GOTROCKET);
 		break;
 
 	case SPR_BROK:
-		if (!P_GiveAmmo(player, am_misl, 5))
+		if (!P_GiveAmmo(doom, player, am_misl, 5))
 			return;
 		player->message = DEH_String(GOTROCKBOX);
 		break;
 
 	case SPR_CELL:
-		if (!P_GiveAmmo(player, am_cell, 1))
+		if (!P_GiveAmmo(doom, player, am_cell, 1))
 			return;
 		player->message = DEH_String(GOTCELL);
 		break;
 
 	case SPR_CELP:
-		if (!P_GiveAmmo(player, am_cell, 5))
+		if (!P_GiveAmmo(doom, player, am_cell, 5))
 			return;
 		player->message = DEH_String(GOTCELLBOX);
 		break;
 
 	case SPR_SHEL:
-		if (!P_GiveAmmo(player, am_shell, 1))
+		if (!P_GiveAmmo(doom, player, am_shell, 1))
 			return;
 		player->message = DEH_String(GOTSHELLS);
 		break;
 
 	case SPR_SBOX:
-		if (!P_GiveAmmo(player, am_shell, 5))
+		if (!P_GiveAmmo(doom, player, am_shell, 5))
 			return;
 		player->message = DEH_String(GOTSHELLBOX);
 		break;
@@ -561,55 +562,55 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 			player->backpack = true;
 		}
 		for (i = 0; i < NUMAMMO; i++)
-			P_GiveAmmo(player, i, 1);
+			P_GiveAmmo(doom, player, i, 1);
 		player->message = DEH_String(GOTBACKPACK);
 		break;
 
 		// weapons
 	case SPR_BFUG:
-		if (!P_GiveWeapon(player, wp_bfg, false))
+		if (!P_GiveWeapon(doom, player, wp_bfg, false))
 			return;
 		player->message = DEH_String(GOTBFG9000);
 		sound = sfx_wpnup;
 		break;
 
 	case SPR_MGUN:
-		if (!P_GiveWeapon(player, wp_chaingun, (special->flags & MF_DROPPED) != 0))
+		if (!P_GiveWeapon(doom, player, wp_chaingun, (special->flags & MF_DROPPED) != 0))
 			return;
 		player->message = DEH_String(GOTCHAINGUN);
 		sound = sfx_wpnup;
 		break;
 
 	case SPR_CSAW:
-		if (!P_GiveWeapon(player, wp_chainsaw, false))
+		if (!P_GiveWeapon(doom, player, wp_chainsaw, false))
 			return;
 		player->message = DEH_String(GOTCHAINSAW);
 		sound = sfx_wpnup;
 		break;
 
 	case SPR_LAUN:
-		if (!P_GiveWeapon(player, wp_missile, false))
+		if (!P_GiveWeapon(doom, player, wp_missile, false))
 			return;
 		player->message = DEH_String(GOTLAUNCHER);
 		sound = sfx_wpnup;
 		break;
 
 	case SPR_PLAS:
-		if (!P_GiveWeapon(player, wp_plasma, false))
+		if (!P_GiveWeapon(doom, player, wp_plasma, false))
 			return;
 		player->message = DEH_String(GOTPLASMA);
 		sound = sfx_wpnup;
 		break;
 
 	case SPR_SHOT:
-		if (!P_GiveWeapon(player, wp_shotgun, (special->flags & MF_DROPPED) != 0))
+		if (!P_GiveWeapon(doom, player, wp_shotgun, (special->flags & MF_DROPPED) != 0))
 			return;
 		player->message = DEH_String(GOTSHOTGUN);
 		sound = sfx_wpnup;
 		break;
 
 	case SPR_SGN2:
-		if (!P_GiveWeapon(player, wp_supershotgun, (special->flags & MF_DROPPED) != 0))
+		if (!P_GiveWeapon(doom, player, wp_supershotgun, (special->flags & MF_DROPPED) != 0))
 			return;
 		player->message = DEH_String(GOTSHOTGUN2);
 		sound = sfx_wpnup;
@@ -623,8 +624,8 @@ void P_TouchSpecialThing(struct doom_data_t_ *doom,
 		player->itemcount++;
 	P_RemoveMobj(special);
 	player->bonuscount += BONUSADD;
-	if (player == &players[consoleplayer])
-		S_StartSound(NULL, sound);
+	if (player == &doom->players[doom->consoleplayer])
+		S_StartSound(doom, NULL, sound);
 }
 
 //
@@ -652,26 +653,26 @@ void P_KillMobj(doom_data_t *doom,
 			source->player->killcount++;
 
 		if (target->player)
-			source->player->frags[target->player - players]++;
+			source->player->frags[target->player - doom->players]++;
 	}
 	else if (!netgame && (target->flags & MF_COUNTKILL))
 	{
 		// count all monster deaths,
 		// even those caused by other monsters
-		players[0].killcount++;
+		doom->players[0].killcount++;
 	}
 
 	if (target->player)
 	{
 		// count environment kills against you
 		if (!source)
-			target->player->frags[target->player - players]++;
+			target->player->frags[target->player - doom->players]++;
 
 		target->flags &= ~MF_SOLID;
 		target->player->playerstate = PST_DEAD;
 		P_DropWeapon(doom, target->player);
 
-		if (target->player == &players[consoleplayer] && doom->automapactive)
+		if (target->player == &doom->players[doom->consoleplayer] && doom->automapactive)
 		{
 			// don't die in auto map,
 			// switch view prior to dying
@@ -721,7 +722,7 @@ void P_KillMobj(doom_data_t *doom,
 		return;
 	}
 
-	mo = P_SpawnMobj(target->x, target->y, ONFLOORZ, item);
+	mo = P_SpawnMobj(doom, target->x, target->y, ONFLOORZ, item);
 	mo->flags |= MF_DROPPED; // special versions of items
 }
 
@@ -760,7 +761,7 @@ void P_DamageMobj(doom_data_t *doom,
 	}
 
 	player = target->player;
-	if (player && gameskill == sk_baby)
+	if (player && doom->gameskill == sk_baby)
 		damage >>= 1; // take half damage in trainer mode
 
 	// Some close combat weapons should not
@@ -831,7 +832,7 @@ void P_DamageMobj(doom_data_t *doom,
 
 		temp = damage < 100 ? damage : 100;
 
-		if (player == &players[consoleplayer])
+		if (player == &doom->players[doom->consoleplayer])
 			I_Tactile(40, 10, 40 + temp * 2);
 	}
 

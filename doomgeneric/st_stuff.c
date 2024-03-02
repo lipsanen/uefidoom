@@ -290,7 +290,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
     // if a user keypress...
     else if (ev->type == ev_keydown)
     {
-        if (!netgame && gameskill != sk_nightmare)
+        if (!netgame && doom->gameskill != sk_nightmare)
         {
             // 'dqd' cheat for toggleable god mode
             if (cht_CheckCheat(&doom->cheat_god, ev->data2))
@@ -418,9 +418,9 @@ ST_Responder(doom_data_t *doom, event_t *ev)
             {
                 static char buf[ST_MSGWIDTH];
                 d_snprintf(buf, sizeof(buf), "ang=0x%x;x,y=(0x%x,0x%x)",
-                           players[consoleplayer].mo->angle,
-                           players[consoleplayer].mo->x,
-                           players[consoleplayer].mo->y);
+                           doom->players[doom->consoleplayer].mo->angle,
+                           doom->players[doom->consoleplayer].mo->x,
+                           doom->players[doom->consoleplayer].mo->y);
                 doom->plyr->message = buf;
             }
         }
@@ -476,7 +476,7 @@ ST_Responder(doom_data_t *doom, event_t *ev)
 
             // So be it.
             doom->plyr->message = DEH_String(STSTR_CLEV);
-            G_DeferedInitNew(gameskill, epsd, map);
+            G_DeferedInitNew(doom, doom->gameskill, epsd, map);
         }
     }
     return false;
@@ -701,18 +701,18 @@ void ST_updateWidgets(struct doom_data_t_* doom)
     ST_updateFaceWidget(doom);
 
     // used by the w_armsbg widget
-    doom->st_notdeathmatch = !deathmatch;
+    doom->st_notdeathmatch = !doom->deathmatch;
 
     // used by w_arms[] widgets
-    doom->st_armson = doom->st_statusbaron && !deathmatch;
+    doom->st_armson = doom->st_statusbaron && !doom->deathmatch;
 
     // used by w_frags widget
-    doom->st_fragson = deathmatch && doom->st_statusbaron;
+    doom->st_fragson = doom->deathmatch && doom->st_statusbaron;
     doom->st_fragscount = 0;
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        if (i != consoleplayer)
+        if (i != doom->consoleplayer)
             doom->st_fragscount += doom->plyr->frags[i];
         else
             doom->st_fragscount -= doom->plyr->frags[i];
@@ -799,10 +799,10 @@ void ST_drawWidgets(struct doom_data_t_* doom, boolean refresh)
     int i;
 
     // used by w_arms[] widgets
-    doom->st_armson = doom->st_statusbaron && !deathmatch;
+    doom->st_armson = doom->st_statusbaron && !doom->deathmatch;
 
     // used by w_frags widget
-    doom->st_fragson = deathmatch && doom->st_statusbaron;
+    doom->st_fragson = doom->deathmatch && doom->st_statusbaron;
 
     STlib_updateNum(doom, &doom->w_ready, refresh);
 
@@ -915,7 +915,7 @@ static void ST_loadUnloadGraphics(struct doom_data_t_* doom, load_callback_t cal
     }
 
     // face backgrounds for different color players
-    d_snprintf(namebuf, 9, "STFB%d", consoleplayer);
+    d_snprintf(namebuf, 9, "STFB%d", doom->consoleplayer);
     callback(doom, namebuf, &doom->faceback);
 
     // status bar background bits
@@ -992,7 +992,7 @@ void ST_initData(doom_data_t *doom)
     int i;
 
     doom->st_firsttime = true;
-    doom->plyr = &players[consoleplayer];
+    doom->plyr = &doom->players[doom->consoleplayer];
 
     doom->st_clock = 0;
     doom->st_chatstate = StartChatState;

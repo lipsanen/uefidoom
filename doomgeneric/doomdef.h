@@ -29,6 +29,21 @@
 #include "v_patch.h"
 #include "i_timer.h"
 #include "d_mode.h"
+#include "p_pspr.h"
+
+typedef enum
+{
+    ga_nothing,
+    ga_loadlevel,
+    ga_newgame,
+    ga_loadgame,
+    ga_savegame,
+    ga_playdemo,
+    ga_completed,
+    ga_victory,
+    ga_worlddone,
+    ga_screenshot
+} gameaction_t;
 
 typedef struct
 {
@@ -160,7 +175,7 @@ struct wbplayerstruct_s;
 struct wbstartstruct_s;
 struct _wad_file_s;
 struct player_s;
-
+struct mobj_s;
 
 typedef struct
 {
@@ -299,12 +314,177 @@ typedef enum
 
 } weapontype_t;
 
+#define MAX_MOUSE_BUTTONS 8
+
 typedef enum
 {
     F_STAGE_TEXT,
     F_STAGE_ARTSCREEN,
     F_STAGE_CAST,
 } finalestage_t;
+
+//
+// INTERMISSION
+// Structure passed e.g. to WI_Start(wb)
+//
+typedef struct wbplayerstruct_s
+{
+    boolean	in;	// whether the player is in game
+    
+    // Player stats, kills, collected items etc.
+    int		skills;
+    int		sitems;
+    int		ssecret;
+    int		stime; 
+    int		frags[4];
+    int		score;	// current score on entry, modified on return
+  
+} wbplayerstruct_t;
+
+typedef struct wbstartstruct_s
+{
+    int		epsd;	// episode # (0-2)
+
+    // if true, splash the secret level
+    boolean	didsecret;
+    
+    // previous and next levels, origin 0
+    int		last;
+    int		next;	
+    
+    int		maxkills;
+    int		maxitems;
+    int		maxsecret;
+    int		maxfrags;
+
+    // the par time
+    int		partime;
+    
+    // index of this player in game
+    int		pnum;	
+
+    wbplayerstruct_t	plyr[MAXPLAYERS];
+
+} wbstartstruct_t;
+
+
+//
+// Player states.
+//
+typedef enum
+{
+    // Playing or camping.
+    PST_LIVE,
+    // Dead on the ground, view follows killer.
+    PST_DEAD,
+    // Ready to restart/respawn???
+    PST_REBORN		
+
+} playerstate_t;
+
+
+//
+// Player internal flags, for cheats and debug.
+//
+typedef enum
+{
+    // No clipping, walk through barriers.
+    CF_NOCLIP		= 1,
+    // No damage, no health loss.
+    CF_GODMODE		= 2,
+    // Not really a cheat, just a debug aid.
+    CF_NOMOMENTUM	= 4
+
+} cheat_t;
+
+
+//
+// Extended player object info: player_t
+//
+typedef struct player_s
+{
+    struct mobj_s*		mo;
+    playerstate_t	playerstate;
+    ticcmd_t		cmd;
+
+    // Determine POV,
+    //  including viewpoint bobbing during movement.
+    // Focal origin above r.z
+    fixed_t		viewz;
+    // Base height above floor for viewz.
+    fixed_t		viewheight;
+    // Bob/squat speed.
+    fixed_t         	deltaviewheight;
+    // bounded/scaled total momentum.
+    fixed_t         	bob;	
+
+    // This is only used between levels,
+    // mo->health is used during levels.
+    int			health;	
+    int			armorpoints;
+    // Armor type is 0-2.
+    int			armortype;	
+
+    // Power ups. invinc and invis are tic counters.
+    int			powers[NUMPOWERS];
+    boolean		cards[NUMCARDS];
+    boolean		backpack;
+    
+    // Frags, kills of other players.
+    int			frags[MAXPLAYERS];
+    weapontype_t	readyweapon;
+    
+    // Is wp_nochange if not changing.
+    weapontype_t	pendingweapon;
+
+    boolean		weaponowned[NUMWEAPONS];
+    int			ammo[NUMAMMO];
+    int			maxammo[NUMAMMO];
+
+    // True if button down last tic.
+    int			attackdown;
+    int			usedown;
+
+    // Bit flags, for cheats and debug.
+    // See cheat_t, above.
+    int			cheats;		
+
+    // Refired shots are less accurate.
+    int			refire;		
+
+     // For intermission stats.
+    int			killcount;
+    int			itemcount;
+    int			secretcount;
+
+    // Hint messages.
+    char*		message;	
+    
+    // For screen flashing (red or bright).
+    int			damagecount;
+    int			bonuscount;
+
+    // Who did damage (NULL for floors/ceilings).
+     struct mobj_s*		attacker;
+    
+    // So gun flashes light up areas.
+    int			extralight;
+
+    // Current PLAYPAL, ???
+    //  can be set to REDCOLORMAP for pain, etc.
+    int			fixedcolormap;
+
+    // Player skin colorshift,
+    //  0-3 for which color to draw player.
+    int			colormap;	
+
+    // Overlay view sprites (gun, etc).
+    pspdef_t		psprites[NUMPSPRITES];
+
+    // True if secret level has been done.
+    boolean		didsecret;	
+
+} player_t;
 
 struct doom_data_t_
 {
@@ -812,6 +992,111 @@ struct doom_data_t_
     byte *wipe_scr_end;
     byte *wipe_scr;
     int *wipe_y;
+
+    // g_game.c starts
+
+    // Gamestate the last time G_Ticker was called.
+    gamestate_t game_oldgamestate;
+    gameaction_t gameaction;
+    gamestate_t gamestate;
+    skill_t gameskill;
+    boolean respawnmonsters;
+    int gameepisode;
+    int gamemap;
+
+    // If non-zero, exit the level after this number of minutes.
+
+    int timelimit;
+
+    boolean paused;
+    boolean sendpause; // send a pause event next tic
+    boolean sendsave;  // send a save event next tic
+    boolean usergame;  // ok to save / end game
+
+    boolean timingdemo; // if true, exit with report on completion
+    boolean nodrawers;  // for comparative timing purposes
+
+    boolean viewactive;
+
+    int deathmatch;  // only if started as net death
+    boolean netgame; // only true if packets are broadcast
+    boolean playeringame[MAXPLAYERS];
+    player_t players[MAXPLAYERS];
+
+    boolean turbodetected[MAXPLAYERS];
+
+    int consoleplayer;                       // player taking events and displaying
+    int displayplayer;                       // view being displayed
+    int levelstarttic;                       // gametic at level start
+    int totalkills, totalitems, totalsecret; // for intermission
+
+    char *demoname;
+    boolean demorecording;
+    boolean longtics;    // cph's doom 1.91 longtics hack
+    boolean lowres_turn; // low resolution turning for longtics
+    boolean demoplayback;
+    boolean netdemo;
+    byte *demobuffer;
+    byte *demo_p;
+    byte *demoend;
+    boolean singledemo; // quit after playing a demo from cmdline
+
+    boolean precache; // if true, load all graphics at start
+
+    boolean testcontrols; // Invoked by setup to test controls
+    int testcontrols_mousespeed;
+
+    wbstartstruct_t wminfo; // parms for world map / intermission
+
+    byte consistancy[MAXPLAYERS][BACKUPTICS];
+
+    fixed_t forwardmove[2];
+    fixed_t sidemove[2];
+    fixed_t angleturn[3]; // + slow turn
+
+    #define SLOWTURNTICS 6
+
+    #define NUMKEYS 256
+    #define MAX_JOY_BUTTONS 20
+
+    boolean gamekeydown[NUMKEYS];
+    int turnheld; // for accelerative turning
+
+    boolean mousearray[MAX_MOUSE_BUTTONS + 1];
+    boolean *mousebuttons; // allow [-1]
+
+    // mouse values are used once
+    int mousex;
+    int mousey;
+
+    int dclicktime;
+    boolean dclickstate;
+    int dclicks;
+    int dclicktime2;
+    boolean dclickstate2;
+    int dclicks2;
+
+    // joystick values are repeated
+    int joyxmove;
+    int joyymove;
+    int joystrafemove;
+    boolean joyarray[MAX_JOY_BUTTONS + 1];
+    boolean *joybuttons; // allow [-1]
+
+    int savegameslot;
+    char savedescription[32];
+
+    #define BODYQUESIZE 32
+
+    struct mobj_s *bodyque[BODYQUESIZE];
+    int bodyqueslot;
+
+    int vanilla_savegame_limit;
+    int vanilla_demo_limit;
+
+    int next_weapon;
+
+    // g_game.c ends
 };
 
 typedef struct doom_data_t_ doom_data_t;
@@ -829,20 +1114,6 @@ void doomdata_init(doom_data_t *doom);
 // If rangecheck is undefined,
 // most parameter validation debugging code will not be compiled
 #define RANGECHECK
-
-typedef enum
-{
-    ga_nothing,
-    ga_loadlevel,
-    ga_newgame,
-    ga_loadgame,
-    ga_savegame,
-    ga_playdemo,
-    ga_completed,
-    ga_victory,
-    ga_worlddone,
-    ga_screenshot
-} gameaction_t;
 
 //
 // Difficulty/skill settings/filters.

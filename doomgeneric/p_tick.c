@@ -113,18 +113,18 @@ void P_Ticker(doom_data_t *doom)
         return;
 
     // pause if in menu and at least one tic has been run
-    if (!netgame && menuactive && !demoplayback && players[consoleplayer].viewz != 1)
+    if (!netgame && menuactive && !demoplayback && doom->players[doom->consoleplayer].viewz != 1)
     {
         return;
     }
 
     for (i = 0; i < MAXPLAYERS; i++)
-        if (playeringame[i])
-            P_PlayerThink(doom, &players[i]);
+        if (doom->playeringame[i])
+            P_PlayerThink(doom, &doom->players[i]);
 
     P_RunThinkers(doom);
     P_UpdateSpecials(doom);
-    P_RespawnSpecials();
+    P_RespawnSpecials(doom);
 
     // for par times
     leveltime++;

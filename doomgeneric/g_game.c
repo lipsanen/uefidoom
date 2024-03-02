@@ -70,7 +70,7 @@
 
 void G_ReadDemoTiccmd(doom_data_t *doom, ticcmd_t *cmd);
 void G_WriteDemoTiccmd(doom_data_t *doom, ticcmd_t *cmd);
-void G_PlayerReborn(int player);
+void G_PlayerReborn(struct doom_data_t_* doom, int player);
 
 void G_DoReborn(doom_data_t *doom, int playernum);
 
@@ -80,13 +80,12 @@ void G_DoPlayDemo(doom_data_t *doom);
 void G_DoCompleted(doom_data_t *doom);
 void G_DoVictory(void);
 void G_DoWorldDone(doom_data_t *doom);
-void G_DoSaveGame(void);
+void G_DoSaveGame(struct doom_data_t_* doom);
 
-// Gamestate the last time G_Ticker was called.
+#define MAXPLMOVE (doom->forwardmove[1])
 
-gamestate_t oldgamestate;
+#define TURBOTHRESHOLD 0x32
 
-gameaction_t gameaction;
 gamestate_t gamestate;
 skill_t gameskill;
 boolean respawnmonsters;
@@ -130,24 +129,61 @@ byte *demo_p;
 byte *demoend;
 boolean singledemo; // quit after playing a demo from cmdline
 
-boolean precache = true; // if true, load all graphics at start
+boolean precache; // if true, load all graphics at start
 
-boolean testcontrols = false; // Invoked by setup to test controls
+boolean testcontrols; // Invoked by setup to test controls
 int testcontrols_mousespeed;
 
 wbstartstruct_t wminfo; // parms for world map / intermission
 
 byte consistancy[MAXPLAYERS][BACKUPTICS];
 
-#define MAXPLMOVE (forwardmove[1])
+fixed_t forwardmove[2];
+fixed_t sidemove[2];
+fixed_t angleturn[3]; // + slow turn
 
-#define TURBOTHRESHOLD 0x32
+#define SLOWTURNTICS 6
 
-fixed_t forwardmove[2] = {0x19, 0x32};
-fixed_t sidemove[2] = {0x18, 0x28};
-fixed_t angleturn[3] = {640, 1280, 320}; // + slow turn
+#define NUMKEYS 256
+#define MAX_JOY_BUTTONS 20
 
-static int *weapon_keys[] = {
+boolean gamekeydown[NUMKEYS];
+int turnheld; // for accelerative turning
+
+boolean mousearray[MAX_MOUSE_BUTTONS + 1];
+boolean *mousebuttons; // allow [-1]
+
+// mouse values are used once
+int mousex;
+int mousey;
+
+int dclicktime;
+boolean dclickstate;
+int dclicks;
+int dclicktime2;
+boolean dclickstate2;
+int dclicks2;
+
+// joystick values are repeated
+int joyxmove;
+int joyymove;
+int joystrafemove;
+boolean joyarray[MAX_JOY_BUTTONS + 1];
+
+int savegameslot;
+char savedescription[32];
+
+#define BODYQUESIZE 32
+
+struct mobj_s *bodyque[BODYQUESIZE];
+int bodyqueslot;
+
+int vanilla_savegame_limit;
+int vanilla_demo_limit;
+
+int next_weapon;
+
+static const int *weapon_keys[] = {
     &key_weapon1,
     &key_weapon2,
     &key_weapon3,
@@ -159,7 +195,6 @@ static int *weapon_keys[] = {
 
 // Set to -1 or +1 to switch to the previous or next weapon.
 
-static int next_weapon = 0;
 
 // Used for prev/next weapon keys.
 
@@ -177,46 +212,6 @@ static const struct
     {wp_missile, wp_missile},
     {wp_plasma, wp_plasma},
     {wp_bfg, wp_bfg}};
-
-#define SLOWTURNTICS 6
-
-#define NUMKEYS 256
-#define MAX_JOY_BUTTONS 20
-
-static boolean gamekeydown[NUMKEYS];
-static int turnheld; // for accelerative turning
-
-static boolean mousearray[MAX_MOUSE_BUTTONS + 1];
-static boolean *mousebuttons = &mousearray[1]; // allow [-1]
-
-// mouse values are used once
-int mousex;
-int mousey;
-
-static int dclicktime;
-static boolean dclickstate;
-static int dclicks;
-static int dclicktime2;
-static boolean dclickstate2;
-static int dclicks2;
-
-// joystick values are repeated
-static int joyxmove;
-static int joyymove;
-static int joystrafemove;
-static boolean joyarray[MAX_JOY_BUTTONS + 1];
-static boolean *joybuttons = &joyarray[1]; // allow [-1]
-
-static int savegameslot;
-static char savedescription[32];
-
-#define BODYQUESIZE 32
-
-mobj_t *bodyque[BODYQUESIZE];
-int bodyqueslot;
-
-int vanilla_savegame_limit = 1;
-int vanilla_demo_limit = 1;
 
 int G_CmdChecksum(ticcmd_t *cmd)
 {
@@ -247,7 +242,7 @@ static boolean WeaponSelectable(doom_data_t *doom, weapontype_t weapon)
 
     // Can't select a weapon if we don't own it.
 
-    if (!players[consoleplayer].weaponowned[weapon])
+    if (!doom->players[doom->consoleplayer].weaponowned[weapon])
     {
         return false;
     }
@@ -255,7 +250,7 @@ static boolean WeaponSelectable(doom_data_t *doom, weapontype_t weapon)
     // Can't select the fist if we have the chainsaw, unless
     // we also have the berserk pack.
 
-    if (weapon == wp_fist && players[consoleplayer].weaponowned[wp_chainsaw] && !players[consoleplayer].powers[pw_strength])
+    if (weapon == wp_fist && doom->players[doom->consoleplayer].weaponowned[wp_chainsaw] && !doom->players[doom->consoleplayer].powers[pw_strength])
     {
         return false;
     }
@@ -270,13 +265,13 @@ static int G_NextWeapon(doom_data_t *doom, int direction)
 
     // Find index in the table.
 
-    if (players[consoleplayer].pendingweapon == wp_nochange)
+    if (doom->players[doom->consoleplayer].pendingweapon == wp_nochange)
     {
-        weapon = players[consoleplayer].readyweapon;
+        weapon = doom->players[doom->consoleplayer].readyweapon;
     }
     else
     {
-        weapon = players[consoleplayer].pendingweapon;
+        weapon = doom->players[doom->consoleplayer].pendingweapon;
     }
 
     for (i = 0; i < arrlen(weapon_order_table); ++i)
@@ -317,25 +312,25 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
     d_memset(cmd, 0, sizeof(ticcmd_t));
 
     cmd->consistancy =
-        consistancy[consoleplayer][maketic % BACKUPTICS];
+        doom->consistancy[doom->consoleplayer][maketic % BACKUPTICS];
 
-    strafe = gamekeydown[key_strafe] || mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
+    strafe = doom->gamekeydown[key_strafe] || doom->mousebuttons[mousebstrafe] || doom->joybuttons[joybstrafe];
 
     // fraggle: support the old "joyb_speed = 31" hack which
     // allowed an autorun effect
 
-    speed = key_speed >= NUMKEYS || joybspeed >= MAX_JOY_BUTTONS || gamekeydown[key_speed] || joybuttons[joybspeed];
+    speed = key_speed >= NUMKEYS || joybspeed >= MAX_JOY_BUTTONS || doom->gamekeydown[key_speed] || doom->joybuttons[joybspeed];
 
     forward = side = 0;
 
     // use two stage accelerative turning
     // on the keyboard and joystick
-    if (joyxmove < 0 || joyxmove > 0 || gamekeydown[key_right] || gamekeydown[key_left])
-        turnheld += doom->ticdup;
+    if (doom->joyxmove < 0 || doom->joyxmove > 0 || doom->gamekeydown[key_right] || doom->gamekeydown[key_left])
+        doom->turnheld += doom->ticdup;
     else
-        turnheld = 0;
+        doom->turnheld = 0;
 
-    if (turnheld < SLOWTURNTICS)
+    if (doom->turnheld < SLOWTURNTICS)
         tspeed = 2; // slow turn
     else
         tspeed = speed;
@@ -343,79 +338,79 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
     // let movement keys cancel each other out
     if (strafe)
     {
-        if (gamekeydown[key_right])
+        if (doom->gamekeydown[key_right])
         {
             // d_printf( "strafe right\n");
-            side += sidemove[speed];
+            side += doom->sidemove[speed];
         }
-        if (gamekeydown[key_left])
+        if (doom->gamekeydown[key_left])
         {
             //	d_printf( "strafe left\n");
-            side -= sidemove[speed];
+            side -= doom->sidemove[speed];
         }
-        if (joyxmove > 0)
-            side += sidemove[speed];
-        if (joyxmove < 0)
-            side -= sidemove[speed];
+        if (doom->joyxmove > 0)
+            side += doom->sidemove[speed];
+        if (doom->joyxmove < 0)
+            side -= doom->sidemove[speed];
     }
     else
     {
-        if (gamekeydown[key_right])
-            cmd->angleturn -= angleturn[tspeed];
-        if (gamekeydown[key_left])
-            cmd->angleturn += angleturn[tspeed];
-        if (joyxmove > 0)
-            cmd->angleturn -= angleturn[tspeed];
-        if (joyxmove < 0)
-            cmd->angleturn += angleturn[tspeed];
+        if (doom->gamekeydown[key_right])
+            cmd->angleturn -= doom->angleturn[tspeed];
+        if (doom->gamekeydown[key_left])
+            cmd->angleturn += doom->angleturn[tspeed];
+        if (doom->joyxmove > 0)
+            cmd->angleturn -= doom->angleturn[tspeed];
+        if (doom->joyxmove < 0)
+            cmd->angleturn += doom->angleturn[tspeed];
     }
 
-    if (gamekeydown[key_up])
+    if (doom->gamekeydown[key_up])
     {
         // d_printf( "up\n");
-        forward += forwardmove[speed];
+        forward += doom->forwardmove[speed];
     }
-    if (gamekeydown[key_down])
+    if (doom->gamekeydown[key_down])
     {
         // d_printf( "down\n");
-        forward -= forwardmove[speed];
+        forward -= doom->forwardmove[speed];
     }
 
-    if (joyymove < 0)
-        forward += forwardmove[speed];
-    if (joyymove > 0)
-        forward -= forwardmove[speed];
+    if (doom->joyymove < 0)
+        forward += doom->forwardmove[speed];
+    if (doom->joyymove > 0)
+        forward -= doom->forwardmove[speed];
 
-    if (gamekeydown[key_strafeleft] || joybuttons[joybstrafeleft] || mousebuttons[mousebstrafeleft] || joystrafemove < 0)
+    if (doom->gamekeydown[key_strafeleft] || doom->joybuttons[joybstrafeleft] || doom->mousebuttons[mousebstrafeleft] || doom->joystrafemove < 0)
     {
-        side -= sidemove[speed];
+        side -= doom->sidemove[speed];
     }
 
-    if (gamekeydown[key_straferight] || joybuttons[joybstraferight] || mousebuttons[mousebstraferight] || joystrafemove > 0)
+    if (doom->gamekeydown[key_straferight] || doom->joybuttons[joybstraferight] || doom->mousebuttons[mousebstraferight] || doom->joystrafemove > 0)
     {
-        side += sidemove[speed];
+        side += doom->sidemove[speed];
     }
 
     // buttons
     cmd->chatchar = HU_dequeueChatChar();
 
-    if (gamekeydown[key_fire] || mousebuttons[mousebfire] || joybuttons[joybfire])
+    if (doom->gamekeydown[key_fire] || doom->mousebuttons[mousebfire] || doom->joybuttons[joybfire])
         cmd->buttons |= BT_ATTACK;
 
-    if (gamekeydown[key_use] || joybuttons[joybuse] || mousebuttons[mousebuse])
+    if (doom->gamekeydown[key_use] || doom->joybuttons[joybuse] || doom->mousebuttons[mousebuse])
     {
         cmd->buttons |= BT_USE;
         // clear double clicks if hit use button
-        dclicks = 0;
+        doom->dclicks = 0;
     }
 
     // If the previous or next weapon button is pressed, the
     // next_weapon variable is set to change weapons when
     // we generate a ticcmd.  Choose a new weapon.
 
-    if (gamestate == GS_LEVEL && next_weapon != 0)
+    if (doom->gamestate == GS_LEVEL && doom->next_weapon != 0)
     {
-        i = G_NextWeapon(doom, next_weapon);
+        i = G_NextWeapon(doom, doom->next_weapon);
         cmd->buttons |= BT_CHANGE;
         cmd->buttons |= i << BT_WEAPONSHIFT;
     }
@@ -427,7 +422,7 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
         {
             int key = *weapon_keys[i];
 
-            if (gamekeydown[key])
+            if (doom->gamekeydown[key])
             {
                 cmd->buttons |= BT_CHANGE;
                 cmd->buttons |= i << BT_WEAPONSHIFT;
@@ -436,86 +431,86 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
         }
     }
 
-    next_weapon = 0;
+    doom->next_weapon = 0;
 
     // mouse
-    if (mousebuttons[mousebforward])
+    if (doom->mousebuttons[mousebforward])
     {
-        forward += forwardmove[speed];
+        forward += doom->forwardmove[speed];
     }
-    if (mousebuttons[mousebbackward])
+    if (doom->mousebuttons[mousebbackward])
     {
-        forward -= forwardmove[speed];
+        forward -= doom->forwardmove[speed];
     }
 
     if (dclick_use)
     {
         // forward double click
-        if (mousebuttons[mousebforward] != dclickstate && dclicktime > 1)
+        if (doom->mousebuttons[mousebforward] != doom->dclickstate && doom->dclicktime > 1)
         {
-            dclickstate = mousebuttons[mousebforward];
-            if (dclickstate)
-                dclicks++;
-            if (dclicks == 2)
+            doom->dclickstate = doom->mousebuttons[mousebforward];
+            if (doom->dclickstate)
+                doom->dclicks++;
+            if (doom->dclicks == 2)
             {
                 cmd->buttons |= BT_USE;
-                dclicks = 0;
+                doom->dclicks = 0;
             }
             else
-                dclicktime = 0;
+                doom->dclicktime = 0;
         }
         else
         {
-            dclicktime += doom->ticdup;
-            if (dclicktime > 20)
+            doom->dclicktime += doom->ticdup;
+            if (doom->dclicktime > 20)
             {
-                dclicks = 0;
-                dclickstate = 0;
+                doom->dclicks = 0;
+                doom->dclickstate = 0;
             }
         }
 
         // strafe double click
         bstrafe =
-            mousebuttons[mousebstrafe] || joybuttons[joybstrafe];
-        if (bstrafe != dclickstate2 && dclicktime2 > 1)
+            doom->mousebuttons[mousebstrafe] || doom->joybuttons[joybstrafe];
+        if (bstrafe != doom->dclickstate2 && doom->dclicktime2 > 1)
         {
-            dclickstate2 = bstrafe;
-            if (dclickstate2)
-                dclicks2++;
-            if (dclicks2 == 2)
+            doom->dclickstate2 = bstrafe;
+            if (doom->dclickstate2)
+                doom->dclicks2++;
+            if (doom->dclicks2 == 2)
             {
                 cmd->buttons |= BT_USE;
-                dclicks2 = 0;
+                doom->dclicks2 = 0;
             }
             else
-                dclicktime2 = 0;
+                doom->dclicktime2 = 0;
         }
         else
         {
-            dclicktime2 += doom->ticdup;
-            if (dclicktime2 > 20)
+            doom->dclicktime2 += doom->ticdup;
+            if (doom->dclicktime2 > 20)
             {
-                dclicks2 = 0;
-                dclickstate2 = 0;
+                doom->dclicks2 = 0;
+                doom->dclickstate2 = 0;
             }
         }
     }
 
-    forward += mousey;
+    forward += doom->mousey;
 
     if (strafe)
-        side += mousex * 2;
+        side += doom->mousex * 2;
     else
-        cmd->angleturn -= mousex * 0x8;
+        cmd->angleturn -= doom->mousex * 0x8;
 
-    if (mousex == 0)
+    if (doom->mousex == 0)
     {
         // No movement in the previous frame
 
         testcontrols_mousespeed = 0;
     }
 
-    mousex = mousey = 0;
+    doom->mousex = doom->mousey = 0;
 
     if (forward > MAXPLMOVE)
         forward = MAXPLMOVE;
@@ -530,16 +525,16 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
     cmd->sidemove += side;
 
     // special buttons
-    if (sendpause)
+    if (doom->sendpause)
     {
-        sendpause = false;
+        doom->sendpause = false;
         cmd->buttons = BT_SPECIAL | BTS_PAUSE;
     }
 
-    if (sendsave)
+    if (doom->sendsave)
     {
-        sendsave = false;
-        cmd->buttons = BT_SPECIAL | BTS_SAVEGAME | (savegameslot << BTS_SAVESHIFT);
+        doom->sendsave = false;
+        cmd->buttons = BT_SPECIAL | BTS_SAVEGAME | (doom->savegameslot << BTS_SAVESHIFT);
     }
 
     // low-res turning
@@ -584,11 +579,11 @@ void G_DoLoadLevel(doom_data_t *doom)
     {
         char *skytexturename;
 
-        if (gamemap < 12)
+        if (doom->gamemap < 12)
         {
             skytexturename = "SKY1";
         }
-        else if (gamemap < 21)
+        else if (doom->gamemap < 21)
         {
             skytexturename = "SKY2";
         }
@@ -607,37 +602,37 @@ void G_DoLoadLevel(doom_data_t *doom)
     if (doom->wipegamestate == GS_LEVEL)
         doom->wipegamestate = -1; // force a wipe
 
-    gamestate = GS_LEVEL;
+    doom->gamestate = GS_LEVEL;
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        turbodetected[i] = false;
-        if (playeringame[i] && players[i].playerstate == PST_DEAD)
-            players[i].playerstate = PST_REBORN;
-        d_memset(players[i].frags, 0, sizeof(players[i].frags));
+        doom->turbodetected[i] = false;
+        if (doom->playeringame[i] && doom->players[i].playerstate == PST_DEAD)
+            doom->players[i].playerstate = PST_REBORN;
+        d_memset(doom->players[i].frags, 0, sizeof(doom->players[i].frags));
     }
 
-    P_SetupLevel(doom, gameepisode, gamemap, 0, gameskill);
-    displayplayer = consoleplayer; // view the guy you are playing
-    gameaction = ga_nothing;
+    P_SetupLevel(doom, doom->gameepisode, doom->gamemap, 0, doom->gameskill);
+    doom->displayplayer = doom->consoleplayer; // view the guy you are playing
+    doom->gameaction = ga_nothing;
     Z_CheckHeap();
 
     // clear cmd building stuff
 
-    d_memset(gamekeydown, 0, sizeof(gamekeydown));
-    joyxmove = joyymove = joystrafemove = 0;
-    mousex = mousey = 0;
-    sendpause = sendsave = paused = false;
-    d_memset(mousearray, 0, sizeof(mousearray));
-    d_memset(joyarray, 0, sizeof(joyarray));
+    d_memset(doom->gamekeydown, 0, sizeof(doom->gamekeydown));
+    doom->joyxmove = doom->joyymove = doom->joystrafemove = 0;
+    doom->mousex = doom->mousey = 0;
+    doom->sendpause = doom->sendsave = paused = false;
+    d_memset(doom->mousearray, 0, sizeof(doom->mousearray));
+    d_memset(doom->joyarray, 0, sizeof(doom->joyarray));
 
-    if (testcontrols)
+    if (doom->testcontrols)
     {
-        players[consoleplayer].message = "Press escape to quit.";
+        doom->players[doom->consoleplayer].message = "Press escape to quit.";
     }
 }
 
-static void SetJoyButtons(unsigned int buttons_mask)
+static void SetJoyButtons(doom_data_t* doom, unsigned int buttons_mask)
 {
     int i;
 
@@ -647,25 +642,25 @@ static void SetJoyButtons(unsigned int buttons_mask)
 
         // Detect button press:
 
-        if (!joybuttons[i] && button_on)
+        if (!doom->joybuttons[i] && button_on)
         {
             // Weapon cycling:
 
             if (i == joybprevweapon)
             {
-                next_weapon = -1;
+                doom->next_weapon = -1;
             }
             else if (i == joybnextweapon)
             {
-                next_weapon = 1;
+                doom->next_weapon = 1;
             }
         }
 
-        joybuttons[i] = button_on;
+        doom->joybuttons[i] = button_on;
     }
 }
 
-static void SetMouseButtons(unsigned int buttons_mask)
+static void SetMouseButtons(doom_data_t* doom, unsigned int buttons_mask)
 {
     int i;
 
@@ -675,19 +670,19 @@ static void SetMouseButtons(unsigned int buttons_mask)
 
         // Detect button press:
 
-        if (!mousebuttons[i] && button_on)
+        if (!doom->mousebuttons[i] && button_on)
         {
             if (i == mousebprevweapon)
             {
-                next_weapon = -1;
+                doom->next_weapon = -1;
             }
             else if (i == mousebnextweapon)
             {
-                next_weapon = 1;
+                doom->next_weapon = 1;
             }
         }
 
-        mousebuttons[i] = button_on;
+        doom->mousebuttons[i] = button_on;
     }
 }
 
@@ -698,21 +693,21 @@ static void SetMouseButtons(unsigned int buttons_mask)
 boolean G_Responder(doom_data_t *doom, event_t *ev)
 {
     // allow spy mode changes even during the demo
-    if (gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == key_spy && (singledemo || !deathmatch))
+    if (doom->gamestate == GS_LEVEL && ev->type == ev_keydown && ev->data1 == key_spy && (doom->singledemo || !doom->deathmatch))
     {
         // spy mode
         do
         {
-            displayplayer++;
-            if (displayplayer == MAXPLAYERS)
-                displayplayer = 0;
-        } while (!playeringame[displayplayer] && displayplayer != consoleplayer);
+            doom->displayplayer++;
+            if (doom->displayplayer == MAXPLAYERS)
+                doom->displayplayer = 0;
+        } while (!doom->playeringame[doom->displayplayer] && doom->displayplayer != doom->consoleplayer);
         return true;
     }
 
     // any other key pops up menu if in demos
-    if (gameaction == ga_nothing && !singledemo &&
-        (demoplayback || gamestate == GS_DEMOSCREEN))
+    if (doom->gameaction == ga_nothing && !doom->singledemo &&
+        (demoplayback || doom->gamestate == GS_DEMOSCREEN))
     {
         if (ev->type == ev_keydown ||
             (ev->type == ev_mouse && ev->data1) ||
@@ -724,7 +719,7 @@ boolean G_Responder(doom_data_t *doom, event_t *ev)
         return false;
     }
 
-    if (gamestate == GS_LEVEL)
+    if (doom->gamestate == GS_LEVEL)
     {
 #if 0 
 	if (devparm && ev->type == ev_keydown && ev->data1 == ';') 
@@ -741,13 +736,13 @@ boolean G_Responder(doom_data_t *doom, event_t *ev)
             return true; // automap ate it
     }
 
-    if (gamestate == GS_FINALE)
+    if (doom->gamestate == GS_FINALE)
     {
         if (F_Responder(doom, ev))
             return true; // finale ate the event
     }
 
-    if (testcontrols && ev->type == ev_mouse)
+    if (doom->testcontrols && ev->type == ev_mouse)
     {
         // If we are invoked by setup to test the controls, save the
         // mouse speed so that we can display it on-screen.
@@ -762,11 +757,11 @@ boolean G_Responder(doom_data_t *doom, event_t *ev)
 
     if (ev->type == ev_keydown && ev->data1 == key_prevweapon)
     {
-        next_weapon = -1;
+        doom->next_weapon = -1;
     }
     else if (ev->type == ev_keydown && ev->data1 == key_nextweapon)
     {
-        next_weapon = 1;
+        doom->next_weapon = 1;
     }
 
     switch (ev->type)
@@ -774,31 +769,31 @@ boolean G_Responder(doom_data_t *doom, event_t *ev)
     case ev_keydown:
         if (ev->data1 == key_pause)
         {
-            sendpause = true;
+            doom->sendpause = true;
         }
         else if (ev->data1 < NUMKEYS)
         {
-            gamekeydown[ev->data1] = true;
+            doom->gamekeydown[ev->data1] = true;
         }
 
         return true; // eat key down events
 
     case ev_keyup:
         if (ev->data1 < NUMKEYS)
-            gamekeydown[ev->data1] = false;
+            doom->gamekeydown[ev->data1] = false;
         return false; // always let key up events filter down
 
     case ev_mouse:
-        SetMouseButtons(ev->data1);
-        mousex = ev->data2 * (mouseSensitivity + 5) / 10;
-        mousey = ev->data3 * (mouseSensitivity + 5) / 10;
+        SetMouseButtons(doom, ev->data1);
+        doom->mousex = ev->data2 * (mouseSensitivity + 5) / 10;
+        doom->mousey = ev->data3 * (mouseSensitivity + 5) / 10;
         return true; // eat events
 
     case ev_joystick:
-        SetJoyButtons(ev->data1);
-        joyxmove = ev->data2;
-        joyymove = ev->data3;
-        joystrafemove = ev->data4;
+        SetJoyButtons(doom, ev->data1);
+        doom->joyxmove = ev->data2;
+        doom->joyymove = ev->data3;
+        doom->joystrafemove = ev->data4;
         return true; // eat events
 
     default:
@@ -820,13 +815,13 @@ void G_Ticker(doom_data_t *doom)
 
     // do player reborns if needed
     for (i = 0; i < MAXPLAYERS; i++)
-        if (playeringame[i] && players[i].playerstate == PST_REBORN)
+        if (doom->playeringame[i] && doom->players[i].playerstate == PST_REBORN)
             G_DoReborn(doom, i);
 
     // do things to change the game state
-    while (gameaction != ga_nothing)
+    while (doom->gameaction != ga_nothing)
     {
-        switch (gameaction)
+        switch (doom->gameaction)
         {
         case ga_loadlevel:
             G_DoLoadLevel(doom);
@@ -838,7 +833,7 @@ void G_Ticker(doom_data_t *doom)
             G_DoLoadGame(doom);
             break;
         case ga_savegame:
-            G_DoSaveGame();
+            G_DoSaveGame(doom);
             break;
         case ga_playdemo:
             G_DoPlayDemo(doom);
@@ -854,8 +849,8 @@ void G_Ticker(doom_data_t *doom)
             break;
         case ga_screenshot:
             V_ScreenShot(doom, "DOOM%02i.%s");
-            players[consoleplayer].message = DEH_String("screen shot");
-            gameaction = ga_nothing;
+            doom->players[doom->consoleplayer].message = DEH_String("screen shot");
+            doom->gameaction = ga_nothing;
             break;
         case ga_nothing:
             break;
@@ -868,9 +863,9 @@ void G_Ticker(doom_data_t *doom)
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        if (playeringame[i])
+        if (doom->playeringame[i])
         {
-            cmd = &players[i].cmd;
+            cmd = &doom->players[i].cmd;
 
             d_memcpy(cmd, &doom->netcmds[i], sizeof(ticcmd_t));
 
@@ -889,30 +884,30 @@ void G_Ticker(doom_data_t *doom)
 
             if (cmd->forwardmove > TURBOTHRESHOLD)
             {
-                turbodetected[i] = true;
+                doom->turbodetected[i] = true;
             }
 
-            if ((doom->gametic & 31) == 0 && ((doom->gametic >> 5) % MAXPLAYERS) == i && turbodetected[i])
+            if ((doom->gametic & 31) == 0 && ((doom->gametic >> 5) % MAXPLAYERS) == i && doom->turbodetected[i])
             {
                 static char turbomessage[80];
                 extern char *player_names[4];
                 d_snprintf(turbomessage, sizeof(turbomessage),
                            "%s is turbo!", player_names[i]);
-                players[consoleplayer].message = turbomessage;
-                turbodetected[i] = false;
+                doom->players[doom->consoleplayer].message = turbomessage;
+                doom->turbodetected[i] = false;
             }
 
-            if (netgame && !netdemo && !(doom->gametic % doom->ticdup))
+            if (netgame && !doom->netdemo && !(doom->gametic % doom->ticdup))
             {
-                if (doom->gametic > BACKUPTICS && consistancy[i][buf] != cmd->consistancy)
+                if (doom->gametic > BACKUPTICS && doom->consistancy[i][buf] != cmd->consistancy)
                 {
                     I_Error("consistency failure (%i should be %i)",
-                            cmd->consistancy, consistancy[i][buf]);
+                            cmd->consistancy, doom->consistancy[i][buf]);
                 }
-                if (players[i].mo)
-                    consistancy[i][buf] = players[i].mo->x;
+                if (doom->players[i].mo)
+                    doom->consistancy[i][buf] = doom->players[i].mo->x;
                 else
-                    consistancy[i][buf] = rndindex;
+                    doom->consistancy[i][buf] = rndindex;
             }
         }
     }
@@ -920,11 +915,11 @@ void G_Ticker(doom_data_t *doom)
     // check for special buttons
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        if (playeringame[i])
+        if (doom->playeringame[i])
         {
-            if (players[i].cmd.buttons & BT_SPECIAL)
+            if (doom->players[i].cmd.buttons & BT_SPECIAL)
             {
-                switch (players[i].cmd.buttons & BT_SPECIALMASK)
+                switch (doom->players[i].cmd.buttons & BT_SPECIALMASK)
                 {
                 case BTS_PAUSE:
                     paused ^= 1;
@@ -935,15 +930,15 @@ void G_Ticker(doom_data_t *doom)
                     break;
 
                 case BTS_SAVEGAME:
-                    if (!savedescription[0])
+                    if (!doom->savedescription[0])
                     {
-                        M_StringCopy(savedescription, "NET GAME",
-                                     sizeof(savedescription));
+                        M_StringCopy(doom->savedescription, "NET GAME",
+                                     sizeof(doom->savedescription));
                     }
 
-                    savegameslot =
-                        (players[i].cmd.buttons & BTS_SAVEMASK) >> BTS_SAVESHIFT;
-                    gameaction = ga_savegame;
+                    doom->savegameslot =
+                        (doom->players[i].cmd.buttons & BTS_SAVEMASK) >> BTS_SAVESHIFT;
+                    doom->gameaction = ga_savegame;
                     break;
                 }
             }
@@ -952,15 +947,15 @@ void G_Ticker(doom_data_t *doom)
 
     // Have we just finished displaying an intermission screen?
 
-    if (oldgamestate == GS_INTERMISSION && gamestate != GS_INTERMISSION)
+    if (doom->game_oldgamestate == GS_INTERMISSION && doom->gamestate != GS_INTERMISSION)
     {
         WI_End(doom);
     }
 
-    oldgamestate = gamestate;
+    doom->game_oldgamestate = doom->gamestate;
 
     // do main actions
-    switch (gamestate)
+    switch (doom->gamestate)
     {
     case GS_LEVEL:
         P_Ticker(doom);
@@ -993,21 +988,21 @@ void G_Ticker(doom_data_t *doom)
 // Called at the start.
 // Called by the game initialization functions.
 //
-void G_InitPlayer(int player)
+void G_InitPlayer(struct doom_data_t_* doom, int player)
 {
     // clear everything else to defaults
-    G_PlayerReborn(player);
+    G_PlayerReborn(doom, player);
 }
 
 //
 // G_PlayerFinishLevel
 // Can when a player completes a level.
 //
-void G_PlayerFinishLevel(int player)
+void G_PlayerFinishLevel(struct doom_data_t_* doom, int player)
 {
     player_t *p;
 
-    p = &players[player];
+    p = &doom->players[player];
 
     d_memset(p->powers, 0, sizeof(p->powers));
     d_memset(p->cards, 0, sizeof(p->cards));
@@ -1023,7 +1018,7 @@ void G_PlayerFinishLevel(int player)
 // Called after a player dies
 // almost everything is cleared and initialized
 //
-void G_PlayerReborn(int player)
+void G_PlayerReborn(struct doom_data_t_* doom, int player)
 {
     player_t *p;
     int i;
@@ -1032,18 +1027,18 @@ void G_PlayerReborn(int player)
     int itemcount;
     int secretcount;
 
-    d_memcpy(frags, players[player].frags, sizeof(frags));
-    killcount = players[player].killcount;
-    itemcount = players[player].itemcount;
-    secretcount = players[player].secretcount;
+    d_memcpy(frags, doom->players[player].frags, sizeof(frags));
+    killcount = doom->players[player].killcount;
+    itemcount = doom->players[player].itemcount;
+    secretcount = doom->players[player].secretcount;
 
-    p = &players[player];
+    p = &doom->players[player];
     d_memset(p, 0, sizeof(*p));
 
-    d_memcpy(players[player].frags, frags, sizeof(players[player].frags));
-    players[player].killcount = killcount;
-    players[player].itemcount = itemcount;
-    players[player].secretcount = secretcount;
+    d_memcpy(doom->players[player].frags, frags, sizeof(doom->players[player].frags));
+    doom->players[player].killcount = killcount;
+    doom->players[player].itemcount = itemcount;
+    doom->players[player].secretcount = secretcount;
 
     p->usedown = p->attackdown = true; // don't do anything immediately
     p->playerstate = PST_LIVE;
@@ -1076,11 +1071,11 @@ G_CheckSpot(doom_data_t *doom,
     mobj_t *mo;
     int i;
 
-    if (!players[playernum].mo)
+    if (!doom->players[playernum].mo)
     {
         // first spawn of level, before corpses
         for (i = 0; i < playernum; i++)
-            if (players[i].mo->x == mthing->x << FRACBITS && players[i].mo->y == mthing->y << FRACBITS)
+            if (doom->players[i].mo->x == mthing->x << FRACBITS && doom->players[i].mo->y == mthing->y << FRACBITS)
                 return false;
         return true;
     }
@@ -1088,13 +1083,13 @@ G_CheckSpot(doom_data_t *doom,
     x = mthing->x << FRACBITS;
     y = mthing->y << FRACBITS;
 
-    if (!P_CheckPosition(doom, players[playernum].mo, x, y))
+    if (!P_CheckPosition(doom, doom->players[playernum].mo, x, y))
         return false;
 
     // flush an old corpse if needed
     if (bodyqueslot >= BODYQUESIZE)
-        P_RemoveMobj(bodyque[bodyqueslot % BODYQUESIZE]);
-    bodyque[bodyqueslot % BODYQUESIZE] = players[playernum].mo;
+        P_RemoveMobj(doom->bodyque[bodyqueslot % BODYQUESIZE]);
+    doom->bodyque[bodyqueslot % BODYQUESIZE] = doom->players[playernum].mo;
     bodyqueslot++;
 
     // spawn a teleport fog
@@ -1155,12 +1150,12 @@ G_CheckSpot(doom_data_t *doom,
             xa = ya = 0;
             break;
         }
-        mo = P_SpawnMobj(x + 20 * xa, y + 20 * ya,
+        mo = P_SpawnMobj(doom, x + 20 * xa, y + 20 * ya,
                          ss->sector->floorheight, MT_TFOG);
     }
 
-    if (players[consoleplayer].viewz != 1)
-        S_StartSound(mo, sfx_telept); // don't start sound on first frame
+    if (doom->players[doom->consoleplayer].viewz != 1)
+        S_StartSound(doom, mo, sfx_telept); // don't start sound on first frame
 
     return true;
 }
@@ -1204,17 +1199,17 @@ void G_DoReborn(doom_data_t *doom, int playernum)
     if (!netgame)
     {
         // reload the level from scratch
-        gameaction = ga_loadlevel;
+        doom->gameaction = ga_loadlevel;
     }
     else
     {
         // respawn at the start
 
         // first dissasociate the corpse
-        players[playernum].mo->player = NULL;
+        doom->players[playernum].mo->player = NULL;
 
         // spawn at random spot if in death match
-        if (deathmatch)
+        if (doom->deathmatch)
         {
             G_DeathMatchSpawnPlayer(doom, playernum);
             return;
@@ -1242,9 +1237,9 @@ void G_DoReborn(doom_data_t *doom, int playernum)
     }
 }
 
-void G_ScreenShot(void)
+void G_ScreenShot(struct doom_data_t_* doom)
 {
-    gameaction = ga_screenshot;
+    doom->gameaction = ga_screenshot;
 }
 
 // DOOM Par Times
@@ -1270,10 +1265,10 @@ int cpars[32] =
 boolean secretexit;
 extern char *pagename;
 
-void G_ExitLevel(void)
+void G_ExitLevel(struct doom_data_t_* doom)
 {
     secretexit = false;
-    gameaction = ga_completed;
+    doom->gameaction = ga_completed;
 }
 
 // Here's for the german edition.
@@ -1284,18 +1279,18 @@ void G_SecretExitLevel(doom_data_t *doom)
         secretexit = false;
     else
         secretexit = true;
-    gameaction = ga_completed;
+    doom->gameaction = ga_completed;
 }
 
 void G_DoCompleted(doom_data_t *doom)
 {
     int i;
 
-    gameaction = ga_nothing;
+    doom->gameaction = ga_nothing;
 
     for (i = 0; i < MAXPLAYERS; i++)
-        if (playeringame[i])
-            G_PlayerFinishLevel(i); // take away cards and stuff
+        if (doom->playeringame[i])
+            G_PlayerFinishLevel(doom, i); // take away cards and stuff
 
     if (doom->automapactive)
         AM_Stop(doom);
@@ -1306,52 +1301,52 @@ void G_DoCompleted(doom_data_t *doom)
 
         if (doom->gameversion == exe_chex)
         {
-            if (gamemap == 5)
+            if (doom->gamemap == 5)
             {
-                gameaction = ga_victory;
+                doom->gameaction = ga_victory;
                 return;
             }
         }
         else
         {
-            switch (gamemap)
+            switch (doom->gamemap)
             {
             case 8:
-                gameaction = ga_victory;
+                doom->gameaction = ga_victory;
                 return;
             case 9:
                 for (i = 0; i < MAXPLAYERS; i++)
-                    players[i].didsecret = true;
+                    doom->players[i].didsecret = true;
                 break;
             }
         }
     }
 
     //#if 0  Hmmm - why?
-    if ((gamemap == 8) && (doom->gamemode != commercial))
+    if ((doom->gamemap == 8) && (doom->gamemode != commercial))
     {
         // victory
-        gameaction = ga_victory;
+        doom->gameaction = ga_victory;
         return;
     }
 
-    if ((gamemap == 9) && (doom->gamemode != commercial))
+    if ((doom->gamemap == 9) && (doom->gamemode != commercial))
     {
         // exit secret level
         for (i = 0; i < MAXPLAYERS; i++)
-            players[i].didsecret = true;
+            doom->players[i].didsecret = true;
     }
     //#endif
 
-    wminfo.didsecret = players[consoleplayer].didsecret;
-    wminfo.epsd = gameepisode - 1;
-    wminfo.last = gamemap - 1;
+    wminfo.didsecret = doom->players[doom->consoleplayer].didsecret;
+    wminfo.epsd = doom->gameepisode - 1;
+    wminfo.last = doom->gamemap - 1;
 
     // wminfo.next is 0 biased, unlike gamemap
     if (doom->gamemode == commercial)
     {
         if (secretexit)
-            switch (gamemap)
+            switch (doom->gamemap)
             {
             case 15:
                 wminfo.next = 30;
@@ -1361,24 +1356,24 @@ void G_DoCompleted(doom_data_t *doom)
                 break;
             }
         else
-            switch (gamemap)
+            switch (doom->gamemap)
             {
             case 31:
             case 32:
                 wminfo.next = 15;
                 break;
             default:
-                wminfo.next = gamemap;
+                wminfo.next = doom->gamemap;
             }
     }
     else
     {
         if (secretexit)
             wminfo.next = 8; // go to secret level
-        else if (gamemap == 9)
+        else if (doom->gamemap == 9)
         {
             // returning from secret level
-            switch (gameepisode)
+            switch (doom->gameepisode)
             {
             case 1:
                 wminfo.next = 3;
@@ -1395,7 +1390,7 @@ void G_DoCompleted(doom_data_t *doom)
             }
         }
         else
-            wminfo.next = gamemap; // go to next level
+            wminfo.next = doom->gamemap; // go to next level
     }
 
     wminfo.maxkills = totalkills;
@@ -1407,26 +1402,26 @@ void G_DoCompleted(doom_data_t *doom)
     // overflows into the cpars array. It's necessary to emulate this
     // for statcheck regression testing.
     if (doom->gamemode == commercial)
-        wminfo.partime = TICRATE * cpars[gamemap - 1];
-    else if (gameepisode < 4)
-        wminfo.partime = TICRATE * pars[gameepisode][gamemap];
+        wminfo.partime = TICRATE * cpars[doom->gamemap - 1];
+    else if (doom->gameepisode < 4)
+        wminfo.partime = TICRATE * pars[doom->gameepisode][doom->gamemap];
     else
-        wminfo.partime = TICRATE * cpars[gamemap];
+        wminfo.partime = TICRATE * cpars[doom->gamemap];
 
-    wminfo.pnum = consoleplayer;
+    wminfo.pnum = doom->consoleplayer;
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        wminfo.plyr[i].in = playeringame[i];
-        wminfo.plyr[i].skills = players[i].killcount;
-        wminfo.plyr[i].sitems = players[i].itemcount;
-        wminfo.plyr[i].ssecret = players[i].secretcount;
+        wminfo.plyr[i].in = doom->playeringame[i];
+        wminfo.plyr[i].skills = doom->players[i].killcount;
+        wminfo.plyr[i].sitems = doom->players[i].itemcount;
+        wminfo.plyr[i].ssecret = doom->players[i].secretcount;
         wminfo.plyr[i].stime = leveltime;
-        d_memcpy(wminfo.plyr[i].frags, players[i].frags, sizeof(wminfo.plyr[i].frags));
+        d_memcpy(wminfo.plyr[i].frags, doom->players[i].frags, sizeof(wminfo.plyr[i].frags));
     }
 
-    gamestate = GS_INTERMISSION;
-    viewactive = false;
+    doom->gamestate = GS_INTERMISSION;
+    doom->viewactive = false;
     doom->automapactive = false;
 
     WI_Start(doom, &wminfo);
@@ -1437,14 +1432,14 @@ void G_DoCompleted(doom_data_t *doom)
 //
 void G_WorldDone(doom_data_t *doom)
 {
-    gameaction = ga_worlddone;
+    doom->gameaction = ga_worlddone;
 
     if (secretexit)
-        players[consoleplayer].didsecret = true;
+        doom->players[doom->consoleplayer].didsecret = true;
 
     if (doom->gamemode == commercial)
     {
-        switch (gamemap)
+        switch (doom->gamemap)
         {
         case 15:
         case 31:
@@ -1462,11 +1457,11 @@ void G_WorldDone(doom_data_t *doom)
 
 void G_DoWorldDone(doom_data_t *doom)
 {
-    gamestate = GS_LEVEL;
-    gamemap = wminfo.next + 1;
+    doom->gamestate = GS_LEVEL;
+    doom->gamemap = wminfo.next + 1;
     G_DoLoadLevel(doom);
-    gameaction = ga_nothing;
-    viewactive = true;
+    doom->gameaction = ga_nothing;
+    doom->viewactive = true;
 }
 
 //
@@ -1478,10 +1473,10 @@ void R_ExecuteSetViewSize(void);
 
 char savename[256];
 
-void G_LoadGame(char *name)
+void G_LoadGame(struct doom_data_t_* doom, char *name)
 {
     M_StringCopy(savename, name, sizeof(savename));
-    gameaction = ga_loadgame;
+    doom->gameaction = ga_loadgame;
 }
 
 #define VERSIONSIZE 16
@@ -1490,7 +1485,7 @@ void G_DoLoadGame(doom_data_t *doom)
 {
     int savedleveltime;
 
-    gameaction = ga_nothing;
+    doom->gameaction = ga_nothing;
 
     save_stream = d_fopen(savename, "rb");
 
@@ -1510,14 +1505,14 @@ void G_DoLoadGame(doom_data_t *doom)
     savedleveltime = leveltime;
 
     // load a base level
-    G_InitNew(doom, gameskill, gameepisode, gamemap);
+    G_InitNew(doom, doom->gameskill, doom->gameepisode, doom->gamemap);
 
     leveltime = savedleveltime;
 
     // dearchive all the modifications
-    P_UnArchivePlayers();
+    P_UnArchivePlayers(doom);
     P_UnArchiveWorld();
-    P_UnArchiveThinkers();
+    P_UnArchiveThinkers(doom);
     P_UnArchiveSpecials();
 
     if (!P_ReadSaveGameEOF())
@@ -1537,17 +1532,17 @@ void G_DoLoadGame(doom_data_t *doom)
 // Called by the menu task.
 // Description is a 24 byte text string
 //
-void G_SaveGame(int slot,
+void G_SaveGame(doom_data_t* doom, int slot,
                 char *description)
 {
-    savegameslot = slot;
-    M_StringCopy(savedescription, description, sizeof(savedescription));
-    sendsave = true;
+    doom->savegameslot = slot;
+    M_StringCopy(doom->savedescription, description, sizeof(doom->savedescription));
+    doom->sendsave = true;
 }
 
-void G_DoSaveGame(void)
+void G_DoSaveGame(struct doom_data_t_* doom)
 {
-    gameaction = ga_nothing;
+    doom->gameaction = ga_nothing;
 }
 
 //
@@ -1559,29 +1554,29 @@ skill_t d_skill;
 int d_episode;
 int d_map;
 
-void G_DeferedInitNew(skill_t skill,
+void G_DeferedInitNew(struct doom_data_t_* doom, skill_t skill,
                       int episode,
                       int map)
 {
     d_skill = skill;
     d_episode = episode;
     d_map = map;
-    gameaction = ga_newgame;
+    doom->gameaction = ga_newgame;
 }
 
 void G_DoNewGame(doom_data_t *doom)
 {
     demoplayback = false;
-    netdemo = false;
+    doom->netdemo = false;
     netgame = false;
-    deathmatch = false;
-    playeringame[1] = playeringame[2] = playeringame[3] = 0;
+    doom->deathmatch = false;
+    doom->playeringame[1] = doom->playeringame[2] = doom->playeringame[3] = 0;
     doom->respawnparm = false;
     doom->fastparm = false;
     doom->nomonsters = false;
-    consoleplayer = 0;
+    doom->consoleplayer = 0;
     G_InitNew(doom, d_skill, d_episode, d_map);
-    gameaction = ga_nothing;
+    doom->gameaction = ga_nothing;
 }
 
 void G_InitNew(doom_data_t *doom,
@@ -1668,7 +1663,7 @@ void G_InitNew(doom_data_t *doom,
     else
         respawnmonsters = false;
 
-    if (doom->fastparm || (skill == sk_nightmare && gameskill != sk_nightmare))
+    if (doom->fastparm || (skill == sk_nightmare && doom->gameskill != sk_nightmare))
     {
         for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; i++)
             states[i].tics >>= 1;
@@ -1676,7 +1671,7 @@ void G_InitNew(doom_data_t *doom,
         mobjinfo[MT_HEADSHOT].speed = 20 * FRACUNIT;
         mobjinfo[MT_TROOPSHOT].speed = 20 * FRACUNIT;
     }
-    else if (skill != sk_nightmare && gameskill == sk_nightmare)
+    else if (skill != sk_nightmare && doom->gameskill == sk_nightmare)
     {
         for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; i++)
             states[i].tics <<= 1;
@@ -1687,18 +1682,16 @@ void G_InitNew(doom_data_t *doom,
 
     // force players to be initialized upon first level load
     for (i = 0; i < MAXPLAYERS; i++)
-        players[i].playerstate = PST_REBORN;
+        doom->players[i].playerstate = PST_REBORN;
 
     usergame = true; // will be set false if a demo
     paused = false;
     demoplayback = false;
     doom->automapactive = false;
-    viewactive = true;
-    gameepisode = episode;
-    gamemap = map;
-    gameskill = skill;
-
-    viewactive = true;
+    doom->viewactive = true;
+    doom->gameepisode = episode;
+    doom->gamemap = map;
+    doom->gameskill = skill;
 
     // Set the sky to use.
     //
@@ -1712,16 +1705,16 @@ void G_InitNew(doom_data_t *doom,
 
     if (doom->gamemode == commercial)
     {
-        if (gamemap < 12)
+        if (doom->gamemap < 12)
             skytexturename = "SKY1";
-        else if (gamemap < 21)
+        else if (doom->gamemap < 21)
             skytexturename = "SKY2";
         else
             skytexturename = "SKY3";
     }
     else
     {
-        switch (gameepisode)
+        switch (doom->gameepisode)
         {
         default:
         case 1:
@@ -1753,33 +1746,33 @@ void G_InitNew(doom_data_t *doom,
 
 void G_ReadDemoTiccmd(doom_data_t *doom, ticcmd_t *cmd)
 {
-    if (*demo_p == DEMOMARKER)
+    if (*doom->demo_p == DEMOMARKER)
     {
         // end of demo data stream
         G_CheckDemoStatus(doom);
         return;
     }
-    cmd->forwardmove = ((signed char)*demo_p++);
-    cmd->sidemove = ((signed char)*demo_p++);
+    cmd->forwardmove = ((signed char)*doom->demo_p++);
+    cmd->sidemove = ((signed char)*doom->demo_p++);
 
     // If this is a longtics demo, read back in higher resolution
 
-    if (longtics)
+    if (doom->longtics)
     {
-        cmd->angleturn = *demo_p++;
-        cmd->angleturn |= (*demo_p++) << 8;
+        cmd->angleturn = *doom->demo_p++;
+        cmd->angleturn |= (*doom->demo_p++) << 8;
     }
     else
     {
-        cmd->angleturn = ((unsigned char)*demo_p++) << 8;
+        cmd->angleturn = ((unsigned char)*doom->demo_p++) << 8;
     }
 
-    cmd->buttons = (unsigned char)*demo_p++;
+    cmd->buttons = (unsigned char)*doom->demo_p++;
 }
 
 // Increase the size of the demo buffer to allow unlimited demos
 
-static void IncreaseDemoBuffer(void)
+static void IncreaseDemoBuffer(doom_data_t* doom)
 {
     int current_length;
     byte *new_demobuffer;
@@ -1788,57 +1781,57 @@ static void IncreaseDemoBuffer(void)
 
     // Find the current size
 
-    current_length = demoend - demobuffer;
+    current_length = doom->demoend - doom->demobuffer;
 
     // Generate a new buffer twice the size
     new_length = current_length * 2;
 
     new_demobuffer = Z_Malloc(new_length, PU_STATIC, 0);
-    new_demop = new_demobuffer + (demo_p - demobuffer);
+    new_demop = new_demobuffer + (doom->demo_p - doom->demobuffer);
 
     // Copy over the old data
 
-    d_memcpy(new_demobuffer, demobuffer, current_length);
+    d_memcpy(new_demobuffer, doom->demobuffer, current_length);
 
     // Free the old buffer and point the demo pointers at the new buffer.
 
-    Z_Free(demobuffer);
+    Z_Free(doom->demobuffer);
 
-    demobuffer = new_demobuffer;
-    demo_p = new_demop;
-    demoend = demobuffer + new_length;
+    doom->demobuffer = new_demobuffer;
+    doom->demo_p = new_demop;
+    doom->demoend = doom->demobuffer + new_length;
 }
 
 void G_WriteDemoTiccmd(doom_data_t *doom, ticcmd_t *cmd)
 {
     byte *demo_start;
 
-    if (gamekeydown[key_demo_quit]) // press q to end demo recording
+    if (doom->gamekeydown[key_demo_quit]) // press q to end demo recording
         G_CheckDemoStatus(doom);
 
-    demo_start = demo_p;
+    demo_start = doom->demo_p;
 
-    *demo_p++ = cmd->forwardmove;
-    *demo_p++ = cmd->sidemove;
+    *doom->demo_p++ = cmd->forwardmove;
+    *doom->demo_p++ = cmd->sidemove;
 
     // If this is a longtics demo, record in higher resolution
 
-    if (longtics)
+    if (doom->longtics)
     {
-        *demo_p++ = (cmd->angleturn & 0xff);
-        *demo_p++ = (cmd->angleturn >> 8) & 0xff;
+        *doom->demo_p++ = (cmd->angleturn & 0xff);
+        *doom->demo_p++ = (cmd->angleturn >> 8) & 0xff;
     }
     else
     {
-        *demo_p++ = cmd->angleturn >> 8;
+        *doom->demo_p++ = cmd->angleturn >> 8;
     }
 
-    *demo_p++ = cmd->buttons;
+    *doom->demo_p++ = cmd->buttons;
 
     // reset demo pointer back
-    demo_p = demo_start;
+    doom->demo_p = demo_start;
 
-    if (demo_p > demoend - 16)
+    if (doom->demo_p > doom->demoend - 16)
     {
         if (vanilla_demo_limit)
         {
@@ -1851,7 +1844,7 @@ void G_WriteDemoTiccmd(doom_data_t *doom, ticcmd_t *cmd)
             // Vanilla demo limit disabled: unlimited
             // demo lengths!
 
-            IncreaseDemoBuffer();
+            IncreaseDemoBuffer(doom);
         }
     }
 
@@ -1869,8 +1862,8 @@ void G_RecordDemo(struct doom_data_t_* doom, char *name)
 
     usergame = false;
     demoname_size = d_strlen(name) + 5;
-    demoname = Z_Malloc(demoname_size, PU_STATIC, NULL);
-    d_snprintf(demoname, demoname_size, "%s.lmp", name);
+    doom->demoname = Z_Malloc(demoname_size, PU_STATIC, NULL);
+    d_snprintf(doom->demoname, demoname_size, "%s.lmp", name);
     maxsize = 0x20000;
 
     //!
@@ -1884,8 +1877,8 @@ void G_RecordDemo(struct doom_data_t_* doom, char *name)
     i = M_CheckParmWithArgs(doom, "-maxdemo", 1);
     if (i)
         maxsize = d_atoi(doom->myargv[i + 1]) * 1024;
-    demobuffer = Z_Malloc(maxsize, PU_STATIC, NULL);
-    demoend = demobuffer + maxsize;
+    doom->demobuffer = Z_Malloc(maxsize, PU_STATIC, NULL);
+    doom->demoend = doom->demobuffer + maxsize;
 
     demorecording = true;
 }
@@ -1919,36 +1912,36 @@ void G_BeginRecording(doom_data_t *doom)
     // Record a high resolution "Doom 1.91" demo.
     //
 
-    longtics = M_CheckParm(doom, "-longtics") != 0;
+    doom->longtics = M_CheckParm(doom, "-longtics") != 0;
 
     // If not recording a longtics demo, record in low res
 
-    lowres_turn = !longtics;
+    lowres_turn = !doom->longtics;
 
-    demo_p = demobuffer;
+    doom->demo_p = doom->demobuffer;
 
     // Save the right version code for this demo
 
-    if (longtics)
+    if (doom->longtics)
     {
-        *demo_p++ = DOOM_191_VERSION;
+        *doom->demo_p++ = DOOM_191_VERSION;
     }
     else
     {
-        *demo_p++ = G_VanillaVersionCode(doom);
+        *doom->demo_p++ = G_VanillaVersionCode(doom);
     }
 
-    *demo_p++ = gameskill;
-    *demo_p++ = gameepisode;
-    *demo_p++ = gamemap;
-    *demo_p++ = deathmatch;
-    *demo_p++ = doom->respawnparm;
-    *demo_p++ = doom->fastparm;
-    *demo_p++ = doom->nomonsters;
-    *demo_p++ = consoleplayer;
+    *doom->demo_p++ = doom->gameskill;
+    *doom->demo_p++ = doom->gameepisode;
+    *doom->demo_p++ = doom->gamemap;
+    *doom->demo_p++ = doom->deathmatch;
+    *doom->demo_p++ = doom->respawnparm;
+    *doom->demo_p++ = doom->fastparm;
+    *doom->demo_p++ = doom->nomonsters;
+    *doom->demo_p++ = doom->consoleplayer;
 
     for (i = 0; i < MAXPLAYERS; i++)
-        *demo_p++ = playeringame[i];
+        *doom->demo_p++ = doom->playeringame[i];
 }
 
 //
@@ -1957,10 +1950,10 @@ void G_BeginRecording(doom_data_t *doom)
 
 char *defdemoname;
 
-void G_DeferedPlayDemo(char *name)
+void G_DeferedPlayDemo(struct doom_data_t_* doom, char *name)
 {
     defdemoname = name;
-    gameaction = ga_playdemo;
+    doom->gameaction = ga_playdemo;
 }
 
 // Generate a string describing a demo version
@@ -2008,19 +2001,19 @@ void G_DoPlayDemo(doom_data_t *doom)
     int i, episode, map;
     int demoversion;
 
-    gameaction = ga_nothing;
-    demobuffer = demo_p = W_CacheLumpName(doom, defdemoname, PU_STATIC);
+    doom->gameaction = ga_nothing;
+    doom->demobuffer = doom->demo_p = W_CacheLumpName(doom, defdemoname, PU_STATIC);
 
-    demoversion = *demo_p++;
+    demoversion = *doom->demo_p++;
 
     if (demoversion == G_VanillaVersionCode(doom))
     {
-        longtics = false;
+        doom->longtics = false;
     }
     else if (demoversion == DOOM_191_VERSION)
     {
         // demo recorded with cph's modified "v1.91" doom exe
-        longtics = true;
+        doom->longtics = true;
     }
     else
     {
@@ -2038,22 +2031,22 @@ void G_DoPlayDemo(doom_data_t *doom)
                  DemoVersionDescription(demoversion));
     }
 
-    skill = *demo_p++;
-    episode = *demo_p++;
-    map = *demo_p++;
-    deathmatch = *demo_p++;
-    doom->respawnparm = *demo_p++;
-    doom->fastparm = *demo_p++;
-    doom->nomonsters = *demo_p++;
-    consoleplayer = *demo_p++;
+    skill = *doom->demo_p++;
+    episode = *doom->demo_p++;
+    map = *doom->demo_p++;
+    doom->deathmatch = *doom->demo_p++;
+    doom->respawnparm = *doom->demo_p++;
+    doom->fastparm = *doom->demo_p++;
+    doom->nomonsters = *doom->demo_p++;
+    doom->consoleplayer = *doom->demo_p++;
 
     for (i = 0; i < MAXPLAYERS; i++)
-        playeringame[i] = *demo_p++;
+        doom->playeringame[i] = *doom->demo_p++;
 
-    if (playeringame[1] || M_CheckParm(doom, "-solo-net") > 0 || M_CheckParm(doom, "-netdemo") > 0)
+    if (doom->playeringame[1] || M_CheckParm(doom, "-solo-net") > 0 || M_CheckParm(doom, "-netdemo") > 0)
     {
         netgame = true;
-        netdemo = true;
+        doom->netdemo = true;
     }
 
     // don't spend a lot of time in loadlevel
@@ -2076,13 +2069,13 @@ void G_TimeDemo(doom_data_t *doom, char *name)
     // Disable rendering the screen entirely.
     //
 
-    nodrawers = M_CheckParm(doom, "-nodraw");
+    doom->nodrawers = M_CheckParm(doom, "-nodraw");
 
-    timingdemo = true;
+    doom->timingdemo = true;
     doom->singletics = true;
 
     defdemoname = name;
-    gameaction = ga_playdemo;
+   doom-> gameaction = ga_playdemo;
 }
 
 /*
@@ -2103,16 +2096,16 @@ boolean G_CheckDemoStatus(doom_data_t *doom)
     {
         W_ReleaseLumpName(doom, defdemoname);
         demoplayback = false;
-        netdemo = false;
+        doom->netdemo = false;
         netgame = false;
-        deathmatch = false;
-        playeringame[1] = playeringame[2] = playeringame[3] = 0;
+        doom->deathmatch = false;
+        doom->playeringame[1] = doom->playeringame[2] = doom->playeringame[3] = 0;
         doom->respawnparm = false;
         doom->fastparm = false;
         doom->nomonsters = false;
-        consoleplayer = 0;
+        doom->consoleplayer = 0;
 
-        if (singledemo)
+        if (doom->singledemo)
             I_Quit(doom);
         else
             D_AdvanceDemo(doom);
@@ -2122,11 +2115,11 @@ boolean G_CheckDemoStatus(doom_data_t *doom)
 
     if (demorecording)
     {
-        *demo_p++ = DEMOMARKER;
-        M_WriteFile(demoname, demobuffer, demo_p - demobuffer);
-        Z_Free(demobuffer);
+        *doom->demo_p++ = DEMOMARKER;
+        M_WriteFile(doom->demoname, doom->demobuffer, doom->demo_p - doom->demobuffer);
+        Z_Free(doom->demobuffer);
         demorecording = false;
-        I_Error("Demo %s recorded", demoname);
+        I_Error("Demo %s recorded", doom->demoname);
     }
 
     return false;

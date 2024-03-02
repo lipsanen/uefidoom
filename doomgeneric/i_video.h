@@ -35,8 +35,6 @@
 
 #define SCREENHEIGHT_4_3 240
 
-#define MAX_MOUSE_BUTTONS 8
-
 struct doom_data_t_;
 
 typedef struct

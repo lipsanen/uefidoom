@@ -97,16 +97,16 @@
 
 typedef enum
 {
-	ANIM_ALWAYS,
-	ANIM_RANDOM,
-	ANIM_LEVEL
+    ANIM_ALWAYS,
+    ANIM_RANDOM,
+    ANIM_LEVEL
 
 } animenum_t;
 
 typedef struct
 {
-	int x;
-	int y;
+    int x;
+    int y;
 
 } point_t;
 
@@ -116,86 +116,86 @@ typedef struct
 //
 typedef struct
 {
-	animenum_t type;
+    animenum_t type;
 
-	// period in tics between animations
-	int period;
+    // period in tics between animations
+    int period;
 
-	// number of animation frames
-	int nanims;
+    // number of animation frames
+    int nanims;
 
-	// location of animation
-	point_t loc;
+    // location of animation
+    point_t loc;
 
-	// ALWAYS: n/a,
-	// RANDOM: period deviation (<256),
-	// LEVEL: level
-	int data1;
+    // ALWAYS: n/a,
+    // RANDOM: period deviation (<256),
+    // LEVEL: level
+    int data1;
 
-	// ALWAYS: n/a,
-	// RANDOM: random base period,
-	// LEVEL: n/a
-	int data2;
+    // ALWAYS: n/a,
+    // RANDOM: random base period,
+    // LEVEL: n/a
+    int data2;
 
-	// actual graphics for frames of animations
-	patch_t *p[3];
+    // actual graphics for frames of animations
+    patch_t *p[3];
 
-	// following must be initialized to zero before use!
+    // following must be initialized to zero before use!
 
-	// next value of bcnt (used in conjunction with period)
-	int nexttic;
+    // next value of bcnt (used in conjunction with period)
+    int nexttic;
 
-	// last drawn animation frame
-	int lastdrawn;
+    // last drawn animation frame
+    int lastdrawn;
 
-	// next frame number to animate
-	int ctr;
+    // next frame number to animate
+    int ctr;
 
-	// used by RANDOM and LEVEL when animating
-	int state;
+    // used by RANDOM and LEVEL when animating
+    int state;
 
 } anim_t;
 
 static const point_t lnodes[NUMEPISODES][NUMMAPS] =
-	{
-		// Episode 0 World Map
-		{
-			{185, 164}, // location of level 0 (CJ)
-			{148, 143}, // location of level 1 (CJ)
-			{69, 122},	// location of level 2 (CJ)
-			{209, 102}, // location of level 3 (CJ)
-			{116, 89},	// location of level 4 (CJ)
-			{166, 55},	// location of level 5 (CJ)
-			{71, 56},	// location of level 6 (CJ)
-			{135, 29},	// location of level 7 (CJ)
-			{71, 24}	// location of level 8 (CJ)
-		},
+    {
+        // Episode 0 World Map
+        {
+            {185, 164}, // location of level 0 (CJ)
+            {148, 143}, // location of level 1 (CJ)
+            {69, 122},	// location of level 2 (CJ)
+            {209, 102}, // location of level 3 (CJ)
+            {116, 89},	// location of level 4 (CJ)
+            {166, 55},	// location of level 5 (CJ)
+            {71, 56},	// location of level 6 (CJ)
+            {135, 29},	// location of level 7 (CJ)
+            {71, 24}	// location of level 8 (CJ)
+        },
 
-		// Episode 1 World Map should go here
-		{
-			{254, 25},	// location of level 0 (CJ)
-			{97, 50},	// location of level 1 (CJ)
-			{188, 64},	// location of level 2 (CJ)
-			{128, 78},	// location of level 3 (CJ)
-			{214, 92},	// location of level 4 (CJ)
-			{133, 130}, // location of level 5 (CJ)
-			{208, 136}, // location of level 6 (CJ)
-			{148, 140}, // location of level 7 (CJ)
-			{235, 158}	// location of level 8 (CJ)
-		},
+        // Episode 1 World Map should go here
+        {
+            {254, 25},	// location of level 0 (CJ)
+            {97, 50},	// location of level 1 (CJ)
+            {188, 64},	// location of level 2 (CJ)
+            {128, 78},	// location of level 3 (CJ)
+            {214, 92},	// location of level 4 (CJ)
+            {133, 130}, // location of level 5 (CJ)
+            {208, 136}, // location of level 6 (CJ)
+            {148, 140}, // location of level 7 (CJ)
+            {235, 158}	// location of level 8 (CJ)
+        },
 
-		// Episode 2 World Map should go here
-		{
-			{156, 168}, // location of level 0 (CJ)
-			{48, 154},	// location of level 1 (CJ)
-			{174, 95},	// location of level 2 (CJ)
-			{265, 75},	// location of level 3 (CJ)
-			{130, 48},	// location of level 4 (CJ)
-			{279, 23},	// location of level 5 (CJ)
-			{198, 48},	// location of level 6 (CJ)
-			{140, 25},	// location of level 7 (CJ)
-			{281, 136}	// location of level 8 (CJ)
-		}
+        // Episode 2 World Map should go here
+        {
+            {156, 168}, // location of level 0 (CJ)
+            {48, 154},	// location of level 1 (CJ)
+            {174, 95},	// location of level 2 (CJ)
+            {265, 75},	// location of level 3 (CJ)
+            {130, 48},	// location of level 4 (CJ)
+            {279, 23},	// location of level 5 (CJ)
+            {198, 48},	// location of level 6 (CJ)
+            {140, 25},	// location of level 7 (CJ)
+            {281, 136}	// location of level 8 (CJ)
+        }
 
 };
 
@@ -206,60 +206,60 @@ static const point_t lnodes[NUMEPISODES][NUMMAPS] =
 //
 
 #define ANIM(type, period, nanims, x, y, nexttic)          \
-	{                                                      \
-		(type), (period), (nanims), {(x), (y)}, (nexttic), \
-			0, {NULL, NULL, NULL}, 0, 0, 0, 0              \
-	}
+    {                                                      \
+        (type), (period), (nanims), {(x), (y)}, (nexttic), \
+            0, {NULL, NULL, NULL}, 0, 0, 0, 0              \
+    }
 
 static anim_t epsd0animinfo[] =
-	{
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 224, 104, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 184, 160, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 112, 136, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 72, 112, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 88, 96, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 64, 48, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 192, 40, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 136, 16, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 80, 16, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 64, 24, 0),
+    {
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 224, 104, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 184, 160, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 112, 136, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 72, 112, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 88, 96, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 64, 48, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 192, 40, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 136, 16, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 80, 16, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 64, 24, 0),
 };
 
 static anim_t epsd1animinfo[] =
-	{
-		ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 1),
-		ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 2),
-		ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 3),
-		ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 4),
-		ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 5),
-		ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 6),
-		ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 7),
-		ANIM(ANIM_LEVEL, TICRATE / 3, 3, 192, 144, 8),
-		ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 8),
+    {
+        ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 1),
+        ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 2),
+        ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 3),
+        ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 4),
+        ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 5),
+        ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 6),
+        ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 7),
+        ANIM(ANIM_LEVEL, TICRATE / 3, 3, 192, 144, 8),
+        ANIM(ANIM_LEVEL, TICRATE / 3, 1, 128, 136, 8),
 };
 
 static anim_t epsd2animinfo[] =
-	{
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 104, 168, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 40, 136, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 160, 96, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 104, 80, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 120, 32, 0),
-		ANIM(ANIM_ALWAYS, TICRATE / 4, 3, 40, 0, 0),
+    {
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 104, 168, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 40, 136, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 160, 96, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 104, 80, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 3, 3, 120, 32, 0),
+        ANIM(ANIM_ALWAYS, TICRATE / 4, 3, 40, 0, 0),
 };
 
 static const int NUMANIMS[NUMEPISODES] =
-	{
-		arrlen(epsd0animinfo),
-		arrlen(epsd1animinfo),
-		arrlen(epsd2animinfo),
+    {
+        arrlen(epsd0animinfo),
+        arrlen(epsd1animinfo),
+        arrlen(epsd2animinfo),
 };
 
 static anim_t *anims[NUMEPISODES] =
-	{
-		epsd0animinfo,
-		epsd1animinfo,
-		epsd2animinfo};
+    {
+        epsd0animinfo,
+        epsd1animinfo,
+        epsd2animinfo};
 
 //
 // GENERAL DATA
@@ -292,212 +292,212 @@ static anim_t *anims[NUMEPISODES] =
 // slam background
 void WI_slamBackground(doom_data_t *doom)
 {
-	V_DrawPatch(doom, 0, 0, doom->background);
+    V_DrawPatch(doom, 0, 0, doom->background);
 }
 
 // The ticker is used to detect keys
 //  because of timing issues in netgames.
 boolean WI_Responder(event_t *ev)
 {
-	return false;
+    return false;
 }
 
 // Draws "<Levelname> Finished!"
 void WI_drawLF(doom_data_t *doom)
 {
-	int y = WI_TITLEY;
+    int y = WI_TITLEY;
 
-	if (doom->gamemode != commercial || doom->wbs->last < doom->NUMCMAPS)
-	{
-		// draw <LevelName>
-		V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->lnames[doom->wbs->last]->width)) / 2,
-					y, doom->lnames[doom->wbs->last]);
+    if (doom->gamemode != commercial || doom->wbs->last < doom->NUMCMAPS)
+    {
+        // draw <LevelName>
+        V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->lnames[doom->wbs->last]->width)) / 2,
+                    y, doom->lnames[doom->wbs->last]);
 
-		// draw "Finished!"
-		y += (5 * SHORT(doom->lnames[doom->wbs->last]->height)) / 4;
+        // draw "Finished!"
+        y += (5 * SHORT(doom->lnames[doom->wbs->last]->height)) / 4;
 
-		V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->finished->width)) / 2, y, doom->finished);
-	}
-	else if (doom->wbs->last == doom->NUMCMAPS)
-	{
-		// MAP33 - nothing is displayed!
-	}
-	else if (doom->wbs->last > doom->NUMCMAPS)
-	{
-		// > MAP33.  Doom bombs out here with a Bad V_DrawPatch error.
-		// I'm pretty sure that doom2.exe is just reading into random
-		// bits of memory at this point, but let's try to be accurate
-		// anyway.  This deliberately triggers a V_DrawPatch error.
+        V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->finished->width)) / 2, y, doom->finished);
+    }
+    else if (doom->wbs->last == doom->NUMCMAPS)
+    {
+        // MAP33 - nothing is displayed!
+    }
+    else if (doom->wbs->last > doom->NUMCMAPS)
+    {
+        // > MAP33.  Doom bombs out here with a Bad V_DrawPatch error.
+        // I'm pretty sure that doom2.exe is just reading into random
+        // bits of memory at this point, but let's try to be accurate
+        // anyway.  This deliberately triggers a V_DrawPatch error.
 
-		patch_t tmp;
-		d_memset(&tmp, 0, sizeof(patch_t));
-		tmp.width = SCREENWIDTH;
-		tmp.height = SCREENHEIGHT;
-		tmp.leftoffset = 1;
-		tmp.topoffset = 1;
+        patch_t tmp;
+        d_memset(&tmp, 0, sizeof(patch_t));
+        tmp.width = SCREENWIDTH;
+        tmp.height = SCREENHEIGHT;
+        tmp.leftoffset = 1;
+        tmp.topoffset = 1;
 
-		V_DrawPatch(doom, 0, y, &tmp);
-	}
+        V_DrawPatch(doom, 0, y, &tmp);
+    }
 }
 
 // Draws "Entering <LevelName>"
 void WI_drawEL(doom_data_t *doom)
 {
-	int y = WI_TITLEY;
+    int y = WI_TITLEY;
 
-	// draw "Entering"
-	V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->entering->width)) / 2,
-				y,
-				doom->entering);
+    // draw "Entering"
+    V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->entering->width)) / 2,
+                y,
+                doom->entering);
 
-	// draw level
-	y += (5 * SHORT(doom->lnames[doom->wbs->next]->height)) / 4;
+    // draw level
+    y += (5 * SHORT(doom->lnames[doom->wbs->next]->height)) / 4;
 
-	V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->lnames[doom->wbs->next]->width)) / 2,
-				y,
-				doom->lnames[doom->wbs->next]);
+    V_DrawPatch(doom, (SCREENWIDTH - SHORT(doom->lnames[doom->wbs->next]->width)) / 2,
+                y,
+                doom->lnames[doom->wbs->next]);
 }
 
 void WI_drawOnLnode(doom_data_t *doom,
-					int n,
-					patch_t *c[])
+                    int n,
+                    patch_t *c[])
 {
 
-	int i;
-	int left;
-	int top;
-	int right;
-	int bottom;
-	boolean fits = false;
+    int i;
+    int left;
+    int top;
+    int right;
+    int bottom;
+    boolean fits = false;
 
-	i = 0;
-	do
-	{
-		left = lnodes[doom->wbs->epsd][n].x - SHORT(c[i]->leftoffset);
-		top = lnodes[doom->wbs->epsd][n].y - SHORT(c[i]->topoffset);
-		right = left + SHORT(c[i]->width);
-		bottom = top + SHORT(c[i]->height);
+    i = 0;
+    do
+    {
+        left = lnodes[doom->wbs->epsd][n].x - SHORT(c[i]->leftoffset);
+        top = lnodes[doom->wbs->epsd][n].y - SHORT(c[i]->topoffset);
+        right = left + SHORT(c[i]->width);
+        bottom = top + SHORT(c[i]->height);
 
-		if (left >= 0 && right < SCREENWIDTH && top >= 0 && bottom < SCREENHEIGHT)
-		{
-			fits = true;
-		}
-		else
-		{
-			i++;
-		}
-	} while (!fits && i != 2 && c[i] != NULL);
+        if (left >= 0 && right < SCREENWIDTH && top >= 0 && bottom < SCREENHEIGHT)
+        {
+            fits = true;
+        }
+        else
+        {
+            i++;
+        }
+    } while (!fits && i != 2 && c[i] != NULL);
 
-	if (fits && i < 2)
-	{
-		V_DrawPatch(doom, lnodes[doom->wbs->epsd][n].x,
-					lnodes[doom->wbs->epsd][n].y,
-					c[i]);
-	}
-	else
-	{
-		// DEBUG
-		d_printf("Could not place patch on level %d", n + 1);
-	}
+    if (fits && i < 2)
+    {
+        V_DrawPatch(doom, lnodes[doom->wbs->epsd][n].x,
+                    lnodes[doom->wbs->epsd][n].y,
+                    c[i]);
+    }
+    else
+    {
+        // DEBUG
+        d_printf("Could not place patch on level %d", n + 1);
+    }
 }
 
 void WI_initAnimatedBack(doom_data_t *doom)
 {
-	int i;
-	anim_t *a;
+    int i;
+    anim_t *a;
 
-	if (doom->gamemode == commercial)
-		return;
+    if (doom->gamemode == commercial)
+        return;
 
-	if (doom->wbs->epsd > 2)
-		return;
+    if (doom->wbs->epsd > 2)
+        return;
 
-	for (i = 0; i < NUMANIMS[doom->wbs->epsd]; i++)
-	{
-		a = &anims[doom->wbs->epsd][i];
+    for (i = 0; i < NUMANIMS[doom->wbs->epsd]; i++)
+    {
+        a = &anims[doom->wbs->epsd][i];
 
-		// init variables
-		a->ctr = -1;
+        // init variables
+        a->ctr = -1;
 
-		// specify the next time to draw it
-		if (a->type == ANIM_ALWAYS)
-			a->nexttic = doom->bcnt + 1 + (M_Random() % a->period);
-		else if (a->type == ANIM_RANDOM)
-			a->nexttic = doom->bcnt + 1 + a->data2 + (M_Random() % a->data1);
-		else if (a->type == ANIM_LEVEL)
-			a->nexttic = doom->bcnt + 1;
-	}
+        // specify the next time to draw it
+        if (a->type == ANIM_ALWAYS)
+            a->nexttic = doom->bcnt + 1 + (M_Random() % a->period);
+        else if (a->type == ANIM_RANDOM)
+            a->nexttic = doom->bcnt + 1 + a->data2 + (M_Random() % a->data1);
+        else if (a->type == ANIM_LEVEL)
+            a->nexttic = doom->bcnt + 1;
+    }
 }
 
 void WI_updateAnimatedBack(doom_data_t *doom)
 {
-	int i;
-	anim_t *a;
+    int i;
+    anim_t *a;
 
-	if (doom->gamemode == commercial)
-		return;
+    if (doom->gamemode == commercial)
+        return;
 
-	if (doom->wbs->epsd > 2)
-		return;
+    if (doom->wbs->epsd > 2)
+        return;
 
-	for (i = 0; i < NUMANIMS[doom->wbs->epsd]; i++)
-	{
-		a = &anims[doom->wbs->epsd][i];
+    for (i = 0; i < NUMANIMS[doom->wbs->epsd]; i++)
+    {
+        a = &anims[doom->wbs->epsd][i];
 
-		if (doom->bcnt == a->nexttic)
-		{
-			switch (a->type)
-			{
-			case ANIM_ALWAYS:
-				if (++a->ctr >= a->nanims)
-					a->ctr = 0;
-				a->nexttic = doom->bcnt + a->period;
-				break;
+        if (doom->bcnt == a->nexttic)
+        {
+            switch (a->type)
+            {
+            case ANIM_ALWAYS:
+                if (++a->ctr >= a->nanims)
+                    a->ctr = 0;
+                a->nexttic = doom->bcnt + a->period;
+                break;
 
-			case ANIM_RANDOM:
-				a->ctr++;
-				if (a->ctr == a->nanims)
-				{
-					a->ctr = -1;
-					a->nexttic = doom->bcnt + a->data2 + (M_Random() % a->data1);
-				}
-				else
-					a->nexttic = doom->bcnt + a->period;
-				break;
+            case ANIM_RANDOM:
+                a->ctr++;
+                if (a->ctr == a->nanims)
+                {
+                    a->ctr = -1;
+                    a->nexttic = doom->bcnt + a->data2 + (M_Random() % a->data1);
+                }
+                else
+                    a->nexttic = doom->bcnt + a->period;
+                break;
 
-			case ANIM_LEVEL:
-				// gawd-awful hack for level anims
-				if (!(doom->state == StatCount && i == 7) && doom->wbs->next == a->data1)
-				{
-					a->ctr++;
-					if (a->ctr == a->nanims)
-						a->ctr--;
-					a->nexttic = doom->bcnt + a->period;
-				}
-				break;
-			}
-		}
-	}
+            case ANIM_LEVEL:
+                // gawd-awful hack for level anims
+                if (!(doom->state == StatCount && i == 7) && doom->wbs->next == a->data1)
+                {
+                    a->ctr++;
+                    if (a->ctr == a->nanims)
+                        a->ctr--;
+                    a->nexttic = doom->bcnt + a->period;
+                }
+                break;
+            }
+        }
+    }
 }
 
 void WI_drawAnimatedBack(doom_data_t *doom)
 {
-	int i;
-	anim_t *a;
+    int i;
+    anim_t *a;
 
-	if (doom->gamemode == commercial)
-		return;
+    if (doom->gamemode == commercial)
+        return;
 
-	if (doom->wbs->epsd > 2)
-		return;
+    if (doom->wbs->epsd > 2)
+        return;
 
-	for (i = 0; i < NUMANIMS[doom->wbs->epsd]; i++)
-	{
-		a = &anims[doom->wbs->epsd][i];
+    for (i = 0; i < NUMANIMS[doom->wbs->epsd]; i++)
+    {
+        a = &anims[doom->wbs->epsd][i];
 
-		if (a->ctr >= 0)
-			V_DrawPatch(doom, a->loc.x, a->loc.y, a->p[a->ctr]);
-	}
+        if (a->ctr >= 0)
+            V_DrawPatch(doom, a->loc.x, a->loc.y, a->p[a->ctr]);
+    }
 }
 
 //
@@ -508,70 +508,70 @@ void WI_drawAnimatedBack(doom_data_t *doom)
 //
 
 int WI_drawNum(doom_data_t *doom,
-			   int x,
-			   int y,
-			   int n,
-			   int digits)
+               int x,
+               int y,
+               int n,
+               int digits)
 {
 
-	int fontwidth = SHORT(doom->num[0]->width);
-	int neg;
-	int temp;
+    int fontwidth = SHORT(doom->num[0]->width);
+    int neg;
+    int temp;
 
-	if (digits < 0)
-	{
-		if (!n)
-		{
-			// make variable-length zeros 1 digit long
-			digits = 1;
-		}
-		else
-		{
-			// figure out # of digits in #
-			digits = 0;
-			temp = n;
+    if (digits < 0)
+    {
+        if (!n)
+        {
+            // make variable-length zeros 1 digit long
+            digits = 1;
+        }
+        else
+        {
+            // figure out # of digits in #
+            digits = 0;
+            temp = n;
 
-			while (temp)
-			{
-				temp /= 10;
-				digits++;
-			}
-		}
-	}
+            while (temp)
+            {
+                temp /= 10;
+                digits++;
+            }
+        }
+    }
 
-	neg = n < 0;
-	if (neg)
-		n = -n;
+    neg = n < 0;
+    if (neg)
+        n = -n;
 
-	// if non-number, do not draw it
-	if (n == 1994)
-		return 0;
+    // if non-number, do not draw it
+    if (n == 1994)
+        return 0;
 
-	// draw the new number
-	while (digits--)
-	{
-		x -= fontwidth;
-		V_DrawPatch(doom, x, y, doom->num[n % 10]);
-		n /= 10;
-	}
+    // draw the new number
+    while (digits--)
+    {
+        x -= fontwidth;
+        V_DrawPatch(doom, x, y, doom->num[n % 10]);
+        n /= 10;
+    }
 
-	// draw a minus sign if necessary
-	if (neg)
-		V_DrawPatch(doom, x -= 8, y, doom->wiminus);
+    // draw a minus sign if necessary
+    if (neg)
+        V_DrawPatch(doom, x -= 8, y, doom->wiminus);
 
-	return x;
+    return x;
 }
 
 void WI_drawPercent(doom_data_t *doom,
-					int x,
-					int y,
-					int p)
+                    int x,
+                    int y,
+                    int p)
 {
-	if (p < 0)
-		return;
+    if (p < 0)
+        return;
 
-	V_DrawPatch(doom, x, y, doom->percent);
-	WI_drawNum(doom, x, y, p, -1);
+    V_DrawPatch(doom, x, y, doom->percent);
+    WI_drawNum(doom, x, y, p, -1);
 }
 
 //
@@ -579,813 +579,813 @@ void WI_drawPercent(doom_data_t *doom,
 //  or "sucks" message if overflow.
 //
 void WI_drawTime(doom_data_t *doom,
-				 int x,
-				 int y,
-				 int t)
+                 int x,
+                 int y,
+                 int t)
 {
 
-	int div;
-	int n;
+    int div;
+    int n;
 
-	if (t < 0)
-		return;
+    if (t < 0)
+        return;
 
-	if (t <= 61 * 59)
-	{
-		div = 1;
+    if (t <= 61 * 59)
+    {
+        div = 1;
 
-		do
-		{
-			n = (t / div) % 60;
-			x = WI_drawNum(doom, x, y, n, 2) - SHORT(doom->colon->width);
-			div *= 60;
+        do
+        {
+            n = (t / div) % 60;
+            x = WI_drawNum(doom, x, y, n, 2) - SHORT(doom->colon->width);
+            div *= 60;
 
-			// draw
-			if (div == 60 || t / div)
-				V_DrawPatch(doom, x, y, doom->colon);
+            // draw
+            if (div == 60 || t / div)
+                V_DrawPatch(doom, x, y, doom->colon);
 
-		} while (t / div);
-	}
-	else
-	{
-		// "sucks"
-		V_DrawPatch(doom, x - SHORT(doom->sucks->width), y, doom->sucks);
-	}
+        } while (t / div);
+    }
+    else
+    {
+        // "sucks"
+        V_DrawPatch(doom, x - SHORT(doom->sucks->width), y, doom->sucks);
+    }
 }
 
 void WI_End(doom_data_t *doom)
 {
-	void WI_unloadData(doom_data_t * doom);
-	WI_unloadData(doom);
+    void WI_unloadData(doom_data_t * doom);
+    WI_unloadData(doom);
 }
 
 void WI_initNoState(doom_data_t *doom)
 {
-	doom->state = NoState;
-	doom->acceleratestage = 0;
-	doom->cnt = 10;
+    doom->state = NoState;
+    doom->acceleratestage = 0;
+    doom->cnt = 10;
 }
 
 void WI_updateNoState(doom_data_t *doom)
 {
 
-	WI_updateAnimatedBack(doom);
+    WI_updateAnimatedBack(doom);
 
-	if (!--doom->cnt)
-	{
-		// Don't call WI_End yet.  G_WorldDone doesnt immediately
-		// change gamestate, so WI_Drawer is still going to get
-		// run until that happens.  If we do that after WI_End
-		// (which unloads all the graphics), we're in trouble.
-		// WI_End();
-		G_WorldDone(doom);
-	}
+    if (!--doom->cnt)
+    {
+        // Don't call WI_End yet.  G_WorldDone doesnt immediately
+        // change gamestate, so WI_Drawer is still going to get
+        // run until that happens.  If we do that after WI_End
+        // (which unloads all the graphics), we're in trouble.
+        // WI_End();
+        G_WorldDone(doom);
+    }
 }
 
 void WI_initShowNextLoc(doom_data_t *doom)
 {
-	doom->state = ShowNextLoc;
-	doom->acceleratestage = 0;
-	doom->cnt = SHOWNEXTLOCDELAY * TICRATE;
+    doom->state = ShowNextLoc;
+    doom->acceleratestage = 0;
+    doom->cnt = SHOWNEXTLOCDELAY * TICRATE;
 
-	WI_initAnimatedBack(doom);
+    WI_initAnimatedBack(doom);
 }
 
 void WI_updateShowNextLoc(doom_data_t *doom)
 {
-	WI_updateAnimatedBack(doom);
+    WI_updateAnimatedBack(doom);
 
-	if (!--doom->cnt || doom->acceleratestage)
-		WI_initNoState(doom);
-	else
-		doom->snl_pointeron = (doom->cnt & 31) < 20;
+    if (!--doom->cnt || doom->acceleratestage)
+        WI_initNoState(doom);
+    else
+        doom->snl_pointeron = (doom->cnt & 31) < 20;
 }
 
 void WI_drawShowNextLoc(doom_data_t *doom)
 {
 
-	int i;
-	int last;
+    int i;
+    int last;
 
-	WI_slamBackground(doom);
+    WI_slamBackground(doom);
 
-	// draw animated background
-	WI_drawAnimatedBack(doom);
+    // draw animated background
+    WI_drawAnimatedBack(doom);
 
-	if (doom->gamemode != commercial)
-	{
-		if (doom->wbs->epsd > 2)
-		{
-			WI_drawEL(doom);
-			return;
-		}
+    if (doom->gamemode != commercial)
+    {
+        if (doom->wbs->epsd > 2)
+        {
+            WI_drawEL(doom);
+            return;
+        }
 
-		last = (doom->wbs->last == 8) ? doom->wbs->next - 1 : doom->wbs->last;
+        last = (doom->wbs->last == 8) ? doom->wbs->next - 1 : doom->wbs->last;
 
-		// draw a splat on taken cities.
-		for (i = 0; i <= last; i++)
-			WI_drawOnLnode(doom, i, doom->splat);
+        // draw a splat on taken cities.
+        for (i = 0; i <= last; i++)
+            WI_drawOnLnode(doom, i, doom->splat);
 
-		// splat the secret level?
-		if (doom->wbs->didsecret)
-			WI_drawOnLnode(doom, 8, doom->splat);
+        // splat the secret level?
+        if (doom->wbs->didsecret)
+            WI_drawOnLnode(doom, 8, doom->splat);
 
-		// draw flashing ptr
-		if (doom->snl_pointeron)
-			WI_drawOnLnode(doom, doom->wbs->next, doom->yah);
-	}
+        // draw flashing ptr
+        if (doom->snl_pointeron)
+            WI_drawOnLnode(doom, doom->wbs->next, doom->yah);
+    }
 
-	// draws which level you are entering..
-	if ((doom->gamemode != commercial) || doom->wbs->next != 30)
-		WI_drawEL(doom);
+    // draws which level you are entering..
+    if ((doom->gamemode != commercial) || doom->wbs->next != 30)
+        WI_drawEL(doom);
 }
 
 void WI_drawNoState(doom_data_t *doom)
 {
-	doom->snl_pointeron = true;
-	WI_drawShowNextLoc(doom);
+    doom->snl_pointeron = true;
+    WI_drawShowNextLoc(doom);
 }
 
 int WI_fragSum(doom_data_t* doom, int playernum)
 {
-	int i;
-	int frags = 0;
+    int i;
+    int frags = 0;
 
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (playeringame[i] && i != playernum)
-		{
-			frags += doom->plrs[playernum].frags[i];
-		}
-	}
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (doom->playeringame[i] && i != playernum)
+        {
+            frags += doom->plrs[playernum].frags[i];
+        }
+    }
 
-	// JDC hack - negative frags.
-	frags -= doom->plrs[playernum].frags[playernum];
-	// UNUSED if (frags < 0)
-	// 	frags = 0;
+    // JDC hack - negative frags.
+    frags -= doom->plrs[playernum].frags[playernum];
+    // UNUSED if (frags < 0)
+    // 	frags = 0;
 
-	return frags;
+    return frags;
 }
 
 void WI_initDeathmatchStats(doom_data_t *doom)
 {
 
-	int i;
-	int j;
+    int i;
+    int j;
 
-	doom->state = StatCount;
-	doom->acceleratestage = 0;
-	doom->dm_state = 1;
+    doom->state = StatCount;
+    doom->acceleratestage = 0;
+    doom->dm_state = 1;
 
-	doom->cnt_pause = TICRATE;
+    doom->cnt_pause = TICRATE;
 
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (playeringame[i])
-		{
-			for (j = 0; j < MAXPLAYERS; j++)
-				if (playeringame[j])
-					doom->dm_frags[i][j] = 0;
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (doom->playeringame[i])
+        {
+            for (j = 0; j < MAXPLAYERS; j++)
+                if (doom->playeringame[j])
+                    doom->dm_frags[i][j] = 0;
 
-			doom->dm_totals[i] = 0;
-		}
-	}
+            doom->dm_totals[i] = 0;
+        }
+    }
 
-	WI_initAnimatedBack(doom);
+    WI_initAnimatedBack(doom);
 }
 
 void WI_updateDeathmatchStats(doom_data_t *doom)
 {
 
-	int i;
-	int j;
+    int i;
+    int j;
 
-	boolean stillticking;
+    boolean stillticking;
 
-	WI_updateAnimatedBack(doom);
+    WI_updateAnimatedBack(doom);
 
-	if (doom->acceleratestage && doom->dm_state != 4)
-	{
-		doom->acceleratestage = 0;
+    if (doom->acceleratestage && doom->dm_state != 4)
+    {
+        doom->acceleratestage = 0;
 
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (playeringame[i])
-			{
-				for (j = 0; j < MAXPLAYERS; j++)
-					if (playeringame[j])
-						doom->dm_frags[i][j] = doom->plrs[i].frags[j];
+        for (i = 0; i < MAXPLAYERS; i++)
+        {
+            if (doom->playeringame[i])
+            {
+                for (j = 0; j < MAXPLAYERS; j++)
+                    if (doom->playeringame[j])
+                        doom->dm_frags[i][j] = doom->plrs[i].frags[j];
 
-				doom->dm_totals[i] = WI_fragSum(doom, i);
-			}
-		}
+                doom->dm_totals[i] = WI_fragSum(doom, i);
+            }
+        }
 
-		S_StartSound(0, sfx_barexp);
-		doom->dm_state = 4;
-	}
+        S_StartSound(doom, 0, sfx_barexp);
+        doom->dm_state = 4;
+    }
 
-	if (doom->dm_state == 2)
-	{
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+    if (doom->dm_state == 2)
+    {
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		stillticking = false;
+        stillticking = false;
 
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (playeringame[i])
-			{
-				for (j = 0; j < MAXPLAYERS; j++)
-				{
-					if (playeringame[j] && doom->dm_frags[i][j] != doom->plrs[i].frags[j])
-					{
-						if (doom->plrs[i].frags[j] < 0)
-							doom->dm_frags[i][j]--;
-						else
-							doom->dm_frags[i][j]++;
+        for (i = 0; i < MAXPLAYERS; i++)
+        {
+            if (doom->playeringame[i])
+            {
+                for (j = 0; j < MAXPLAYERS; j++)
+                {
+                    if (doom->playeringame[j] && doom->dm_frags[i][j] != doom->plrs[i].frags[j])
+                    {
+                        if (doom->plrs[i].frags[j] < 0)
+                            doom->dm_frags[i][j]--;
+                        else
+                            doom->dm_frags[i][j]++;
 
-						if (doom->dm_frags[i][j] > 99)
-							doom->dm_frags[i][j] = 99;
+                        if (doom->dm_frags[i][j] > 99)
+                            doom->dm_frags[i][j] = 99;
 
-						if (doom->dm_frags[i][j] < -99)
-							doom->dm_frags[i][j] = -99;
+                        if (doom->dm_frags[i][j] < -99)
+                            doom->dm_frags[i][j] = -99;
 
-						stillticking = true;
-					}
-				}
-				doom->dm_totals[i] = WI_fragSum(doom, i);
+                        stillticking = true;
+                    }
+                }
+                doom->dm_totals[i] = WI_fragSum(doom, i);
 
-				if (doom->dm_totals[i] > 99)
-					doom->dm_totals[i] = 99;
+                if (doom->dm_totals[i] > 99)
+                    doom->dm_totals[i] = 99;
 
-				if (doom->dm_totals[i] < -99)
-					doom->dm_totals[i] = -99;
-			}
-		}
-		if (!stillticking)
-		{
-			S_StartSound(0, sfx_barexp);
-			doom->dm_state++;
-		}
-	}
-	else if (doom->dm_state == 4)
-	{
-		if (doom->acceleratestage)
-		{
-			S_StartSound(0, sfx_slop);
+                if (doom->dm_totals[i] < -99)
+                    doom->dm_totals[i] = -99;
+            }
+        }
+        if (!stillticking)
+        {
+            S_StartSound(doom, 0, sfx_barexp);
+            doom->dm_state++;
+        }
+    }
+    else if (doom->dm_state == 4)
+    {
+        if (doom->acceleratestage)
+        {
+            S_StartSound(doom, 0, sfx_slop);
 
-			if (doom->gamemode == commercial)
-				WI_initNoState(doom);
-			else
-				WI_initShowNextLoc(doom);
-		}
-	}
-	else if (doom->dm_state & 1)
-	{
-		if (!--doom->cnt_pause)
-		{
-			doom->dm_state++;
-			doom->cnt_pause = TICRATE;
-		}
-	}
+            if (doom->gamemode == commercial)
+                WI_initNoState(doom);
+            else
+                WI_initShowNextLoc(doom);
+        }
+    }
+    else if (doom->dm_state & 1)
+    {
+        if (!--doom->cnt_pause)
+        {
+            doom->dm_state++;
+            doom->cnt_pause = TICRATE;
+        }
+    }
 }
 
 void WI_drawDeathmatchStats(doom_data_t *doom)
 {
 
-	int i;
-	int j;
-	int x;
-	int y;
-	int w;
+    int i;
+    int j;
+    int x;
+    int y;
+    int w;
 
-	WI_slamBackground(doom);
+    WI_slamBackground(doom);
 
-	// draw animated background
-	WI_drawAnimatedBack(doom);
-	WI_drawLF(doom);
+    // draw animated background
+    WI_drawAnimatedBack(doom);
+    WI_drawLF(doom);
 
-	// draw stat titles (top line)
-	V_DrawPatch(doom, DM_TOTALSX - SHORT(doom->total->width) / 2,
-				DM_MATRIXY - WI_SPACINGY + 10,
-				doom->total);
+    // draw stat titles (top line)
+    V_DrawPatch(doom, DM_TOTALSX - SHORT(doom->total->width) / 2,
+                DM_MATRIXY - WI_SPACINGY + 10,
+                doom->total);
 
-	V_DrawPatch(doom, DM_KILLERSX, DM_KILLERSY, doom->killers);
-	V_DrawPatch(doom, DM_VICTIMSX, DM_VICTIMSY, doom->victims);
+    V_DrawPatch(doom, DM_KILLERSX, DM_KILLERSY, doom->killers);
+    V_DrawPatch(doom, DM_VICTIMSX, DM_VICTIMSY, doom->victims);
 
-	// draw P?
-	x = DM_MATRIXX + DM_SPACINGX;
-	y = DM_MATRIXY;
+    // draw P?
+    x = DM_MATRIXX + DM_SPACINGX;
+    y = DM_MATRIXY;
 
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (playeringame[i])
-		{
-			V_DrawPatch(doom, x - SHORT(doom->p[i]->width) / 2,
-						DM_MATRIXY - WI_SPACINGY,
-						doom->p[i]);
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (doom->playeringame[i])
+        {
+            V_DrawPatch(doom, x - SHORT(doom->p[i]->width) / 2,
+                        DM_MATRIXY - WI_SPACINGY,
+                        doom->p[i]);
 
-			V_DrawPatch(doom, DM_MATRIXX - SHORT(doom->p[i]->width) / 2,
-						y,
-						doom->p[i]);
+            V_DrawPatch(doom, DM_MATRIXX - SHORT(doom->p[i]->width) / 2,
+                        y,
+                        doom->p[i]);
 
-			if (i == doom->me)
-			{
-				V_DrawPatch(doom, x - SHORT(doom->p[i]->width) / 2,
-							DM_MATRIXY - WI_SPACINGY,
-							doom->bstar);
+            if (i == doom->me)
+            {
+                V_DrawPatch(doom, x - SHORT(doom->p[i]->width) / 2,
+                            DM_MATRIXY - WI_SPACINGY,
+                            doom->bstar);
 
-				V_DrawPatch(doom, DM_MATRIXX - SHORT(doom->p[i]->width) / 2,
-							y,
-							doom->star);
-			}
-		}
-		else
-		{
-			// V_DrawPatch(x-SHORT(bp[i]->width)/2,
-			//   DM_MATRIXY - WI_SPACINGY, bp[i]);
-			// V_DrawPatch(DM_MATRIXX-SHORT(bp[i]->width)/2,
-			//   y, bp[i]);
-		}
-		x += DM_SPACINGX;
-		y += WI_SPACINGY;
-	}
+                V_DrawPatch(doom, DM_MATRIXX - SHORT(doom->p[i]->width) / 2,
+                            y,
+                            doom->star);
+            }
+        }
+        else
+        {
+            // V_DrawPatch(x-SHORT(bp[i]->width)/2,
+            //   DM_MATRIXY - WI_SPACINGY, bp[i]);
+            // V_DrawPatch(DM_MATRIXX-SHORT(bp[i]->width)/2,
+            //   y, bp[i]);
+        }
+        x += DM_SPACINGX;
+        y += WI_SPACINGY;
+    }
 
-	// draw stats
-	y = DM_MATRIXY + 10;
-	w = SHORT(doom->num[0]->width);
+    // draw stats
+    y = DM_MATRIXY + 10;
+    w = SHORT(doom->num[0]->width);
 
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		x = DM_MATRIXX + DM_SPACINGX;
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        x = DM_MATRIXX + DM_SPACINGX;
 
-		if (playeringame[i])
-		{
-			for (j = 0; j < MAXPLAYERS; j++)
-			{
-				if (playeringame[j])
-					WI_drawNum(doom, x + w, y, doom->dm_frags[i][j], 2);
+        if (doom->playeringame[i])
+        {
+            for (j = 0; j < MAXPLAYERS; j++)
+            {
+                if (doom->playeringame[j])
+                    WI_drawNum(doom, x + w, y, doom->dm_frags[i][j], 2);
 
-				x += DM_SPACINGX;
-			}
-			WI_drawNum(doom, DM_TOTALSX + w, y, doom->dm_totals[i], 2);
-		}
-		y += WI_SPACINGY;
-	}
+                x += DM_SPACINGX;
+            }
+            WI_drawNum(doom, DM_TOTALSX + w, y, doom->dm_totals[i], 2);
+        }
+        y += WI_SPACINGY;
+    }
 }
 
 void WI_initNetgameStats(doom_data_t *doom)
 {
 
-	int i;
+    int i;
 
-	doom->state = StatCount;
-	doom->acceleratestage = 0;
-	doom->ng_state = 1;
+    doom->state = StatCount;
+    doom->acceleratestage = 0;
+    doom->ng_state = 1;
 
-	doom->cnt_pause = TICRATE;
+    doom->cnt_pause = TICRATE;
 
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (!playeringame[i])
-			continue;
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (!doom->playeringame[i])
+            continue;
 
-		doom->cnt_kills[i] = doom->cnt_items[i] = doom->cnt_secret[i] = doom->cnt_frags[i] = 0;
+        doom->cnt_kills[i] = doom->cnt_items[i] = doom->cnt_secret[i] = doom->cnt_frags[i] = 0;
 
-		doom->dofrags += WI_fragSum(doom, i);
-	}
+        doom->dofrags += WI_fragSum(doom, i);
+    }
 
-	doom->dofrags = !!doom->dofrags;
+    doom->dofrags = !!doom->dofrags;
 
-	WI_initAnimatedBack(doom);
+    WI_initAnimatedBack(doom);
 }
 
 void WI_updateNetgameStats(doom_data_t *doom)
 {
 
-	int i;
-	int fsum;
+    int i;
+    int fsum;
 
-	boolean stillticking;
+    boolean stillticking;
 
-	WI_updateAnimatedBack(doom);
+    WI_updateAnimatedBack(doom);
 
-	if (doom->acceleratestage && doom->ng_state != 10)
-	{
-		doom->acceleratestage = 0;
+    if (doom->acceleratestage && doom->ng_state != 10)
+    {
+        doom->acceleratestage = 0;
 
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i])
-				continue;
+        for (i = 0; i < MAXPLAYERS; i++)
+        {
+            if (!doom->playeringame[i])
+                continue;
 
-			doom->cnt_kills[i] = (doom->plrs[i].skills * 100) / doom->wbs->maxkills;
-			doom->cnt_items[i] = (doom->plrs[i].sitems * 100) / doom->wbs->maxitems;
-			doom->cnt_secret[i] = (doom->plrs[i].ssecret * 100) / doom->wbs->maxsecret;
+            doom->cnt_kills[i] = (doom->plrs[i].skills * 100) / doom->wbs->maxkills;
+            doom->cnt_items[i] = (doom->plrs[i].sitems * 100) / doom->wbs->maxitems;
+            doom->cnt_secret[i] = (doom->plrs[i].ssecret * 100) / doom->wbs->maxsecret;
 
-			if (doom->dofrags)
-				doom->cnt_frags[i] = WI_fragSum(doom, i);
-		}
-		S_StartSound(0, sfx_barexp);
-		doom->ng_state = 10;
-	}
+            if (doom->dofrags)
+                doom->cnt_frags[i] = WI_fragSum(doom, i);
+        }
+        S_StartSound(doom, 0, sfx_barexp);
+        doom->ng_state = 10;
+    }
 
-	if (doom->ng_state == 2)
-	{
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+    if (doom->ng_state == 2)
+    {
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		stillticking = false;
+        stillticking = false;
 
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i])
-				continue;
+        for (i = 0; i < MAXPLAYERS; i++)
+        {
+            if (!doom->playeringame[i])
+                continue;
 
-			doom->cnt_kills[i] += 2;
+            doom->cnt_kills[i] += 2;
 
-			if (doom->cnt_kills[i] >= (doom->plrs[i].skills * 100) / doom->wbs->maxkills)
-				doom->cnt_kills[i] = (doom->plrs[i].skills * 100) / doom->wbs->maxkills;
-			else
-				stillticking = true;
-		}
+            if (doom->cnt_kills[i] >= (doom->plrs[i].skills * 100) / doom->wbs->maxkills)
+                doom->cnt_kills[i] = (doom->plrs[i].skills * 100) / doom->wbs->maxkills;
+            else
+                stillticking = true;
+        }
 
-		if (!stillticking)
-		{
-			S_StartSound(0, sfx_barexp);
-			doom->ng_state++;
-		}
-	}
-	else if (doom->ng_state == 4)
-	{
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+        if (!stillticking)
+        {
+            S_StartSound(doom, 0, sfx_barexp);
+            doom->ng_state++;
+        }
+    }
+    else if (doom->ng_state == 4)
+    {
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		stillticking = false;
+        stillticking = false;
 
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i])
-				continue;
+        for (i = 0; i < MAXPLAYERS; i++)
+        {
+            if (!doom->playeringame[i])
+                continue;
 
-			doom->cnt_items[i] += 2;
-			if (doom->cnt_items[i] >= (doom->plrs[i].sitems * 100) / doom->wbs->maxitems)
-				doom->cnt_items[i] = (doom->plrs[i].sitems * 100) / doom->wbs->maxitems;
-			else
-				stillticking = true;
-		}
-		if (!stillticking)
-		{
-			S_StartSound(0, sfx_barexp);
-			doom->ng_state++;
-		}
-	}
-	else if (doom->ng_state == 6)
-	{
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+            doom->cnt_items[i] += 2;
+            if (doom->cnt_items[i] >= (doom->plrs[i].sitems * 100) / doom->wbs->maxitems)
+                doom->cnt_items[i] = (doom->plrs[i].sitems * 100) / doom->wbs->maxitems;
+            else
+                stillticking = true;
+        }
+        if (!stillticking)
+        {
+            S_StartSound(doom, 0, sfx_barexp);
+            doom->ng_state++;
+        }
+    }
+    else if (doom->ng_state == 6)
+    {
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		stillticking = false;
+        stillticking = false;
 
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i])
-				continue;
+        for (i = 0; i < MAXPLAYERS; i++)
+        {
+            if (!doom->playeringame[i])
+                continue;
 
-			doom->cnt_secret[i] += 2;
+            doom->cnt_secret[i] += 2;
 
-			if (doom->cnt_secret[i] >= (doom->plrs[i].ssecret * 100) / doom->wbs->maxsecret)
-				doom->cnt_secret[i] = (doom->plrs[i].ssecret * 100) / doom->wbs->maxsecret;
-			else
-				stillticking = true;
-		}
+            if (doom->cnt_secret[i] >= (doom->plrs[i].ssecret * 100) / doom->wbs->maxsecret)
+                doom->cnt_secret[i] = (doom->plrs[i].ssecret * 100) / doom->wbs->maxsecret;
+            else
+                stillticking = true;
+        }
 
-		if (!stillticking)
-		{
-			S_StartSound(0, sfx_barexp);
-			doom->ng_state += 1 + 2 * !doom->dofrags;
-		}
-	}
-	else if (doom->ng_state == 8)
-	{
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+        if (!stillticking)
+        {
+            S_StartSound(doom, 0, sfx_barexp);
+            doom->ng_state += 1 + 2 * !doom->dofrags;
+        }
+    }
+    else if (doom->ng_state == 8)
+    {
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		stillticking = false;
+        stillticking = false;
 
-		for (i = 0; i < MAXPLAYERS; i++)
-		{
-			if (!playeringame[i])
-				continue;
+        for (i = 0; i < MAXPLAYERS; i++)
+        {
+            if (!doom->playeringame[i])
+                continue;
 
-			doom->cnt_frags[i] += 1;
+            doom->cnt_frags[i] += 1;
 
-			if (doom->cnt_frags[i] >= (fsum = WI_fragSum(doom, i)))
-				doom->cnt_frags[i] = fsum;
-			else
-				stillticking = true;
-		}
+            if (doom->cnt_frags[i] >= (fsum = WI_fragSum(doom, i)))
+                doom->cnt_frags[i] = fsum;
+            else
+                stillticking = true;
+        }
 
-		if (!stillticking)
-		{
-			S_StartSound(0, sfx_pldeth);
-			doom->ng_state++;
-		}
-	}
-	else if (doom->ng_state == 10)
-	{
-		if (doom->acceleratestage)
-		{
-			S_StartSound(0, sfx_sgcock);
-			if (doom->gamemode == commercial)
-				WI_initNoState(doom);
-			else
-				WI_initShowNextLoc(doom);
-		}
-	}
-	else if (doom->ng_state & 1)
-	{
-		if (!--doom->cnt_pause)
-		{
-			doom->ng_state++;
-			doom->cnt_pause = TICRATE;
-		}
-	}
+        if (!stillticking)
+        {
+            S_StartSound(doom, 0, sfx_pldeth);
+            doom->ng_state++;
+        }
+    }
+    else if (doom->ng_state == 10)
+    {
+        if (doom->acceleratestage)
+        {
+            S_StartSound(doom, 0, sfx_sgcock);
+            if (doom->gamemode == commercial)
+                WI_initNoState(doom);
+            else
+                WI_initShowNextLoc(doom);
+        }
+    }
+    else if (doom->ng_state & 1)
+    {
+        if (!--doom->cnt_pause)
+        {
+            doom->ng_state++;
+            doom->cnt_pause = TICRATE;
+        }
+    }
 }
 
 void WI_drawNetgameStats(doom_data_t *doom)
 {
-	int i;
-	int x;
-	int y;
-	int pwidth = SHORT(doom->percent->width);
+    int i;
+    int x;
+    int y;
+    int pwidth = SHORT(doom->percent->width);
 
-	WI_slamBackground(doom);
+    WI_slamBackground(doom);
 
-	// draw animated background
-	WI_drawAnimatedBack(doom);
+    // draw animated background
+    WI_drawAnimatedBack(doom);
 
-	WI_drawLF(doom);
+    WI_drawLF(doom);
 
-	// draw stat titles (top line)
-	V_DrawPatch(doom, NG_STATSX + NG_SPACINGX - SHORT(doom->kills->width),
-				NG_STATSY, doom->kills);
+    // draw stat titles (top line)
+    V_DrawPatch(doom, NG_STATSX + NG_SPACINGX - SHORT(doom->kills->width),
+                NG_STATSY, doom->kills);
 
-	V_DrawPatch(doom, NG_STATSX + 2 * NG_SPACINGX - SHORT(doom->items->width),
-				NG_STATSY, doom->items);
+    V_DrawPatch(doom, NG_STATSX + 2 * NG_SPACINGX - SHORT(doom->items->width),
+                NG_STATSY, doom->items);
 
-	V_DrawPatch(doom, NG_STATSX + 3 * NG_SPACINGX - SHORT(doom->secret->width),
-				NG_STATSY, doom->secret);
+    V_DrawPatch(doom, NG_STATSX + 3 * NG_SPACINGX - SHORT(doom->secret->width),
+                NG_STATSY, doom->secret);
 
-	if (doom->dofrags)
-		V_DrawPatch(doom, NG_STATSX + 4 * NG_SPACINGX - SHORT(doom->frags->width),
-					NG_STATSY, doom->frags);
+    if (doom->dofrags)
+        V_DrawPatch(doom, NG_STATSX + 4 * NG_SPACINGX - SHORT(doom->frags->width),
+                    NG_STATSY, doom->frags);
 
-	// draw stats
-	y = NG_STATSY + SHORT(doom->kills->height);
+    // draw stats
+    y = NG_STATSY + SHORT(doom->kills->height);
 
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		if (!playeringame[i])
-			continue;
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (!doom->playeringame[i])
+            continue;
 
-		x = NG_STATSX;
-		V_DrawPatch(doom, x - SHORT(doom->p[i]->width), y, doom->p[i]);
+        x = NG_STATSX;
+        V_DrawPatch(doom, x - SHORT(doom->p[i]->width), y, doom->p[i]);
 
-		if (i == doom->me)
-			V_DrawPatch(doom, x - SHORT(doom->p[i]->width), y, doom->star);
+        if (i == doom->me)
+            V_DrawPatch(doom, x - SHORT(doom->p[i]->width), y, doom->star);
 
-		x += NG_SPACINGX;
-		WI_drawPercent(doom, x - pwidth, y + 10, doom->cnt_kills[i]);
-		x += NG_SPACINGX;
-		WI_drawPercent(doom, x - pwidth, y + 10, doom->cnt_items[i]);
-		x += NG_SPACINGX;
-		WI_drawPercent(doom, x - pwidth, y + 10, doom->cnt_secret[i]);
-		x += NG_SPACINGX;
+        x += NG_SPACINGX;
+        WI_drawPercent(doom, x - pwidth, y + 10, doom->cnt_kills[i]);
+        x += NG_SPACINGX;
+        WI_drawPercent(doom, x - pwidth, y + 10, doom->cnt_items[i]);
+        x += NG_SPACINGX;
+        WI_drawPercent(doom, x - pwidth, y + 10, doom->cnt_secret[i]);
+        x += NG_SPACINGX;
 
-		if (doom->dofrags)
-			WI_drawNum(doom, x, y + 10, doom->cnt_frags[i], -1);
+        if (doom->dofrags)
+            WI_drawNum(doom, x, y + 10, doom->cnt_frags[i], -1);
 
-		y += WI_SPACINGY;
-	}
+        y += WI_SPACINGY;
+    }
 }
 
 void WI_initStats(doom_data_t *doom)
 {
-	doom->state = StatCount;
-	doom->acceleratestage = 0;
-	doom->sp_state = 1;
-	doom->cnt_kills[0] = doom->cnt_items[0] = doom->cnt_secret[0] = -1;
-	doom->cnt_time = doom->cnt_par = -1;
-	doom->cnt_pause = TICRATE;
+    doom->state = StatCount;
+    doom->acceleratestage = 0;
+    doom->sp_state = 1;
+    doom->cnt_kills[0] = doom->cnt_items[0] = doom->cnt_secret[0] = -1;
+    doom->cnt_time = doom->cnt_par = -1;
+    doom->cnt_pause = TICRATE;
 
-	WI_initAnimatedBack(doom);
+    WI_initAnimatedBack(doom);
 }
 
 void WI_updateStats(doom_data_t *doom)
 {
 
-	WI_updateAnimatedBack(doom);
+    WI_updateAnimatedBack(doom);
 
-	if (doom->acceleratestage && doom->sp_state != 10)
-	{
-		doom->acceleratestage = 0;
-		doom->cnt_kills[0] = (doom->plrs[doom->me].skills * 100) / doom->wbs->maxkills;
-		doom->cnt_items[0] = (doom->plrs[doom->me].sitems * 100) / doom->wbs->maxitems;
-		doom->cnt_secret[0] = (doom->plrs[doom->me].ssecret * 100) / doom->wbs->maxsecret;
-		doom->cnt_time = doom->plrs[doom->me].stime / TICRATE;
-		doom->cnt_par = doom->wbs->partime / TICRATE;
-		S_StartSound(0, sfx_barexp);
-		doom->sp_state = 10;
-	}
+    if (doom->acceleratestage && doom->sp_state != 10)
+    {
+        doom->acceleratestage = 0;
+        doom->cnt_kills[0] = (doom->plrs[doom->me].skills * 100) / doom->wbs->maxkills;
+        doom->cnt_items[0] = (doom->plrs[doom->me].sitems * 100) / doom->wbs->maxitems;
+        doom->cnt_secret[0] = (doom->plrs[doom->me].ssecret * 100) / doom->wbs->maxsecret;
+        doom->cnt_time = doom->plrs[doom->me].stime / TICRATE;
+        doom->cnt_par = doom->wbs->partime / TICRATE;
+        S_StartSound(doom, 0, sfx_barexp);
+        doom->sp_state = 10;
+    }
 
-	if (doom->sp_state == 2)
-	{
-		doom->cnt_kills[0] += 2;
+    if (doom->sp_state == 2)
+    {
+        doom->cnt_kills[0] += 2;
 
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		if (doom->cnt_kills[0] >= (doom->plrs[doom->me].skills * 100) / doom->wbs->maxkills)
-		{
-			doom->cnt_kills[0] = (doom->plrs[doom->me].skills * 100) / doom->wbs->maxkills;
-			S_StartSound(0, sfx_barexp);
-			doom->sp_state++;
-		}
-	}
-	else if (doom->sp_state == 4)
-	{
-		doom->cnt_items[0] += 2;
+        if (doom->cnt_kills[0] >= (doom->plrs[doom->me].skills * 100) / doom->wbs->maxkills)
+        {
+            doom->cnt_kills[0] = (doom->plrs[doom->me].skills * 100) / doom->wbs->maxkills;
+            S_StartSound(doom, 0, sfx_barexp);
+            doom->sp_state++;
+        }
+    }
+    else if (doom->sp_state == 4)
+    {
+        doom->cnt_items[0] += 2;
 
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		if (doom->cnt_items[0] >= (doom->plrs[doom->me].sitems * 100) / doom->wbs->maxitems)
-		{
-			doom->cnt_items[0] = (doom->plrs[doom->me].sitems * 100) / doom->wbs->maxitems;
-			S_StartSound(0, sfx_barexp);
-			doom->sp_state++;
-		}
-	}
-	else if (doom->sp_state == 6)
-	{
-		doom->cnt_secret[0] += 2;
+        if (doom->cnt_items[0] >= (doom->plrs[doom->me].sitems * 100) / doom->wbs->maxitems)
+        {
+            doom->cnt_items[0] = (doom->plrs[doom->me].sitems * 100) / doom->wbs->maxitems;
+            S_StartSound(doom, 0, sfx_barexp);
+            doom->sp_state++;
+        }
+    }
+    else if (doom->sp_state == 6)
+    {
+        doom->cnt_secret[0] += 2;
 
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		if (doom->cnt_secret[0] >= (doom->plrs[doom->me].ssecret * 100) / doom->wbs->maxsecret)
-		{
-			doom->cnt_secret[0] = (doom->plrs[doom->me].ssecret * 100) / doom->wbs->maxsecret;
-			S_StartSound(0, sfx_barexp);
-			doom->sp_state++;
-		}
-	}
+        if (doom->cnt_secret[0] >= (doom->plrs[doom->me].ssecret * 100) / doom->wbs->maxsecret)
+        {
+            doom->cnt_secret[0] = (doom->plrs[doom->me].ssecret * 100) / doom->wbs->maxsecret;
+            S_StartSound(doom, 0, sfx_barexp);
+            doom->sp_state++;
+        }
+    }
 
-	else if (doom->sp_state == 8)
-	{
-		if (!(doom->bcnt & 3))
-			S_StartSound(0, sfx_pistol);
+    else if (doom->sp_state == 8)
+    {
+        if (!(doom->bcnt & 3))
+            S_StartSound(doom, 0, sfx_pistol);
 
-		doom->cnt_time += 3;
+        doom->cnt_time += 3;
 
-		if (doom->cnt_time >= doom->plrs[doom->me].stime / TICRATE)
-			doom->cnt_time = doom->plrs[doom->me].stime / TICRATE;
+        if (doom->cnt_time >= doom->plrs[doom->me].stime / TICRATE)
+            doom->cnt_time = doom->plrs[doom->me].stime / TICRATE;
 
-		doom->cnt_par += 3;
+        doom->cnt_par += 3;
 
-		if (doom->cnt_par >= doom->wbs->partime / TICRATE)
-		{
-			doom->cnt_par = doom->wbs->partime / TICRATE;
+        if (doom->cnt_par >= doom->wbs->partime / TICRATE)
+        {
+            doom->cnt_par = doom->wbs->partime / TICRATE;
 
-			if (doom->cnt_time >= doom->plrs[doom->me].stime / TICRATE)
-			{
-				S_StartSound(0, sfx_barexp);
-				doom->sp_state++;
-			}
-		}
-	}
-	else if (doom->sp_state == 10)
-	{
-		if (doom->acceleratestage)
-		{
-			S_StartSound(0, sfx_sgcock);
+            if (doom->cnt_time >= doom->plrs[doom->me].stime / TICRATE)
+            {
+                S_StartSound(doom, 0, sfx_barexp);
+                doom->sp_state++;
+            }
+        }
+    }
+    else if (doom->sp_state == 10)
+    {
+        if (doom->acceleratestage)
+        {
+            S_StartSound(doom, 0, sfx_sgcock);
 
-			if (doom->gamemode == commercial)
-				WI_initNoState(doom);
-			else
-				WI_initShowNextLoc(doom);
-		}
-	}
-	else if (doom->sp_state & 1)
-	{
-		if (!--doom->cnt_pause)
-		{
-			doom->sp_state++;
-			doom->cnt_pause = TICRATE;
-		}
-	}
+            if (doom->gamemode == commercial)
+                WI_initNoState(doom);
+            else
+                WI_initShowNextLoc(doom);
+        }
+    }
+    else if (doom->sp_state & 1)
+    {
+        if (!--doom->cnt_pause)
+        {
+            doom->sp_state++;
+            doom->cnt_pause = TICRATE;
+        }
+    }
 }
 
 void WI_drawStats(doom_data_t *doom)
 {
-	// line height
-	int lh;
+    // line height
+    int lh;
 
-	lh = (3 * SHORT(doom->num[0]->height)) / 2;
+    lh = (3 * SHORT(doom->num[0]->height)) / 2;
 
-	WI_slamBackground(doom);
+    WI_slamBackground(doom);
 
-	// draw animated background
-	WI_drawAnimatedBack(doom);
+    // draw animated background
+    WI_drawAnimatedBack(doom);
 
-	WI_drawLF(doom);
+    WI_drawLF(doom);
 
-	V_DrawPatch(doom, SP_STATSX, SP_STATSY, doom->kills);
-	WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY, doom->cnt_kills[0]);
+    V_DrawPatch(doom, SP_STATSX, SP_STATSY, doom->kills);
+    WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY, doom->cnt_kills[0]);
 
-	V_DrawPatch(doom, SP_STATSX, SP_STATSY + lh, doom->items);
-	WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY + lh, doom->cnt_items[0]);
+    V_DrawPatch(doom, SP_STATSX, SP_STATSY + lh, doom->items);
+    WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY + lh, doom->cnt_items[0]);
 
-	V_DrawPatch(doom, SP_STATSX, SP_STATSY + 2 * lh, doom->sp_secret);
-	WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY + 2 * lh, doom->cnt_secret[0]);
+    V_DrawPatch(doom, SP_STATSX, SP_STATSY + 2 * lh, doom->sp_secret);
+    WI_drawPercent(doom, SCREENWIDTH - SP_STATSX, SP_STATSY + 2 * lh, doom->cnt_secret[0]);
 
-	V_DrawPatch(doom, SP_TIMEX, SP_TIMEY, doom->timepatch);
-	WI_drawTime(doom, SCREENWIDTH / 2 - SP_TIMEX, SP_TIMEY, doom->cnt_time);
+    V_DrawPatch(doom, SP_TIMEX, SP_TIMEY, doom->timepatch);
+    WI_drawTime(doom, SCREENWIDTH / 2 - SP_TIMEX, SP_TIMEY, doom->cnt_time);
 
-	if (doom->wbs->epsd < 3)
-	{
-		V_DrawPatch(doom, SCREENWIDTH / 2 + SP_TIMEX, SP_TIMEY, doom->par);
-		WI_drawTime(doom, SCREENWIDTH - SP_TIMEX, SP_TIMEY, doom->cnt_par);
-	}
+    if (doom->wbs->epsd < 3)
+    {
+        V_DrawPatch(doom, SCREENWIDTH / 2 + SP_TIMEX, SP_TIMEY, doom->par);
+        WI_drawTime(doom, SCREENWIDTH - SP_TIMEX, SP_TIMEY, doom->cnt_par);
+    }
 }
 
 void WI_checkForAccelerate(doom_data_t *doom)
 {
-	int i;
-	player_t *player;
+    int i;
+    player_t *player;
 
-	// check for button presses to skip delays
-	for (i = 0, player = players; i < MAXPLAYERS; i++, player++)
-	{
-		if (playeringame[i])
-		{
-			if (player->cmd.buttons & BT_ATTACK)
-			{
-				if (!player->attackdown)
-					doom->acceleratestage = 1;
-				player->attackdown = true;
-			}
-			else
-				player->attackdown = false;
-			if (player->cmd.buttons & BT_USE)
-			{
-				if (!player->usedown)
-					doom->acceleratestage = 1;
-				player->usedown = true;
-			}
-			else
-				player->usedown = false;
-		}
-	}
+    // check for button presses to skip delays
+    for (i = 0, player = doom->players; i < MAXPLAYERS; i++, player++)
+    {
+        if (doom->playeringame[i])
+        {
+            if (player->cmd.buttons & BT_ATTACK)
+            {
+                if (!player->attackdown)
+                    doom->acceleratestage = 1;
+                player->attackdown = true;
+            }
+            else
+                player->attackdown = false;
+            if (player->cmd.buttons & BT_USE)
+            {
+                if (!player->usedown)
+                    doom->acceleratestage = 1;
+                player->usedown = true;
+            }
+            else
+                player->usedown = false;
+        }
+    }
 }
 
 // Updates stuff each tick
 void WI_Ticker(doom_data_t *doom)
 {
-	// counter for general background animation
-	doom->bcnt++;
+    // counter for general background animation
+    doom->bcnt++;
 
-	if (doom->bcnt == 1)
-	{
-		// intermission music
-		if (doom->gamemode == commercial)
-			S_ChangeMusic(doom, mus_dm2int, true);
-		else
-			S_ChangeMusic(doom, mus_inter, true);
-	}
+    if (doom->bcnt == 1)
+    {
+        // intermission music
+        if (doom->gamemode == commercial)
+            S_ChangeMusic(doom, mus_dm2int, true);
+        else
+            S_ChangeMusic(doom, mus_inter, true);
+    }
 
-	WI_checkForAccelerate(doom);
+    WI_checkForAccelerate(doom);
 
-	switch (doom->state)
-	{
-	case StatCount:
-		if (deathmatch)
-			WI_updateDeathmatchStats(doom);
-		else if (netgame)
-			WI_updateNetgameStats(doom);
-		else
-			WI_updateStats(doom);
-		break;
+    switch (doom->state)
+    {
+    case StatCount:
+        if (doom->deathmatch)
+            WI_updateDeathmatchStats(doom);
+        else if (netgame)
+            WI_updateNetgameStats(doom);
+        else
+            WI_updateStats(doom);
+        break;
 
-	case ShowNextLoc:
-		WI_updateShowNextLoc(doom);
-		break;
+    case ShowNextLoc:
+        WI_updateShowNextLoc(doom);
+        break;
 
-	case NoState:
-		WI_updateNoState(doom);
-		break;
-	}
+    case NoState:
+        WI_updateNoState(doom);
+        break;
+    }
 }
 
 typedef void (*load_callback_t)(struct doom_data_t_ *doom, char *lumpname, patch_t **variable);
@@ -1395,260 +1395,260 @@ typedef void (*load_callback_t)(struct doom_data_t_ *doom, char *lumpname, patch
 
 static void WI_loadUnloadData(doom_data_t *doom, load_callback_t callback)
 {
-	int i, j;
-	char name[9];
-	anim_t *a;
+    int i, j;
+    char name[9];
+    anim_t *a;
 
-	if (doom->gamemode == commercial)
-	{
-		for (i = 0; i < doom->NUMCMAPS; i++)
-		{
-			d_snprintf(name, 9, "CWILV%2.2d", i);
-			callback(doom, name, &doom->lnames[i]);
-		}
-	}
-	else
-	{
-		for (i = 0; i < NUMMAPS; i++)
-		{
-			d_snprintf(name, 9, "WILV%d%d", doom->wbs->epsd, i);
-			callback(doom, name, &doom->lnames[i]);
-		}
+    if (doom->gamemode == commercial)
+    {
+        for (i = 0; i < doom->NUMCMAPS; i++)
+        {
+            d_snprintf(name, 9, "CWILV%2.2d", i);
+            callback(doom, name, &doom->lnames[i]);
+        }
+    }
+    else
+    {
+        for (i = 0; i < NUMMAPS; i++)
+        {
+            d_snprintf(name, 9, "WILV%d%d", doom->wbs->epsd, i);
+            callback(doom, name, &doom->lnames[i]);
+        }
 
-		// you are here
-		callback(doom, DEH_String("WIURH0"), &doom->yah[0]);
+        // you are here
+        callback(doom, DEH_String("WIURH0"), &doom->yah[0]);
 
-		// you are here (alt.)
-		callback(doom, DEH_String("WIURH1"), &doom->yah[1]);
+        // you are here (alt.)
+        callback(doom, DEH_String("WIURH1"), &doom->yah[1]);
 
-		// splat
-		callback(doom, DEH_String("WISPLAT"), &doom->splat[0]);
+        // splat
+        callback(doom, DEH_String("WISPLAT"), &doom->splat[0]);
 
-		if (doom->wbs->epsd < 3)
-		{
-			for (j = 0; j < NUMANIMS[doom->wbs->epsd]; j++)
-			{
-				a = &anims[doom->wbs->epsd][j];
-				for (i = 0; i < a->nanims; i++)
-				{
-					// MONDO HACK!
-					if (doom->wbs->epsd != 1 || j != 8)
-					{
-						// animations
-						d_snprintf(name, 9, "WIA%d%.2d%.2d", doom->wbs->epsd, j, i);
-						callback(doom, name, &a->p[i]);
-					}
-					else
-					{
-						// HACK ALERT!
-						a->p[i] = anims[1][4].p[i];
-					}
-				}
-			}
-		}
-	}
+        if (doom->wbs->epsd < 3)
+        {
+            for (j = 0; j < NUMANIMS[doom->wbs->epsd]; j++)
+            {
+                a = &anims[doom->wbs->epsd][j];
+                for (i = 0; i < a->nanims; i++)
+                {
+                    // MONDO HACK!
+                    if (doom->wbs->epsd != 1 || j != 8)
+                    {
+                        // animations
+                        d_snprintf(name, 9, "WIA%d%.2d%.2d", doom->wbs->epsd, j, i);
+                        callback(doom, name, &a->p[i]);
+                    }
+                    else
+                    {
+                        // HACK ALERT!
+                        a->p[i] = anims[1][4].p[i];
+                    }
+                }
+            }
+        }
+    }
 
-	// More hacks on minus sign.
-	callback(doom, DEH_String("WIMINUS"), &doom->wiminus);
+    // More hacks on minus sign.
+    callback(doom, DEH_String("WIMINUS"), &doom->wiminus);
 
-	for (i = 0; i < 10; i++)
-	{
-		// numbers 0-9
-		d_snprintf(name, 9, "WINUM%d", i);
-		callback(doom, name, &doom->num[i]);
-	}
+    for (i = 0; i < 10; i++)
+    {
+        // numbers 0-9
+        d_snprintf(name, 9, "WINUM%d", i);
+        callback(doom, name, &doom->num[i]);
+    }
 
-	// percent sign
-	callback(doom, DEH_String("WIPCNT"), &doom->percent);
+    // percent sign
+    callback(doom, DEH_String("WIPCNT"), &doom->percent);
 
-	// "finished"
-	callback(doom, DEH_String("WIF"), &doom->finished);
+    // "finished"
+    callback(doom, DEH_String("WIF"), &doom->finished);
 
-	// "entering"
-	callback(doom, DEH_String("WIENTER"), &doom->entering);
+    // "entering"
+    callback(doom, DEH_String("WIENTER"), &doom->entering);
 
-	// "kills"
-	callback(doom, DEH_String("WIOSTK"), &doom->kills);
+    // "kills"
+    callback(doom, DEH_String("WIOSTK"), &doom->kills);
 
-	// "scrt"
-	callback(doom, DEH_String("WIOSTS"), &doom->secret);
+    // "scrt"
+    callback(doom, DEH_String("WIOSTS"), &doom->secret);
 
-	// "secret"
-	callback(doom, DEH_String("WISCRT2"), &doom->sp_secret);
+    // "secret"
+    callback(doom, DEH_String("WISCRT2"), &doom->sp_secret);
 
-	// french wad uses WIOBJ (?)
-	if (W_CheckNumForName(doom, DEH_String("WIOBJ")) >= 0)
-	{
-		// "items"
-		if (netgame && !deathmatch)
-			callback(doom, DEH_String("WIOBJ"), &doom->items);
-		else
-			callback(doom, DEH_String("WIOSTI"), &doom->items);
-	}
-	else
-	{
-		callback(doom, DEH_String("WIOSTI"), &doom->items);
-	}
+    // french wad uses WIOBJ (?)
+    if (W_CheckNumForName(doom, DEH_String("WIOBJ")) >= 0)
+    {
+        // "items"
+        if (netgame && !doom->deathmatch)
+            callback(doom, DEH_String("WIOBJ"), &doom->items);
+        else
+            callback(doom, DEH_String("WIOSTI"), &doom->items);
+    }
+    else
+    {
+        callback(doom, DEH_String("WIOSTI"), &doom->items);
+    }
 
-	// "frgs"
-	callback(doom, DEH_String("WIFRGS"), &doom->frags);
+    // "frgs"
+    callback(doom, DEH_String("WIFRGS"), &doom->frags);
 
-	// ":"
-	callback(doom, DEH_String("WICOLON"), &doom->colon);
+    // ":"
+    callback(doom, DEH_String("WICOLON"), &doom->colon);
 
-	// "time"
-	callback(doom, DEH_String("WITIME"), &doom->timepatch);
+    // "time"
+    callback(doom, DEH_String("WITIME"), &doom->timepatch);
 
-	// "sucks"
-	callback(doom, DEH_String("WISUCKS"), &doom->sucks);
+    // "sucks"
+    callback(doom, DEH_String("WISUCKS"), &doom->sucks);
 
-	// "par"
-	callback(doom, DEH_String("WIPAR"), &doom->par);
+    // "par"
+    callback(doom, DEH_String("WIPAR"), &doom->par);
 
-	// "killers" (vertical)
-	callback(doom, DEH_String("WIKILRS"), &doom->killers);
+    // "killers" (vertical)
+    callback(doom, DEH_String("WIKILRS"), &doom->killers);
 
-	// "victims" (horiz)
-	callback(doom, DEH_String("WIVCTMS"), &doom->victims);
+    // "victims" (horiz)
+    callback(doom, DEH_String("WIVCTMS"), &doom->victims);
 
-	// "total"
-	callback(doom, DEH_String("WIMSTT"), &doom->total);
+    // "total"
+    callback(doom, DEH_String("WIMSTT"), &doom->total);
 
-	for (i = 0; i < MAXPLAYERS; i++)
-	{
-		// "1,2,3,4"
-		d_snprintf(name, 9, "STPB%d", i);
-		callback(doom, name, &doom->p[i]);
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        // "1,2,3,4"
+        d_snprintf(name, 9, "STPB%d", i);
+        callback(doom, name, &doom->p[i]);
 
-		// "1,2,3,4"
-		d_snprintf(name, 9, "WIBP%d", i + 1);
-		callback(doom, name, &doom->bp[i]);
-	}
+        // "1,2,3,4"
+        d_snprintf(name, 9, "WIBP%d", i + 1);
+        callback(doom, name, &doom->bp[i]);
+    }
 
-	// Background image
+    // Background image
 
-	if (doom->gamemode == commercial)
-	{
-		M_StringCopy(name, DEH_String("INTERPIC"), sizeof(name));
-	}
-	else if (doom->gamemode == retail && doom->wbs->epsd == 3)
-	{
-		M_StringCopy(name, DEH_String("INTERPIC"), sizeof(name));
-	}
-	else
-	{
-		d_snprintf(name, sizeof(name), "WIMAP%d", doom->wbs->epsd);
-	}
+    if (doom->gamemode == commercial)
+    {
+        M_StringCopy(name, DEH_String("INTERPIC"), sizeof(name));
+    }
+    else if (doom->gamemode == retail && doom->wbs->epsd == 3)
+    {
+        M_StringCopy(name, DEH_String("INTERPIC"), sizeof(name));
+    }
+    else
+    {
+        d_snprintf(name, sizeof(name), "WIMAP%d", doom->wbs->epsd);
+    }
 
-	// Draw backdrop and save to a temporary buffer
+    // Draw backdrop and save to a temporary buffer
 
-	callback(doom, name, &doom->background);
+    callback(doom, name, &doom->background);
 }
 
 static void WI_loadCallback(struct doom_data_t_ *doom, char *name, patch_t **variable)
 {
-	*variable = W_CacheLumpName(doom, name, PU_STATIC);
+    *variable = W_CacheLumpName(doom, name, PU_STATIC);
 }
 
 void WI_loadData(doom_data_t *doom)
 {
-	if (doom->gamemode == commercial)
-	{
-		doom->NUMCMAPS = 32;
-		doom->lnames = (patch_t **)Z_Malloc(sizeof(patch_t *) * doom->NUMCMAPS,
-											PU_STATIC, NULL);
-	}
-	else
-	{
-		doom->lnames = (patch_t **)Z_Malloc(sizeof(patch_t *) * NUMMAPS,
-											PU_STATIC, NULL);
-	}
+    if (doom->gamemode == commercial)
+    {
+        doom->NUMCMAPS = 32;
+        doom->lnames = (patch_t **)Z_Malloc(sizeof(patch_t *) * doom->NUMCMAPS,
+                                            PU_STATIC, NULL);
+    }
+    else
+    {
+        doom->lnames = (patch_t **)Z_Malloc(sizeof(patch_t *) * NUMMAPS,
+                                            PU_STATIC, NULL);
+    }
 
-	WI_loadUnloadData(doom, WI_loadCallback);
+    WI_loadUnloadData(doom, WI_loadCallback);
 
-	// These two graphics are special cased because we're sharing
-	// them with the status bar code
+    // These two graphics are special cased because we're sharing
+    // them with the status bar code
 
-	// your face
-	doom->star = W_CacheLumpName(doom, DEH_String("STFST01"), PU_STATIC);
+    // your face
+    doom->star = W_CacheLumpName(doom, DEH_String("STFST01"), PU_STATIC);
 
-	// dead face
-	doom->bstar = W_CacheLumpName(doom, DEH_String("STFDEAD0"), PU_STATIC);
+    // dead face
+    doom->bstar = W_CacheLumpName(doom, DEH_String("STFDEAD0"), PU_STATIC);
 }
 
 static void WI_unloadCallback(struct doom_data_t_ *doom, char *name, patch_t **variable)
 {
-	W_ReleaseLumpName(doom, name);
-	*variable = NULL;
+    W_ReleaseLumpName(doom, name);
+    *variable = NULL;
 }
 
 void WI_unloadData(doom_data_t *doom)
 {
-	WI_loadUnloadData(doom, WI_unloadCallback);
+    WI_loadUnloadData(doom, WI_unloadCallback);
 
-	// We do not free these lumps as they are shared with the status
-	// bar code.
+    // We do not free these lumps as they are shared with the status
+    // bar code.
 
-	// W_ReleaseLumpName("STFST01");
-	// W_ReleaseLumpName("STFDEAD0");
+    // W_ReleaseLumpName("STFST01");
+    // W_ReleaseLumpName("STFDEAD0");
 }
 
 void WI_Drawer(doom_data_t *doom)
 {
-	switch (doom->state)
-	{
-	case StatCount:
-		if (deathmatch)
-			WI_drawDeathmatchStats(doom);
-		else if (netgame)
-			WI_drawNetgameStats(doom);
-		else
-			WI_drawStats(doom);
-		break;
+    switch (doom->state)
+    {
+    case StatCount:
+        if (doom->deathmatch)
+            WI_drawDeathmatchStats(doom);
+        else if (netgame)
+            WI_drawNetgameStats(doom);
+        else
+            WI_drawStats(doom);
+        break;
 
-	case ShowNextLoc:
-		WI_drawShowNextLoc(doom);
-		break;
+    case ShowNextLoc:
+        WI_drawShowNextLoc(doom);
+        break;
 
-	case NoState:
-		WI_drawNoState(doom);
-		break;
-	}
+    case NoState:
+        WI_drawNoState(doom);
+        break;
+    }
 }
 
 void WI_initVariables(doom_data_t *doom, wbstartstruct_t *wbstartstruct)
 {
 
-	doom->wbs = wbstartstruct;
-	doom->acceleratestage = 0;
-	doom->cnt = doom->bcnt = 0;
-	doom->firstrefresh = 1;
-	doom->me = doom->wbs->pnum;
-	doom->plrs = doom->wbs->plyr;
+    doom->wbs = wbstartstruct;
+    doom->acceleratestage = 0;
+    doom->cnt = doom->bcnt = 0;
+    doom->firstrefresh = 1;
+    doom->me = doom->wbs->pnum;
+    doom->plrs = doom->wbs->plyr;
 
-	if (!doom->wbs->maxkills)
-		doom->wbs->maxkills = 1;
+    if (!doom->wbs->maxkills)
+        doom->wbs->maxkills = 1;
 
-	if (!doom->wbs->maxitems)
-		doom->wbs->maxitems = 1;
+    if (!doom->wbs->maxitems)
+        doom->wbs->maxitems = 1;
 
-	if (!doom->wbs->maxsecret)
-		doom->wbs->maxsecret = 1;
+    if (!doom->wbs->maxsecret)
+        doom->wbs->maxsecret = 1;
 
-	if (doom->gamemode != retail)
-		if (doom->wbs->epsd > 2)
-			doom->wbs->epsd -= 3;
+    if (doom->gamemode != retail)
+        if (doom->wbs->epsd > 2)
+            doom->wbs->epsd -= 3;
 }
 
 void WI_Start(doom_data_t *doom, wbstartstruct_t *wbstartstruct)
 {
-	WI_initVariables(doom, wbstartstruct);
-	WI_loadData(doom);
+    WI_initVariables(doom, wbstartstruct);
+    WI_loadData(doom);
 
-	if (deathmatch)
-		WI_initDeathmatchStats(doom);
-	else if (netgame)
-		WI_initNetgameStats(doom);
-	else
-		WI_initStats(doom);
+    if (doom->deathmatch)
+        WI_initDeathmatchStats(doom);
+    else if (netgame)
+        WI_initNetgameStats(doom);
+    else
+        WI_initStats(doom);
 }

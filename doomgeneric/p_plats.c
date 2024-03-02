@@ -54,14 +54,14 @@ void T_PlatRaise(doom_data_t *doom, plat_t *plat)
 		if (plat->type == raiseAndChange || plat->type == raiseToNearestAndChange)
 		{
 			if (!(leveltime & 7))
-				S_StartSound(&plat->sector->soundorg, sfx_stnmov);
+				S_StartSound(doom, &plat->sector->soundorg, sfx_stnmov);
 		}
 
 		if (res == crushed && (!plat->crush))
 		{
 			plat->count = plat->wait;
 			plat->status = down;
-			S_StartSound(&plat->sector->soundorg, sfx_pstart);
+			S_StartSound(doom, &plat->sector->soundorg, sfx_pstart);
 		}
 		else
 		{
@@ -69,7 +69,7 @@ void T_PlatRaise(doom_data_t *doom, plat_t *plat)
 			{
 				plat->count = plat->wait;
 				plat->status = waiting;
-				S_StartSound(&plat->sector->soundorg, sfx_pstop);
+				S_StartSound(doom, &plat->sector->soundorg, sfx_pstop);
 
 				switch (plat->type)
 				{
@@ -97,7 +97,7 @@ void T_PlatRaise(doom_data_t *doom, plat_t *plat)
 		{
 			plat->count = plat->wait;
 			plat->status = waiting;
-			S_StartSound(&plat->sector->soundorg, sfx_pstop);
+			S_StartSound(doom, &plat->sector->soundorg, sfx_pstop);
 		}
 		break;
 
@@ -108,7 +108,7 @@ void T_PlatRaise(doom_data_t *doom, plat_t *plat)
 				plat->status = up;
 			else
 				plat->status = down;
-			S_StartSound(&plat->sector->soundorg, sfx_pstart);
+			S_StartSound(doom, &plat->sector->soundorg, sfx_pstart);
 		}
 	case in_stasis:
 		break;
@@ -173,7 +173,7 @@ int EV_DoPlat(doom_data_t *doom,
 			// NO MORE DAMAGE, IF APPLICABLE
 			sec->special = 0;
 
-			S_StartSound(&sec->soundorg, sfx_stnmov);
+			S_StartSound(doom, &sec->soundorg, sfx_stnmov);
 			break;
 
 		case raiseAndChange:
@@ -183,7 +183,7 @@ int EV_DoPlat(doom_data_t *doom,
 			plat->wait = 0;
 			plat->status = up;
 
-			S_StartSound(&sec->soundorg, sfx_stnmov);
+			S_StartSound(doom, &sec->soundorg, sfx_stnmov);
 			break;
 
 		case downWaitUpStay:
@@ -196,7 +196,7 @@ int EV_DoPlat(doom_data_t *doom,
 			plat->high = sec->floorheight;
 			plat->wait = TICRATE * PLATWAIT;
 			plat->status = down;
-			S_StartSound(&sec->soundorg, sfx_pstart);
+			S_StartSound(doom, &sec->soundorg, sfx_pstart);
 			break;
 
 		case blazeDWUS:
@@ -209,7 +209,7 @@ int EV_DoPlat(doom_data_t *doom,
 			plat->high = sec->floorheight;
 			plat->wait = TICRATE * PLATWAIT;
 			plat->status = down;
-			S_StartSound(&sec->soundorg, sfx_pstart);
+			S_StartSound(doom, &sec->soundorg, sfx_pstart);
 			break;
 
 		case perpetualRaise:
@@ -227,7 +227,7 @@ int EV_DoPlat(doom_data_t *doom,
 			plat->wait = TICRATE * PLATWAIT;
 			plat->status = P_Random() & 1;
 
-			S_StartSound(&sec->soundorg, sfx_pstart);
+			S_StartSound(doom, &sec->soundorg, sfx_pstart);
 			break;
 		}
 		P_AddActivePlat(plat);

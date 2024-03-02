@@ -733,12 +733,12 @@ void P_SetupLevel(doom_data_t *doom,
     wminfo.partime = 180;
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        players[i].killcount = players[i].secretcount = players[i].itemcount = 0;
+        doom->players[i].killcount = doom->players[i].secretcount = doom->players[i].itemcount = 0;
     }
 
     // Initial height of PointOfView
     // will be set by player think.
-    players[consoleplayer].viewz = 1;
+    doom->players[doom->consoleplayer].viewz = 1;
 
     // Make sure all sounds are stopped before Z_FreeTags.
     S_Start(doom);
@@ -788,12 +788,12 @@ void P_SetupLevel(doom_data_t *doom,
     P_LoadThings(doom, lumpnum + ML_THINGS);
 
     // if deathmatch, randomly spawn the active players
-    if (deathmatch)
+    if (doom->deathmatch)
     {
         for (i = 0; i < MAXPLAYERS; i++)
-            if (playeringame[i])
+            if (doom->playeringame[i])
             {
-                players[i].mo = NULL;
+                doom->players[i].mo = NULL;
                 G_DeathMatchSpawnPlayer(doom, i);
             }
     }

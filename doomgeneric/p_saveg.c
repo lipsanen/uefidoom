@@ -295,7 +295,7 @@ static void saveg_write_thinker_t(thinker_t *str)
 // mobj_t
 //
 
-static void saveg_read_mobj_t(mobj_t *str)
+static void saveg_read_mobj_t(struct doom_data_t_* doom, mobj_t *str)
 {
     int pl;
 
@@ -397,7 +397,7 @@ static void saveg_read_mobj_t(mobj_t *str)
 
     if (pl > 0)
     {
-        str->player = &players[pl - 1];
+        str->player = &doom->players[pl - 1];
         str->player->mo = str;
     }
     else
@@ -415,7 +415,7 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->tracer = saveg_readp();
 }
 
-static void saveg_write_mobj_t(mobj_t *str)
+static void saveg_write_mobj_t(struct doom_data_t_* doom, mobj_t *str)
 {
     // thinker_t thinker;
     saveg_write_thinker_t(&str->thinker);
@@ -513,7 +513,7 @@ static void saveg_write_mobj_t(mobj_t *str)
     // struct player_s* player;
     if (str->player)
     {
-        saveg_write32(str->player - players + 1);
+        saveg_write32(str->player - doom->players + 1);
     }
     else
     {
@@ -1355,12 +1355,12 @@ void P_WriteSaveGameHeader(doom_data_t *doom, char *description)
     for (i = 0; i < VERSIONSIZE; ++i)
         saveg_write8(name[i]);
 
-    saveg_write8(gameskill);
-    saveg_write8(gameepisode);
-    saveg_write8(gamemap);
+    saveg_write8(doom->gameskill);
+    saveg_write8(doom->gameepisode);
+    saveg_write8(doom->gamemap);
 
     for (i = 0; i < MAXPLAYERS; i++)
-        saveg_write8(playeringame[i]);
+        saveg_write8(doom->playeringame[i]);
 
     saveg_write8((leveltime >> 16) & 0xff);
     saveg_write8((leveltime >> 8) & 0xff);
@@ -1391,12 +1391,12 @@ boolean P_ReadSaveGameHeader(doom_data_t *doom)
     if (d_strcmp(read_vcheck, vcheck) != 0)
         return false; // bad version
 
-    gameskill = saveg_read8();
-    gameepisode = saveg_read8();
-    gamemap = saveg_read8();
+    doom->gameskill = saveg_read8();
+    doom->gameepisode = saveg_read8();
+    doom->gamemap = saveg_read8();
 
     for (i = 0; i < MAXPLAYERS; i++)
-        playeringame[i] = saveg_read8();
+        doom->playeringame[i] = saveg_read8();
 
     // get the times
     a = saveg_read8();
@@ -1432,41 +1432,41 @@ void P_WriteSaveGameEOF(void)
 //
 // P_ArchivePlayers
 //
-void P_ArchivePlayers(void)
+void P_ArchivePlayers(struct doom_data_t_* doom)
 {
     int i;
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        if (!playeringame[i])
+        if (!doom->playeringame[i])
             continue;
 
         saveg_write_pad();
 
-        saveg_write_player_t(&players[i]);
+        saveg_write_player_t(&doom->players[i]);
     }
 }
 
 //
 // P_UnArchivePlayers
 //
-void P_UnArchivePlayers(void)
+void P_UnArchivePlayers(struct doom_data_t_* doom)
 {
     int i;
 
     for (i = 0; i < MAXPLAYERS; i++)
     {
-        if (!playeringame[i])
+        if (!doom->playeringame[i])
             continue;
 
         saveg_read_pad();
 
-        saveg_read_player_t(&players[i]);
+        saveg_read_player_t(&doom->players[i]);
 
         // will be set when unarc thinker
-        players[i].mo = NULL;
-        players[i].message = NULL;
-        players[i].attacker = NULL;
+        doom->players[i].mo = NULL;
+        doom->players[i].message = NULL;
+        doom->players[i].attacker = NULL;
     }
 }
 
@@ -1573,7 +1573,7 @@ typedef enum
 //
 // P_ArchiveThinkers
 //
-void P_ArchiveThinkers(void)
+void P_ArchiveThinkers(struct doom_data_t_* doom)
 {
     thinker_t *th;
 
@@ -1584,7 +1584,7 @@ void P_ArchiveThinkers(void)
         {
             saveg_write8(tc_mobj);
             saveg_write_pad();
-            saveg_write_mobj_t((mobj_t *)th);
+            saveg_write_mobj_t(doom, (mobj_t *)th);
 
             continue;
         }
@@ -1599,7 +1599,7 @@ void P_ArchiveThinkers(void)
 //
 // P_UnArchiveThinkers
 //
-void P_UnArchiveThinkers(void)
+void P_UnArchiveThinkers(struct doom_data_t_* doom)
 {
     byte tclass;
     thinker_t *currentthinker;
@@ -1633,7 +1633,7 @@ void P_UnArchiveThinkers(void)
         case tc_mobj:
             saveg_read_pad();
             mobj = Z_Malloc(sizeof(*mobj), PU_LEVEL, NULL);
-            saveg_read_mobj_t(mobj);
+            saveg_read_mobj_t(doom, mobj);
 
             mobj->target = NULL;
             mobj->tracer = NULL;

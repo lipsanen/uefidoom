@@ -109,7 +109,7 @@ boolean PIT_StompThing(doom_data_t *doom, mobj_t *thing)
         return true;
 
     // monsters don't stomp things except on boss level
-    if (!tmthing->player && gamemap != 30)
+    if (!tmthing->player && doom->gamemap != 30)
         return false;
 
     P_DamageMobj(doom, thing, tmthing, tmthing, 10000);
@@ -1106,7 +1106,7 @@ boolean PTR_UseTraverse(doom_data_t *doom, intercept_t *in)
         P_LineOpening(in->d.line);
         if (openrange <= 0)
         {
-            S_StartSound(usething, sfx_noway);
+            S_StartSound(doom, usething, sfx_noway);
 
             // can't use through a wall
             return false;
@@ -1295,7 +1295,7 @@ boolean PIT_ChangeSector(doom_data_t *doom, mobj_t *thing)
         P_DamageMobj(doom, thing, NULL, NULL, 10);
 
         // spray blood in a random direction
-        mo = P_SpawnMobj(thing->x,
+        mo = P_SpawnMobj(doom, thing->x,
                          thing->y,
                          thing->z + thing->height / 2, MT_BLOOD);
 

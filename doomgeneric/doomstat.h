@@ -54,13 +54,6 @@
 // Selected skill type, map etc.
 //
 
-// Savegame slot to load on startup.  This is the value provided to
-// the -loadgame option.  If this has not been provided, this is -1.
-// Selected by user. 
-extern  skill_t         gameskill;
-extern  int		gameepisode;
-extern  int		gamemap;
-
 // If non-zero, exit the level after this number of minutes
 extern  int             timelimit;
 
@@ -69,9 +62,6 @@ extern  boolean         respawnmonsters;
 
 // Netgame? Only true if >1 player.
 extern  boolean	netgame;
-
-// 0=Cooperative; 1=Deathmatch; 2=Altdeath
-extern int deathmatch;
 
 // -------------------------
 // Internal parameters for sound rendering.
@@ -108,14 +98,6 @@ extern  boolean statusbaractive;
 
 extern  boolean	menuactive;	// Menu overlayed?
 extern  boolean	paused;		// Game Pause?
-
-
-extern  boolean		viewactive;
-
-extern  boolean		nodrawers;
-
-
-extern  boolean         testcontrols;
 extern  int             testcontrols_mousespeed;
 
 
@@ -124,10 +106,6 @@ extern  int             testcontrols_mousespeed;
 // This one is related to the 3-screen display mode.
 // ANG90 = left side, ANG270 = right
 extern  int	viewangleoffset;
-
-// Player taking events, and displaying.
-extern  int	consoleplayer;	
-extern  int	displayplayer;
 
 
 // -------------------------------------
@@ -159,15 +137,6 @@ extern  boolean	demorecording;
 
 extern boolean lowres_turn;
 
-// Quit after playing a demo from cmdline.
-extern  boolean		singledemo;	
-
-
-
-
-//?
-extern  gamestate_t     gamestate;
-
 
 
 
@@ -178,14 +147,6 @@ extern  gamestate_t     gamestate;
 // These are set by the engine, and not changed
 //  according to user inputs. Partly load from
 //  WAD, partly set at startup time.
-
-
-
-// Bookkeeping on players - state.
-extern	player_t	players[MAXPLAYERS];
-
-// Alive? Disconnected?
-extern  boolean		playeringame[MAXPLAYERS];
 
 
 // Player spawn spots for deathmatch.

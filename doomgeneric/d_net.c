@@ -43,7 +43,7 @@ static void PlayerQuitGame(doom_data_t* doom, player_t *player)
 {
     unsigned int player_num;
 
-    player_num = player - players;
+    player_num = player - doom->players;
 
     // Do this the same way as Vanilla Doom does, to allow dehacked
     // replacements of this message
@@ -53,8 +53,8 @@ static void PlayerQuitGame(doom_data_t* doom, player_t *player)
 
     doom->exitmsg[7] += player_num;
 
-    playeringame[player_num] = false;
-    players[consoleplayer].message = doom->exitmsg;
+    doom->playeringame[player_num] = false;
+    doom->players[doom->consoleplayer].message = doom->exitmsg;
 
     // TODO: check if it is sensible to do this:
 
@@ -72,9 +72,9 @@ static void RunTic(doom_data_t* doom, ticcmd_t *cmds, boolean *ingame)
 
     for (i = 0; i < MAXPLAYERS; ++i)
     {
-        if (!demoplayback && playeringame[i] && !ingame[i])
+        if (!demoplayback && doom->playeringame[i] && !ingame[i])
         {
-            PlayerQuitGame(doom, &players[i]);
+            PlayerQuitGame(doom, &doom->players[i]);
         }
     }
 
@@ -104,7 +104,7 @@ static void LoadGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
 {
     unsigned int i;
 
-    deathmatch = settings->deathmatch;
+    doom->deathmatch = settings->deathmatch;
     doom->startepisode = settings->episode;
     doom->startmap = settings->map;
     doom->startskill = settings->skill;
@@ -114,7 +114,7 @@ static void LoadGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
     doom->fastparm = settings->fast_monsters;
     doom->respawnparm = settings->respawn_monsters;
     timelimit = settings->timelimit;
-    consoleplayer = settings->consoleplayer;
+    doom->consoleplayer = settings->consoleplayer;
 
     if (lowres_turn)
     {
@@ -124,7 +124,7 @@ static void LoadGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
 
     for (i = 0; i < MAXPLAYERS; ++i)
     {
-        playeringame[i] = i < settings->num_players;
+        doom->playeringame[i] = i < settings->num_players;
     }
 }
 
@@ -136,7 +136,7 @@ static void SaveGameSettings(doom_data_t* doom, net_gamesettings_t *settings)
     // Fill in game settings structure with appropriate parameters
     // for the new game
 
-    settings->deathmatch = deathmatch;
+    settings->deathmatch = doom->deathmatch;
     settings->episode = doom->startepisode;
     settings->map = doom->startmap;
     settings->skill = doom->startskill;
@@ -244,14 +244,14 @@ void D_CheckNetGame (struct doom_data_t_* doom)
     LoadGameSettings(doom, &settings);
 
     d_printf("startskill %i  deathmatch: %i  startmap: %i  startepisode: %i\n",
-               doom->startskill, deathmatch, doom->startmap, doom->startepisode);
+               doom->startskill, doom->deathmatch, doom->startmap, doom->startepisode);
 
     d_printf("player %i of %i (%i nodes)\n",
-               consoleplayer+1, settings.num_players, settings.num_players);
+               doom->consoleplayer+1, settings.num_players, settings.num_players);
 
     // Show players here; the server might have specified a time limit
 
-    if (timelimit > 0 && deathmatch)
+    if (timelimit > 0 && doom->deathmatch)
     {
         // Gross hack to work like Vanilla:
 

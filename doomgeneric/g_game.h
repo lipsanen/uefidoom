@@ -35,18 +35,18 @@ void G_InitNew (doom_data_t* doom, skill_t skill, int episode, int map);
 // Can be called by the startup code or M_Responder.
 // A normal game starts at map 1,
 // but a warp test can start elsewhere
-void G_DeferedInitNew (skill_t skill, int episode, int map);
+void G_DeferedInitNew (doom_data_t* doom, skill_t skill, int episode, int map);
 
-void G_DeferedPlayDemo (char* demo);
+void G_DeferedPlayDemo (struct doom_data_t_* doom, char* demo);
 
 // Can be called by the startup code or M_Responder,
 // calls P_SetupLevel or W_EnterWorld.
-void G_LoadGame (char* name);
+void G_LoadGame (doom_data_t* doom, char* name);
 
 void G_DoLoadGame (doom_data_t* doom);
 
 // Called by M_Responder.
-void G_SaveGame (int slot, char* description);
+void G_SaveGame (struct doom_data_t_* doom, int slot, char* description);
 
 // Only called by startup code.
 void G_RecordDemo (struct doom_data_t_* doom, char* name);
@@ -57,7 +57,7 @@ void G_PlayDemo (char* name);
 void G_TimeDemo (doom_data_t* doom, char* name);
 boolean G_CheckDemoStatus (doom_data_t* doom);
 
-void G_ExitLevel (void);
+void G_ExitLevel (doom_data_t* doom);
 void G_SecretExitLevel (doom_data_t* doom);
 
 void G_WorldDone (doom_data_t* doom);
@@ -69,7 +69,7 @@ void G_BuildTiccmd (doom_data_t* data, ticcmd_t *cmd, int maketic);
 void G_Ticker (doom_data_t* data);
 boolean G_Responder (doom_data_t* data, event_t*	ev);
 
-void G_ScreenShot (void);
+void G_ScreenShot (struct doom_data_t_* doom);
 
 void G_DrawMouseSpeedBox(void);
 int G_VanillaVersionCode(doom_data_t* doom);

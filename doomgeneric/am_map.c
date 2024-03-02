@@ -326,19 +326,19 @@ void AM_initVariables(doom_data_t *doom)
     doom->m_h = FTOM(doom->f_h);
 
     // find player to center on initially
-    if (playeringame[consoleplayer])
+    if (doom->playeringame[doom->consoleplayer])
     {
-        doom->plr = &players[consoleplayer];
+        doom->plr = &doom->players[doom->consoleplayer];
     }
     else
     {
-        doom->plr = &players[0];
+        doom->plr = &doom->players[0];
 
         for (pnum = 0; pnum < MAXPLAYERS; pnum++)
         {
-            if (playeringame[pnum])
+            if (doom->playeringame[pnum])
             {
-                doom->plr = &players[pnum];
+                doom->plr = &doom->players[pnum];
                 break;
             }
         }
@@ -436,11 +436,11 @@ void AM_Start(doom_data_t *doom)
     if (!doom->stopped)
         AM_Stop(doom);
     doom->stopped = false;
-    if (doom->lastlevel != gamemap || doom->lastepisode != gameepisode)
+    if (doom->lastlevel != doom->gamemap || doom->lastepisode != doom->gameepisode)
     {
         AM_LevelInit(doom);
-        doom->lastlevel = gamemap;
-        doom->lastepisode = gameepisode;
+        doom->lastlevel = doom->gamemap;
+        doom->lastepisode = doom->gameepisode;
     }
     AM_initVariables(doom);
     AM_loadPics(doom);
@@ -484,7 +484,7 @@ AM_Responder(doom_data_t *doom, event_t *ev)
         if (ev->type == ev_keydown && ev->data1 == key_map_toggle)
         {
             AM_Start(doom);
-            viewactive = false;
+            doom->viewactive = false;
             rc = true;
         }
     }
@@ -534,7 +534,7 @@ AM_Responder(doom_data_t *doom, event_t *ev)
         else if (key == key_map_toggle)
         {
             bigstate = 0;
-            viewactive = true;
+            doom->viewactive = true;
             AM_Stop(doom);
         }
         else if (key == key_map_maxzoom)
@@ -582,7 +582,7 @@ AM_Responder(doom_data_t *doom, event_t *ev)
             rc = false;
         }
 
-        if (!deathmatch && cht_CheckCheat(&doom->cheat_amap, ev->data2))
+        if (!doom->deathmatch && cht_CheckCheat(&doom->cheat_amap, ev->data2))
         {
             rc = false;
             doom->cheating = (doom->cheating + 1) % 3;
@@ -1137,12 +1137,12 @@ static void AM_drawPlayers(doom_data_t *doom)
     for (i = 0; i < MAXPLAYERS; i++)
     {
         their_color++;
-        p = &players[i];
+        p = &doom->players[i];
 
-        if ((deathmatch && !singledemo) && p != doom->plr)
+        if ((doom->deathmatch && !doom->singledemo) && p != doom->plr)
             continue;
 
-        if (!playeringame[i])
+        if (!doom->playeringame[i])
             continue;
 
         if (p->powers[pw_invisibility])

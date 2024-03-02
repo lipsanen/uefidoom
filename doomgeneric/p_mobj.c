@@ -33,7 +33,7 @@
 
 #include "doomstat.h"
 
-void G_PlayerReborn(int player);
+void G_PlayerReborn(doom_data_t *doom, int player);
 void P_SpawnMapThing(doom_data_t *doom, mapthing_t *mthing);
 
 //
@@ -92,7 +92,7 @@ void P_ExplodeMissile(doom_data_t *doom, mobj_t *mo)
     mo->flags &= ~MF_MISSILE;
 
     if (mo->info->deathsound)
-        S_StartSound(mo, mo->info->deathsound);
+        S_StartSound(doom, mo, mo->info->deathsound);
 }
 
 //
@@ -302,7 +302,7 @@ void P_ZMovement(doom_data_t *doom, mobj_t *mo)
                 // after hitting the ground (hard),
                 // and utter appropriate sound.
                 mo->player->deltaviewheight = mo->momz >> 3;
-                S_StartSound(mo, sfx_oof);
+                S_StartSound(doom, mo, sfx_oof);
             }
             mo->momz = 0;
         }
@@ -374,18 +374,18 @@ void P_NightmareRespawn(doom_data_t *doom, mobj_t *mobj)
 
     // spawn a teleport fog at old spot
     // because of removal of the body?
-    mo = P_SpawnMobj(mobj->x,
+    mo = P_SpawnMobj(doom, mobj->x,
                      mobj->y,
                      mobj->subsector->sector->floorheight, MT_TFOG);
     // initiate teleport sound
-    S_StartSound(mo, sfx_telept);
+    S_StartSound(doom, mo, sfx_telept);
 
     // spawn a teleport fog at the new spot
     ss = R_PointInSubsector(x, y);
 
-    mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_TFOG);
+    mo = P_SpawnMobj(doom, x, y, ss->sector->floorheight, MT_TFOG);
 
-    S_StartSound(mo, sfx_telept);
+    S_StartSound(doom, mo, sfx_telept);
 
     // spawn the new monster
     mthing = &mobj->spawnpoint;
@@ -397,7 +397,7 @@ void P_NightmareRespawn(doom_data_t *doom, mobj_t *mobj)
         z = ONFLOORZ;
 
     // inherit attributes from deceased one
-    mo = P_SpawnMobj(x, y, z, mobj->type);
+    mo = P_SpawnMobj(doom, x, y, z, mobj->type);
     mo->spawnpoint = mobj->spawnpoint;
     mo->angle = ANG45 * (mthing->angle / 45);
 
@@ -472,7 +472,8 @@ void P_MobjThinker(doom_data_t *doom, mobj_t *mobj)
 // P_SpawnMobj
 //
 mobj_t *
-P_SpawnMobj(fixed_t x,
+P_SpawnMobj(struct doom_data_t_ *doom,
+            fixed_t x,
             fixed_t y,
             fixed_t z,
             mobjtype_t type)
@@ -494,7 +495,7 @@ P_SpawnMobj(fixed_t x,
     mobj->flags = info->flags;
     mobj->health = info->spawnhealth;
 
-    if (gameskill != sk_nightmare)
+    if (doom->gameskill != sk_nightmare)
         mobj->reactiontime = info->reactiontime;
 
     mobj->lastlook = P_Random() % MAXPLAYERS;
@@ -561,7 +562,7 @@ void P_RemoveMobj(mobj_t *mobj)
 //
 // P_RespawnSpecials
 //
-void P_RespawnSpecials(void)
+void P_RespawnSpecials(struct doom_data_t_ *doom)
 {
     fixed_t x;
     fixed_t y;
@@ -574,7 +575,7 @@ void P_RespawnSpecials(void)
     int i;
 
     // only respawn items in deathmatch
-    if (deathmatch != 2)
+    if (doom->deathmatch != 2)
         return; //
 
     // nothing left to respawn?
@@ -592,8 +593,8 @@ void P_RespawnSpecials(void)
 
     // spawn a teleport fog at the new spot
     ss = R_PointInSubsector(x, y);
-    mo = P_SpawnMobj(x, y, ss->sector->floorheight, MT_IFOG);
-    S_StartSound(mo, sfx_itmbk);
+    mo = P_SpawnMobj(doom, x, y, ss->sector->floorheight, MT_IFOG);
+    S_StartSound(doom, mo, sfx_itmbk);
 
     // find which type to spawn
     for (i = 0; i < NUMMOBJTYPES; i++)
@@ -608,7 +609,7 @@ void P_RespawnSpecials(void)
     else
         z = ONFLOORZ;
 
-    mo = P_SpawnMobj(x, y, z, i);
+    mo = P_SpawnMobj(doom, x, y, z, i);
     mo->spawnpoint = *mthing;
     mo->angle = ANG45 * (mthing->angle / 45);
 
@@ -639,18 +640,18 @@ void P_SpawnPlayer(doom_data_t *doom, mapthing_t *mthing)
     }
 
     // not playing?
-    if (!playeringame[mthing->type - 1])
+    if (!doom->playeringame[mthing->type - 1])
         return;
 
-    p = &players[mthing->type - 1];
+    p = &doom->players[mthing->type - 1];
 
     if (p->playerstate == PST_REBORN)
-        G_PlayerReborn(mthing->type - 1);
+        G_PlayerReborn(doom, mthing->type - 1);
 
     x = mthing->x << FRACBITS;
     y = mthing->y << FRACBITS;
     z = ONFLOORZ;
-    mobj = P_SpawnMobj(x, y, z, MT_PLAYER);
+    mobj = P_SpawnMobj(doom, x, y, z, MT_PLAYER);
 
     // set color translations for player sprites
     if (mthing->type > 1)
@@ -674,11 +675,11 @@ void P_SpawnPlayer(doom_data_t *doom, mapthing_t *mthing)
     P_SetupPsprites(doom, p);
 
     // give all cards in death match mode
-    if (deathmatch)
+    if (doom->deathmatch)
         for (i = 0; i < NUMCARDS; i++)
             p->cards[i] = true;
 
-    if (mthing->type - 1 == consoleplayer)
+    if (mthing->type - 1 == doom->consoleplayer)
     {
         // wake up the status bar
         ST_Start(doom);
@@ -725,7 +726,7 @@ void P_SpawnMapThing(doom_data_t *doom, mapthing_t *mthing)
     {
         // save spots for respawning in network games
         playerstarts[mthing->type - 1] = *mthing;
-        if (!deathmatch)
+        if (!doom->deathmatch)
             P_SpawnPlayer(doom, mthing);
 
         return;
@@ -735,12 +736,12 @@ void P_SpawnMapThing(doom_data_t *doom, mapthing_t *mthing)
     if (!netgame && (mthing->options & 16))
         return;
 
-    if (gameskill == sk_baby)
+    if (doom->gameskill == sk_baby)
         bit = 1;
-    else if (gameskill == sk_nightmare)
+    else if (doom->gameskill == sk_nightmare)
         bit = 4;
     else
-        bit = 1 << (gameskill - 1);
+        bit = 1 << (doom->gameskill - 1);
 
     if (!(mthing->options & bit))
         return;
@@ -756,7 +757,7 @@ void P_SpawnMapThing(doom_data_t *doom, mapthing_t *mthing)
                 mthing->x, mthing->y);
 
     // don't spawn keycards and players in deathmatch
-    if (deathmatch && mobjinfo[i].flags & MF_NOTDMATCH)
+    if (doom->deathmatch && mobjinfo[i].flags & MF_NOTDMATCH)
         return;
 
     // don't spawn any monsters if -nomonsters
@@ -774,7 +775,7 @@ void P_SpawnMapThing(doom_data_t *doom, mapthing_t *mthing)
     else
         z = ONFLOORZ;
 
-    mobj = P_SpawnMobj(x, y, z, i);
+    mobj = P_SpawnMobj(doom, x, y, z, i);
     mobj->spawnpoint = *mthing;
 
     if (mobj->tics > 0)
@@ -807,7 +808,7 @@ void P_SpawnPuff(doom_data_t *doom,
 
     z += ((P_Random() - P_Random()) << 10);
 
-    th = P_SpawnMobj(x, y, z, MT_PUFF);
+    th = P_SpawnMobj(doom, x, y, z, MT_PUFF);
     th->momz = FRACUNIT;
     th->tics -= P_Random() & 3;
 
@@ -831,7 +832,7 @@ void P_SpawnBlood(doom_data_t *doom,
     mobj_t *th;
 
     z += ((P_Random() - P_Random()) << 10);
-    th = P_SpawnMobj(x, y, z, MT_BLOOD);
+    th = P_SpawnMobj(doom, x, y, z, MT_BLOOD);
     th->momz = FRACUNIT * 2;
     th->tics -= P_Random() & 3;
 
@@ -901,12 +902,12 @@ P_SpawnMissile(doom_data_t *doom,
     angle_t an;
     int dist;
 
-    th = P_SpawnMobj(source->x,
+    th = P_SpawnMobj(doom, source->x,
                      source->y,
                      source->z + 4 * 8 * FRACUNIT, type);
 
     if (th->info->seesound)
-        S_StartSound(th, th->info->seesound);
+        S_StartSound(doom, th, th->info->seesound);
 
     th->target = source; // where it came from
     an = R_PointToAngle2(source->x, source->y, dest->x, dest->y);
@@ -974,10 +975,10 @@ void P_SpawnPlayerMissile(doom_data_t *doom,
     y = source->y;
     z = source->z + 4 * 8 * FRACUNIT;
 
-    th = P_SpawnMobj(x, y, z, type);
+    th = P_SpawnMobj(doom, x, y, z, type);
 
     if (th->info->seesound)
-        S_StartSound(th, th->info->seesound);
+        S_StartSound(doom, th, th->info->seesound);
 
     th->target = source;
     th->angle = an;

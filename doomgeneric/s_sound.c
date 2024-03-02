@@ -218,17 +218,17 @@ void S_Start(doom_data_t *doom)
 
     if (doom->gamemode == commercial)
     {
-        mnum = mus_runnin + gamemap - 1;
+        mnum = mus_runnin + doom->gamemap - 1;
     }
     else
     {
-        if (gameepisode < 4)
+        if (doom->gameepisode < 4)
         {
-            mnum = mus_e1m1 + (gameepisode - 1) * 9 + gamemap - 1;
+            mnum = mus_e1m1 + (doom->gameepisode - 1) * 9 + doom->gamemap - 1;
         }
         else
         {
-            mnum = spmus[gamemap - 1];
+            mnum = spmus[doom->gamemap - 1];
         }
     }
 
@@ -315,7 +315,7 @@ static int S_GetChannel(mobj_t *origin, sfxinfo_t *sfxinfo)
 // Otherwise, modifies parameters and returns 1.
 //
 
-static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
+static int S_AdjustSoundParams(struct doom_data_t_* doom, mobj_t *listener, mobj_t *source,
                                int *vol, int *sep)
 {
     fixed_t approx_dist;
@@ -331,7 +331,7 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     // From _GG1_ p.428. Appox. eucledian distance fast.
     approx_dist = adx + ady - ((adx < ady ? adx : ady) >> 1);
 
-    if (gamemap != 8 && approx_dist > S_CLIPPING_DIST)
+    if (doom->gamemap != 8 && approx_dist > S_CLIPPING_DIST)
     {
         return 0;
     }
@@ -361,7 +361,7 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     {
         *vol = snd_SfxVolume;
     }
-    else if (gamemap == 8)
+    else if (doom->gamemap == 8)
     {
         if (approx_dist > S_CLIPPING_DIST)
         {
@@ -379,7 +379,7 @@ static int S_AdjustSoundParams(mobj_t *listener, mobj_t *source,
     return (*vol > 0);
 }
 
-void S_StartSound(void *origin_p, int sfx_id)
+void S_StartSound(struct doom_data_t_* doom, void *origin_p, int sfx_id)
 {
     sfxinfo_t *sfx;
     mobj_t *origin;
@@ -417,14 +417,14 @@ void S_StartSound(void *origin_p, int sfx_id)
 
     // Check to see if it is audible,
     //  and if not, modify the params
-    if (origin && origin != players[consoleplayer].mo)
+    if (origin && origin != doom->players[doom->consoleplayer].mo)
     {
-        rc = S_AdjustSoundParams(players[consoleplayer].mo,
+        rc = S_AdjustSoundParams(doom, doom->players[doom->consoleplayer].mo,
                                  origin,
                                  &volume,
                                  &sep);
 
-        if (origin->x == players[consoleplayer].mo->x && origin->y == players[consoleplayer].mo->y)
+        if (origin->x == doom->players[doom->consoleplayer].mo->x && origin->y == doom->players[doom->consoleplayer].mo->y)
         {
             sep = NORM_SEP;
         }
@@ -490,7 +490,7 @@ void S_ResumeSound(void)
 // Updates music & sounds
 //
 
-void S_UpdateSounds(mobj_t *listener)
+void S_UpdateSounds(struct doom_data_t_* doom, mobj_t *listener)
 {
     int audible;
     int cnum;
@@ -532,7 +532,7 @@ void S_UpdateSounds(mobj_t *listener)
                 //  or modify their params
                 if (c->origin && listener != c->origin)
                 {
-                    audible = S_AdjustSoundParams(listener,
+                    audible = S_AdjustSoundParams(doom, listener,
                                                   c->origin,
                                                   &volume,
                                                   &sep);

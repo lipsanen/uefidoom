@@ -128,7 +128,7 @@ void P_BringUpWeapon(doom_data_t *doom, player_t *player)
         player->pendingweapon = player->readyweapon;
 
     if (player->pendingweapon == wp_chainsaw)
-        S_StartSound(player->mo, sfx_sawup);
+        S_StartSound(doom, player->mo, sfx_sawup);
 
     newstate = weaponinfo[player->pendingweapon].upstate;
 
@@ -264,7 +264,7 @@ void A_WeaponReady(doom_data_t *doom,
 
     if (player->readyweapon == wp_chainsaw && psp->state == &states[S_SAW])
     {
-        S_StartSound(player->mo, sfx_sawidl);
+        S_StartSound(doom, player->mo, sfx_sawidl);
     }
 
     // check for change
@@ -434,7 +434,7 @@ void A_Punch(doom_data_t *doom,
     // turn to face target
     if (linetarget)
     {
-        S_StartSound(player->mo, sfx_punch);
+        S_StartSound(doom, player->mo, sfx_punch);
         player->mo->angle = R_PointToAngle2(player->mo->x,
                                             player->mo->y,
                                             linetarget->x,
@@ -463,10 +463,10 @@ void A_Saw(doom_data_t *doom,
 
     if (!linetarget)
     {
-        S_StartSound(player->mo, sfx_sawful);
+        S_StartSound(doom, player->mo, sfx_sawful);
         return;
     }
-    S_StartSound(player->mo, sfx_sawhit);
+    S_StartSound(doom, player->mo, sfx_sawhit);
 
     // turn to face target
     angle = R_PointToAngle2(player->mo->x, player->mo->y,
@@ -598,7 +598,7 @@ void A_FirePistol(doom_data_t *doom,
                   player_t *player,
                   pspdef_t *psp)
 {
-    S_StartSound(player->mo, sfx_pistol);
+    S_StartSound(doom, player->mo, sfx_pistol);
 
     P_SetMobjState(doom, player->mo, S_PLAY_ATK2);
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 1);
@@ -620,7 +620,7 @@ void A_FireShotgun(doom_data_t *doom,
 {
     int i;
 
-    S_StartSound(player->mo, sfx_shotgn);
+    S_StartSound(doom, player->mo, sfx_shotgn);
     P_SetMobjState(doom, player->mo, S_PLAY_ATK2);
 
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 1);
@@ -646,7 +646,7 @@ void A_FireShotgun2(doom_data_t *doom,
     angle_t angle;
     int damage;
 
-    S_StartSound(player->mo, sfx_dshtgn);
+    S_StartSound(doom, player->mo, sfx_dshtgn);
     P_SetMobjState(doom, player->mo, S_PLAY_ATK2);
 
     DecreaseAmmo(player, weaponinfo[player->readyweapon].ammo, 2);
@@ -676,7 +676,7 @@ void A_FireCGun(doom_data_t *doom,
                 player_t *player,
                 pspdef_t *psp)
 {
-    S_StartSound(player->mo, sfx_pistol);
+    S_StartSound(doom, player->mo, sfx_pistol);
 
     if (!player->ammo[weaponinfo[player->readyweapon].ammo])
         return;
@@ -734,7 +734,7 @@ void A_BFGSpray(doom_data_t *doom, mobj_t *mo)
         if (!linetarget)
             continue;
 
-        P_SpawnMobj(linetarget->x,
+        P_SpawnMobj(doom, linetarget->x,
                     linetarget->y,
                     linetarget->z + (linetarget->height >> 2),
                     MT_EXTRABFG);
@@ -754,7 +754,7 @@ void A_BFGsound(doom_data_t *doom,
                 player_t *player,
                 pspdef_t *psp)
 {
-    S_StartSound(player->mo, sfx_bfg);
+    S_StartSound(doom, player->mo, sfx_bfg);
 }
 
 //

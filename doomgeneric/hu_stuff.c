@@ -43,11 +43,11 @@
 //
 // Locally used constants, shortcuts.
 //
-#define HU_TITLE (mapnames[(gameepisode - 1) * 9 + gamemap - 1])
-#define HU_TITLE2 (mapnames_commercial[gamemap - 1])
-#define HU_TITLEP (mapnames_commercial[gamemap - 1 + 32])
-#define HU_TITLET (mapnames_commercial[gamemap - 1 + 64])
-#define HU_TITLE_CHEX (mapnames[gamemap - 1])
+#define HU_TITLE (mapnames[(doom->gameepisode - 1) * 9 + doom->gamemap - 1])
+#define HU_TITLE2 (mapnames_commercial[doom->gamemap - 1])
+#define HU_TITLEP (mapnames_commercial[doom->gamemap - 1 + 32])
+#define HU_TITLET (mapnames_commercial[doom->gamemap - 1 + 64])
+#define HU_TITLE_CHEX (mapnames[doom->gamemap - 1])
 #define HU_TITLEHEIGHT 1
 #define HU_TITLEX 0
 #define HU_TITLEY (167 - SHORT(hu_font[0]->height))
@@ -306,7 +306,7 @@ void HU_Start(struct doom_data_t_ *doom)
     if (headsupactive)
         HU_Stop();
 
-    plr = &players[consoleplayer];
+    plr = &doom->players[doom->consoleplayer];
     message_on = false;
     message_dontfuckwithme = false;
     message_nottobefuckedwith = false;
@@ -421,9 +421,9 @@ void HU_Ticker(struct doom_data_t_ *doom)
     {
         for (i = 0; i < MAXPLAYERS; i++)
         {
-            if (!playeringame[i])
+            if (!doom->playeringame[i])
                 continue;
-            if (i != consoleplayer && (c = players[i].cmd.chatchar))
+            if (i != doom->consoleplayer && (c = doom->players[i].cmd.chatchar))
             {
                 if (c <= HU_BROADCAST)
                     chat_dest[i] = c;
@@ -432,7 +432,7 @@ void HU_Ticker(struct doom_data_t_ *doom)
                     rc = HUlib_keyInIText(doom, &w_inputbuffer[i], c);
                     if (rc && c == KEY_ENTER)
                     {
-                        if (w_inputbuffer[i].l.len && (chat_dest[i] == consoleplayer + 1 || chat_dest[i] == HU_BROADCAST))
+                        if (w_inputbuffer[i].l.len && (chat_dest[i] == doom->consoleplayer + 1 || chat_dest[i] == HU_BROADCAST))
                         {
                             HUlib_addMessageToSText(doom, &w_message,
                                                     DEH_String(player_names[i]),
@@ -442,14 +442,14 @@ void HU_Ticker(struct doom_data_t_ *doom)
                             message_on = true;
                             message_counter = HU_MSGTIMEOUT;
                             if (doom->gamemode == commercial)
-                                S_StartSound(0, sfx_radio);
+                                S_StartSound(doom, 0, sfx_radio);
                             else
-                                S_StartSound(0, sfx_tink);
+                                S_StartSound(doom, 0, sfx_tink);
                         }
                         HUlib_resetIText(doom, &w_inputbuffer[i]);
                     }
                 }
-                players[i].cmd.chatchar = 0;
+                doom->players[i].cmd.chatchar = 0;
             }
         }
     }
@@ -506,7 +506,7 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
 
     numplayers = 0;
     for (i = 0; i < MAXPLAYERS; i++)
-        numplayers += playeringame[i];
+        numplayers += doom->playeringame[i];
 
     if (ev->data1 == KEY_RSHIFT)
     {
@@ -541,14 +541,14 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t *ev)
             {
                 if (ev->data2 == key_multi_msgplayer[i])
                 {
-                    if (playeringame[i] && i != consoleplayer)
+                    if (doom->playeringame[i] && i != doom->consoleplayer)
                     {
                         eatkey = chat_on = true;
                         HUlib_resetIText(doom, &w_chat);
                         HU_queueChatChar(i + 1);
                         break;
                     }
-                    else if (i == consoleplayer)
+                    else if (i == doom->consoleplayer)
                     {
                         num_nobrainers++;
                         if (num_nobrainers < 3)

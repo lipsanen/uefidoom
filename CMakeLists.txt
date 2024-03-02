@@ -25,7 +25,6 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/i_sound.c
     doomgeneric/i_system.c
     doomgeneric/i_video.c
-    doomgeneric/icon.c
     doomgeneric/info.c
     doomgeneric/m_argv.c
     doomgeneric/m_bbox.c

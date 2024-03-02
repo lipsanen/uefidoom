@@ -85,6 +85,17 @@ void doomdata_init(doom_data_t* doom) {
     doom->largeammo = 1994; // means "n/a"
     doom->lastattackdown = -1;
     doom->oldhealth = -1;
+
+    doom->precache = true; // if true, load all graphics at start
+    doom->forwardmove[0] = 0x19;
+    doom->forwardmove[1] = 0x32;
+    doom->sidemove[0] = 0x18;
+    doom->sidemove[1] = 0x28;
+    doom->angleturn[0] = 640;
+    doom->angleturn[1] = 1280;
+    doom->angleturn[2] = 320;
+    doom->mousebuttons = &doom->mousearray[1];
+    doom->joybuttons = &doom->joyarray[1];
 }
 
 // Location for any defines turned variables.

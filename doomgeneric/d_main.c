@@ -136,7 +136,7 @@ void D_Display(struct doom_data_t_ *doom)
         return;
     }
 
-    if (nodrawers)
+    if (doom->nodrawers)
         return; // for comparative timing / profiling
 
     redrawsbar = false;
@@ -150,7 +150,7 @@ void D_Display(struct doom_data_t_ *doom)
     }
 
     // save the current screen if about to wipe
-    if (gamestate != doom->wipegamestate)
+    if (doom->gamestate != doom->wipegamestate)
     {
         doom->wipe = true;
         wipe_StartScreen(doom, 0, 0, SCREENWIDTH, SCREENHEIGHT);
@@ -158,11 +158,11 @@ void D_Display(struct doom_data_t_ *doom)
     else
         doom->wipe = false;
 
-    if (gamestate == GS_LEVEL && doom->gametic)
+    if (doom->gamestate == GS_LEVEL && doom->gametic)
         HU_Erase(doom);
 
     // do buffered drawing
-    switch (gamestate)
+    switch (doom->gamestate)
     {
     case GS_LEVEL:
         if (!doom->gametic)
@@ -194,25 +194,25 @@ void D_Display(struct doom_data_t_ *doom)
     I_UpdateNoBlit();
 
     // draw the view directly
-    if (gamestate == GS_LEVEL && !doom->automapactive && doom->gametic)
-        R_RenderPlayerView(doom, &players[displayplayer]);
+    if (doom->gamestate == GS_LEVEL && !doom->automapactive && doom->gametic)
+        R_RenderPlayerView(doom, &doom->players[doom->displayplayer]);
 
-    if (gamestate == GS_LEVEL && doom->gametic)
+    if (doom->gamestate == GS_LEVEL && doom->gametic)
         HU_Drawer(doom);
 
     // clean up border stuff
-    if (gamestate != doom->oldgamestate && gamestate != GS_LEVEL)
+    if (doom->gamestate != doom->oldgamestate && doom->gamestate != GS_LEVEL)
         I_SetPalette(W_CacheLumpName(doom, DEH_String("PLAYPAL"), PU_CACHE));
 
     // see if the border needs to be initially drawn
-    if (gamestate == GS_LEVEL && doom->oldgamestate != GS_LEVEL)
+    if (doom->gamestate == GS_LEVEL && doom->oldgamestate != GS_LEVEL)
     {
         doom->viewactivestate = false; // view was not active
         R_FillBackScreen(doom);        // draw the pattern into the back screen
     }
 
     // see if the border needs to be updated to the screen
-    if (gamestate == GS_LEVEL && !doom->automapactive && scaledviewwidth != SCREENWIDTH)
+    if (doom->gamestate == GS_LEVEL && !doom->automapactive && scaledviewwidth != SCREENWIDTH)
     {
         if (menuactive || doom->menuactivestate || !doom->viewactivestate)
             doom->borderdrawcount = 3;
@@ -223,7 +223,7 @@ void D_Display(struct doom_data_t_ *doom)
         }
     }
 
-    if (testcontrols)
+    if (doom->testcontrols)
     {
         // Box showing current mouse speed
 
@@ -231,9 +231,9 @@ void D_Display(struct doom_data_t_ *doom)
     }
 
     doom->menuactivestate = menuactive;
-    doom->viewactivestate = viewactive;
+    doom->viewactivestate = doom->viewactive;
     doom->inhelpscreensstate = inhelpscreens;
-    doom->oldgamestate = doom->wipegamestate = gamestate;
+    doom->oldgamestate = doom->wipegamestate = doom->gamestate;
 
     // draw pause pic
     if (paused)
@@ -330,7 +330,7 @@ boolean D_GrabMouseCallback(doom_data_t *doom)
 
     // only grab mouse when playing levels (but not demos)
 
-    return (gamestate == GS_LEVEL) && !demoplayback && !doom->advancedemo;
+    return (doom->gamestate == GS_LEVEL) && !demoplayback && !doom->advancedemo;
 }
 
 void doomgeneric_Tick(struct doom_data_t_ *doom)
@@ -340,7 +340,7 @@ void doomgeneric_Tick(struct doom_data_t_ *doom)
 
     TryRunTics(doom); // will run at least one tic
 
-    S_UpdateSounds(players[consoleplayer].mo); // move positional sounds
+    S_UpdateSounds(doom, doom->players[doom->consoleplayer].mo); // move positional sounds
 
     // Update display, next frame, with current state.
     if (screenvisible)
@@ -355,7 +355,7 @@ void doomgeneric_Tick(struct doom_data_t_ *doom)
 void D_DoomLoop(struct doom_data_t_ *doom)
 {
     if (doom->bfgedition &&
-        (demorecording || (gameaction == ga_playdemo) || netgame))
+        (demorecording || (doom->gameaction == ga_playdemo) || netgame))
     {
         d_printf(" WARNING: You are playing using one of the Doom Classic\n"
                  " IWAD files shipped with the Doom 3: BFG Edition. These are\n"
@@ -380,9 +380,9 @@ void D_DoomLoop(struct doom_data_t_ *doom)
 
     D_StartGameLoop();
 
-    if (testcontrols)
+    if (doom->testcontrols)
     {
-        doom->wipegamestate = gamestate;
+        doom->wipegamestate = doom->gamestate;
     }
 
     doomgeneric_Tick(doom);
@@ -421,11 +421,11 @@ void D_AdvanceDemo(doom_data_t *doom)
 //
 void D_DoAdvanceDemo(doom_data_t *doom)
 {
-    players[consoleplayer].playerstate = PST_LIVE; // not reborn
+    doom->players[doom->consoleplayer].playerstate = PST_LIVE; // not reborn
     doom->advancedemo = false;
     usergame = false; // no save / end game here
     paused = false;
-    gameaction = ga_nothing;
+    doom->gameaction = ga_nothing;
 
     // The Ultimate Doom executable changed the demo sequence to add
     // a DEMO4 demo.  Final Doom was based on Ultimate, so also
@@ -448,7 +448,7 @@ void D_DoAdvanceDemo(doom_data_t *doom)
             doom->pagetic = TICRATE * 11;
         else
             doom->pagetic = 170;
-        gamestate = GS_DEMOSCREEN;
+        doom->gamestate = GS_DEMOSCREEN;
         doom->pagename = DEH_String("TITLEPIC");
         if (doom->gamemode == commercial)
             S_StartMusic(doom, mus_dm2ttl);
@@ -456,18 +456,18 @@ void D_DoAdvanceDemo(doom_data_t *doom)
             S_StartMusic(doom, mus_intro);
         break;
     case 1:
-        G_DeferedPlayDemo(DEH_String("demo1"));
+        G_DeferedPlayDemo(doom, DEH_String("demo1"));
         break;
     case 2:
         doom->pagetic = 200;
-        gamestate = GS_DEMOSCREEN;
+        doom->gamestate = GS_DEMOSCREEN;
         doom->pagename = DEH_String("CREDIT");
         break;
     case 3:
-        G_DeferedPlayDemo(DEH_String("demo2"));
+        G_DeferedPlayDemo(doom, DEH_String("demo2"));
         break;
     case 4:
-        gamestate = GS_DEMOSCREEN;
+        doom->gamestate = GS_DEMOSCREEN;
         if (doom->gamemode == commercial)
         {
             doom->pagetic = TICRATE * 11;
@@ -485,11 +485,11 @@ void D_DoAdvanceDemo(doom_data_t *doom)
         }
         break;
     case 5:
-        G_DeferedPlayDemo(DEH_String("demo3"));
+        G_DeferedPlayDemo(doom, DEH_String("demo3"));
         break;
         // THE DEFINITIVE DOOM Special Edition demo
     case 6:
-        G_DeferedPlayDemo(DEH_String("demo4"));
+        G_DeferedPlayDemo(doom, DEH_String("demo4"));
         break;
     }
 
@@ -506,7 +506,7 @@ void D_DoAdvanceDemo(doom_data_t *doom)
 //
 void D_StartTitle(doom_data_t *doom)
 {
-    gameaction = ga_nothing;
+    doom->gameaction = ga_nothing;
     doom->demosequence = -1;
     D_AdvanceDemo(doom);
 }
@@ -1119,7 +1119,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     //
 
     if (M_CheckParm(doom, "-deathmatch"))
-        deathmatch = 1;
+        doom->deathmatch = 1;
 
     //!
     // @category net
@@ -1130,7 +1130,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
     //
 
     if (M_CheckParm(doom, "-altdeath"))
-        deathmatch = 2;
+        doom->deathmatch = 2;
 
     if (doom->devparm)
         d_printf(D_DEVSTR);
@@ -1469,7 +1469,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
         doom->startepisode = 1;
         doom->startmap = 1;
         doom->autostart = true;
-        testcontrols = true;
+        doom->testcontrols = true;
     }
 
     // Check for load game parameter
@@ -1544,8 +1544,8 @@ void D_DoomMain(struct doom_data_t_ *doom)
     p = M_CheckParmWithArgs(doom, "-playdemo", 1);
     if (p)
     {
-        singledemo = true; // quit after one demo
-        G_DeferedPlayDemo(demolumpname);
+        doom->singledemo = true; // quit after one demo
+        G_DeferedPlayDemo(doom, demolumpname);
         D_DoomLoop(doom);
         return;
     }
@@ -1561,10 +1561,10 @@ void D_DoomMain(struct doom_data_t_ *doom)
     if (doom->startloadgame >= 0)
     {
         M_StringCopy(file, P_SaveGameFile(doom, doom->startloadgame), sizeof(file));
-        G_LoadGame(file);
+        G_LoadGame(doom, file);
     }
 
-    if (gameaction != ga_loadgame)
+    if (doom->gameaction != ga_loadgame)
     {
         if (doom->autostart || netgame)
             G_InitNew(doom, doom->startskill, doom->startepisode, doom->startmap);

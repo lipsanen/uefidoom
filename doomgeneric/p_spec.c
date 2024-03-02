@@ -650,7 +650,7 @@ void P_CrossSpecialLine(doom_data_t *doom,
 
 	case 52:
 		// EXIT!
-		G_ExitLevel();
+		G_ExitLevel(doom);
 		break;
 
 	case 53:
@@ -953,19 +953,19 @@ void P_ShootSpecialLine(doom_data_t *doom,
 	case 24:
 		// RAISE FLOOR
 		EV_DoFloor(doom, line, raiseFloor);
-		P_ChangeSwitchTexture(line, 0);
+		P_ChangeSwitchTexture(doom, line, 0);
 		break;
 
 	case 46:
 		// OPEN DOOR
 		EV_DoDoor(doom, line, vld_open);
-		P_ChangeSwitchTexture(line, 1);
+		P_ChangeSwitchTexture(doom, line, 1);
 		break;
 
 	case 47:
 		// RAISE FLOOR NEAR AND CHANGE
 		EV_DoPlat(doom, line, raiseToNearestAndChange, 0);
-		P_ChangeSwitchTexture(line, 0);
+		P_ChangeSwitchTexture(doom, line, 0);
 		break;
 	}
 }
@@ -1027,7 +1027,7 @@ void P_PlayerInSpecialSector(doom_data_t *doom, player_t *player)
 			P_DamageMobj(doom, player->mo, NULL, NULL, 20);
 
 		if (player->health <= 10)
-			G_ExitLevel();
+			G_ExitLevel(doom);
 		break;
 
 	default:
@@ -1057,7 +1057,7 @@ void P_UpdateSpecials(doom_data_t *doom)
 	{
 		levelTimeCount--;
 		if (!levelTimeCount)
-			G_ExitLevel();
+			G_ExitLevel(doom);
 	}
 
 	//	ANIMATE FLATS AND TEXTURES GLOBALLY
@@ -1110,7 +1110,7 @@ void P_UpdateSpecials(doom_data_t *doom)
 						buttonlist[i].btexture;
 					break;
 				}
-				S_StartSound(&buttonlist[i].soundorg, sfx_swtchn);
+				S_StartSound(doom, &buttonlist[i].soundorg, sfx_swtchn);
 				d_memset(&buttonlist[i], 0, sizeof(button_t));
 			}
 		}
@@ -1325,7 +1325,7 @@ void P_SpawnSpecials(doom_data_t *doom)
 
 	// See if -TIMER was specified.
 
-	if (timelimit > 0 && deathmatch)
+	if (timelimit > 0 && doom->deathmatch)
 	{
 		levelTimer = true;
 		levelTimeCount = timelimit * 60 * TICRATE;

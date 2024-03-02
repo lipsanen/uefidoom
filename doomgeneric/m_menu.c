@@ -538,7 +538,7 @@ void M_LoadSelect(doom_data_t *doom, int choice)
 
     M_StringCopy(name, P_SaveGameFile(doom, choice), sizeof(name));
 
-    G_LoadGame(name);
+    G_LoadGame(doom, name);
     M_ClearMenus();
 }
 
@@ -581,9 +581,9 @@ void M_DrawSave(struct doom_data_t_* doom)
 //
 // M_Responder calls this when user is finished
 //
-void M_DoSave(int slot)
+void M_DoSave(struct doom_data_t_* doom, int slot)
 {
-    G_SaveGame(slot, savegamestrings[slot]);
+    G_SaveGame(doom, slot, savegamestrings[slot]);
     M_ClearMenus();
 
     // PICK QUICKSAVE SLOT YET?
@@ -617,7 +617,7 @@ void M_SaveGame(doom_data_t *doom, int choice)
         return;
     }
 
-    if (gamestate != GS_LEVEL)
+    if (doom->gamestate != GS_LEVEL)
         return;
 
     M_SetupNextMenu(&SaveDef);
@@ -629,12 +629,12 @@ void M_SaveGame(doom_data_t *doom, int choice)
 //
 char tempstring[80];
 
-void M_QuickSaveResponse(int key)
+void M_QuickSaveResponse(struct doom_data_t_* doom, int key)
 {
     if (key == key_menu_confirm)
     {
-        M_DoSave(quickSaveSlot);
-        S_StartSound(NULL, sfx_swtchx);
+        M_DoSave(doom, quickSaveSlot);
+        S_StartSound(doom, NULL, sfx_swtchx);
     }
 }
 
@@ -642,11 +642,11 @@ void M_QuickSave(doom_data_t *doom)
 {
     if (!usergame)
     {
-        S_StartSound(NULL, sfx_oof);
+        S_StartSound(doom, NULL, sfx_oof);
         return;
     }
 
-    if (gamestate != GS_LEVEL)
+    if (doom->gamestate != GS_LEVEL)
         return;
 
     if (quickSaveSlot < 0)
@@ -669,7 +669,7 @@ void M_QuickLoadResponse(doom_data_t *doom, int key)
     if (key == key_menu_confirm)
     {
         M_LoadSelect(doom, quickSaveSlot);
-        S_StartSound(NULL, sfx_swtchx);
+        S_StartSound(doom, NULL, sfx_swtchx);
     }
 }
 
@@ -876,12 +876,12 @@ void M_DrawEpisode(struct doom_data_t_* doom)
     V_DrawPatchDirect(doom, 54, 38, W_CacheLumpName(doom, DEH_String("M_EPISOD"), PU_CACHE));
 }
 
-void M_VerifyNightmare(int key)
+void M_VerifyNightmare(doom_data_t* doom, int key)
 {
     if (key != key_menu_confirm)
         return;
 
-    G_DeferedInitNew(nightmare, epi + 1, 1);
+    G_DeferedInitNew(doom, nightmare, epi + 1, 1);
     M_ClearMenus();
 }
 
@@ -893,7 +893,7 @@ void M_ChooseSkill(doom_data_t *doom, int choice)
         return;
     }
 
-    G_DeferedInitNew(choice, epi + 1, 1);
+    G_DeferedInitNew(doom, choice, epi + 1, 1);
     M_ClearMenus();
 }
 
@@ -958,9 +958,9 @@ void M_ChangeMessages(doom_data_t *doom, int choice)
     showMessages = 1 - showMessages;
 
     if (!showMessages)
-        players[consoleplayer].message = DEH_String(MSGOFF);
+        doom->players[doom->consoleplayer].message = DEH_String(MSGOFF);
     else
-        players[consoleplayer].message = DEH_String(MSGON);
+        doom->players[doom->consoleplayer].message = DEH_String(MSGON);
 
     message_dontfuckwithme = true;
 }
@@ -983,7 +983,7 @@ void M_EndGame(doom_data_t *doom, int choice)
     choice = 0;
     if (!usergame)
     {
-        S_StartSound(NULL, sfx_oof);
+        S_StartSound(doom, NULL, sfx_oof);
         return;
     }
 
@@ -1061,9 +1061,9 @@ void M_QuitResponse(doom_data_t *doom, int key)
     if (!netgame)
     {
         if (doom->gamemode == commercial)
-            S_StartSound(NULL, quitsounds2[(doom->gametic >> 2) & 7]);
+            S_StartSound(doom, NULL, quitsounds2[(doom->gametic >> 2) & 7]);
         else
-            S_StartSound(NULL, quitsounds[(doom->gametic >> 2) & 7]);
+            S_StartSound(doom, NULL, quitsounds[(doom->gametic >> 2) & 7]);
     }
     I_Quit(doom);
 }
@@ -1119,9 +1119,9 @@ void M_ChangeDetail(doom_data_t *doom, int choice)
     R_SetViewSize(screenblocks, detailLevel);
 
     if (!detailLevel)
-        players[consoleplayer].message = DEH_String(DETAILHI);
+        doom->players[doom->consoleplayer].message = DEH_String(DETAILHI);
     else
-        players[consoleplayer].message = DEH_String(DETAILLO);
+        doom->players[doom->consoleplayer].message = DEH_String(DETAILLO);
 }
 
 void M_SizeDisplay(doom_data_t *doom, int choice)
@@ -1316,7 +1316,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
     // In testcontrols mode, none of the function keys should do anything
     // - the only key is escape to quit.
 
-    if (testcontrols)
+    if (doom->testcontrols)
     {
         if (ev->type == ev_quit || (ev->type == ev_keydown && (ev->data1 == key_menu_activate || ev->data1 == key_menu_quit)))
         {
@@ -1339,7 +1339,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         }
         else
         {
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             M_QuitDOOM(doom, 0);
         }
 
@@ -1434,7 +1434,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         case KEY_ENTER:
             saveStringEnter = 0;
             if (savegamestrings[saveSlot][0])
-                M_DoSave(saveSlot);
+                M_DoSave(doom, saveSlot);
             break;
 
         default:
@@ -1476,14 +1476,14 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
             messageRoutine(doom, key);
 
         menuactive = false;
-        S_StartSound(NULL, sfx_swtchx);
+        S_StartSound(doom, NULL, sfx_swtchx);
         return true;
     }
 
     if ((doom->devparm && key == key_menu_help) ||
         (key != 0 && key == key_menu_screenshot))
     {
-        G_ScreenShot();
+        G_ScreenShot(doom);
         return true;
     }
 
@@ -1495,7 +1495,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
             if (doom->automapactive || chat_on)
                 return false;
             M_SizeDisplay(doom, 0);
-            S_StartSound(NULL, sfx_stnmov);
+            S_StartSound(doom, NULL, sfx_stnmov);
             return true;
         }
         else if (key == key_menu_incscreen) // Screen size up
@@ -1503,7 +1503,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
             if (doom->automapactive || chat_on)
                 return false;
             M_SizeDisplay(doom, 1);
-            S_StartSound(NULL, sfx_stnmov);
+            S_StartSound(doom, NULL, sfx_stnmov);
             return true;
         }
         else if (key == key_menu_help) // Help key
@@ -1516,20 +1516,20 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
                 currentMenu = &ReadDef1;
 
             itemOn = 0;
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             return true;
         }
         else if (key == key_menu_save) // Save
         {
             M_StartControlPanel();
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             M_SaveGame(doom, 0);
             return true;
         }
         else if (key == key_menu_load) // Load
         {
             M_StartControlPanel();
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             M_LoadGame(doom, 0);
             return true;
         }
@@ -1538,42 +1538,42 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
             M_StartControlPanel();
             currentMenu = &SoundDef;
             itemOn = sfx_vol;
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             return true;
         }
         else if (key == key_menu_detail) // Detail toggle
         {
             M_ChangeDetail(doom, 0);
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             return true;
         }
         else if (key == key_menu_qsave) // Quicksave
         {
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             M_QuickSave(doom);
             return true;
         }
         else if (key == key_menu_endgame) // End game
         {
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             M_EndGame(doom, 0);
             return true;
         }
         else if (key == key_menu_messages) // Toggle messages
         {
             M_ChangeMessages(doom, 0);
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             return true;
         }
         else if (key == key_menu_qload) // Quickload
         {
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             M_QuickLoad();
             return true;
         }
         else if (key == key_menu_quit) // Quit DOOM
         {
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             M_QuitDOOM(doom, 0);
             return true;
         }
@@ -1582,7 +1582,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
             usegamma++;
             if (usegamma > 4)
                 usegamma = 0;
-            players[consoleplayer].message = DEH_String(gammamsg[usegamma]);
+            doom->players[doom->consoleplayer].message = DEH_String(gammamsg[usegamma]);
             I_SetPalette(W_CacheLumpName(doom, DEH_String("PLAYPAL"), PU_CACHE));
             return true;
         }
@@ -1594,7 +1594,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         if (key == key_menu_activate)
         {
             M_StartControlPanel();
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
             return true;
         }
         return false;
@@ -1612,7 +1612,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
                 itemOn = 0;
             else
                 itemOn++;
-            S_StartSound(NULL, sfx_pstop);
+            S_StartSound(doom, NULL, sfx_pstop);
         } while (currentMenu->menuitems[itemOn].status == -1);
 
         return true;
@@ -1627,7 +1627,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
                 itemOn = currentMenu->numitems - 1;
             else
                 itemOn--;
-            S_StartSound(NULL, sfx_pstop);
+            S_StartSound(doom, NULL, sfx_pstop);
         } while (currentMenu->menuitems[itemOn].status == -1);
 
         return true;
@@ -1639,7 +1639,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         if (currentMenu->menuitems[itemOn].routine &&
             currentMenu->menuitems[itemOn].status == 2)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            S_StartSound(doom, NULL, sfx_stnmov);
             currentMenu->menuitems[itemOn].routine(doom, 0);
         }
         return true;
@@ -1651,7 +1651,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         if (currentMenu->menuitems[itemOn].routine &&
             currentMenu->menuitems[itemOn].status == 2)
         {
-            S_StartSound(NULL, sfx_stnmov);
+            S_StartSound(doom, NULL, sfx_stnmov);
             currentMenu->menuitems[itemOn].routine(doom, 1);
         }
         return true;
@@ -1667,12 +1667,12 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
             if (currentMenu->menuitems[itemOn].status == 2)
             {
                 currentMenu->menuitems[itemOn].routine(doom, 1); // right arrow
-                S_StartSound(NULL, sfx_stnmov);
+                S_StartSound(doom, NULL, sfx_stnmov);
             }
             else
             {
                 currentMenu->menuitems[itemOn].routine(doom, itemOn);
-                S_StartSound(NULL, sfx_pistol);
+                S_StartSound(doom, NULL, sfx_pistol);
             }
         }
         return true;
@@ -1683,7 +1683,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
 
         currentMenu->lastOn = itemOn;
         M_ClearMenus();
-        S_StartSound(NULL, sfx_swtchx);
+        S_StartSound(doom, NULL, sfx_swtchx);
         return true;
     }
     else if (key == key_menu_back)
@@ -1695,7 +1695,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         {
             currentMenu = currentMenu->prevMenu;
             itemOn = currentMenu->lastOn;
-            S_StartSound(NULL, sfx_swtchn);
+            S_StartSound(doom, NULL, sfx_swtchn);
         }
         return true;
     }
@@ -1710,14 +1710,14 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         {
 
             itemOn = i;
-            S_StartSound(NULL, sfx_pstop);
+            S_StartSound(doom, NULL, sfx_pstop);
             return true;
         }
 
         for (i = 0; i <= itemOn; i++)
         {
             itemOn = i;
-            S_StartSound(NULL, sfx_pstop);
+            S_StartSound(doom, NULL, sfx_pstop);
             return true;
         }
     }

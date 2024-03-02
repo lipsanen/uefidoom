@@ -77,8 +77,8 @@ static textscreen_t textscreens[] =
 };
 
 void	F_StartCast (doom_data_t* doom);
-void	F_CastTicker (void);
-boolean F_CastResponder (event_t *ev);
+void	F_CastTicker (struct doom_data_t_* doom);
+boolean F_CastResponder (struct doom_data_t_* doom, event_t *ev);
 void	F_CastDrawer (struct doom_data_t_* doom);
 
 //
@@ -88,9 +88,9 @@ void F_StartFinale (doom_data_t* doom)
 {
     size_t i;
 
-    gameaction = ga_nothing;
-    gamestate = GS_FINALE;
-    viewactive = false;
+    doom->gameaction = ga_nothing;
+    doom->gamestate = GS_FINALE;
+    doom->viewactive = false;
     doom->automapactive = false;
 
     if (logical_gamemission == doom1)
@@ -116,8 +116,8 @@ void F_StartFinale (doom_data_t* doom)
         }
 
         if (logical_gamemission == screen->mission
-         && (logical_gamemission != doom1 || gameepisode == screen->episode)
-         && gamemap == screen->level)
+         && (logical_gamemission != doom1 || doom->gameepisode == screen->episode)
+         && doom->gamemap == screen->level)
         {
             doom->finaletext = screen->text;
             doom->finaleflat = screen->background;
@@ -137,7 +137,7 @@ void F_StartFinale (doom_data_t* doom)
 boolean F_Responder (doom_data_t* doom, event_t *event)
 {
     if (doom->finalestage == F_STAGE_CAST)
-	return F_CastResponder (event);
+	return F_CastResponder (doom, event);
 	
     return false;
 }
@@ -156,15 +156,15 @@ void F_Ticker (doom_data_t* doom)
     {
       // go on to the next level
       for (i=0 ; i<MAXPLAYERS ; i++)
-	if (players[i].cmd.buttons)
+	if (doom->players[i].cmd.buttons)
 	  break;
 				
       if (i < MAXPLAYERS)
       {	
-	if (gamemap == 30)
+	if (doom->gamemap == 30)
 	  F_StartCast (doom);
 	else
-	  gameaction = ga_worlddone;
+	  doom->gameaction = ga_worlddone;
       }
     }
     
@@ -173,7 +173,7 @@ void F_Ticker (doom_data_t* doom)
 	
     if (doom->finalestage == F_STAGE_CAST)
     {
-	F_CastTicker ();
+	F_CastTicker (doom);
 	return;
     }
 	
@@ -186,7 +186,7 @@ void F_Ticker (doom_data_t* doom)
 	doom->finalecount = 0;
 	doom->finalestage = F_STAGE_ARTSCREEN;
 	doom->wipegamestate = -1;		// force a wipe
-	if (gameepisode == 3)
+	if (doom->gameepisode == 3)
 	    S_StartMusic (doom, mus_bunny);
     }
 }
@@ -332,7 +332,7 @@ void F_StartCast (doom_data_t* doom)
 //
 // F_CastTicker
 //
-void F_CastTicker (void)
+void F_CastTicker (struct doom_data_t_* doom)
 {
     int		st;
     int		sfx;
@@ -348,7 +348,7 @@ void F_CastTicker (void)
 	if (castorder[castnum].name == NULL)
 	    castnum = 0;
 	if (mobjinfo[castorder[castnum].type].seesound)
-	    S_StartSound (NULL, mobjinfo[castorder[castnum].type].seesound);
+	    S_StartSound (doom, NULL, mobjinfo[castorder[castnum].type].seesound);
 	caststate = &states[mobjinfo[castorder[castnum].type].seestate];
 	castframes = 0;
     }
@@ -394,7 +394,7 @@ void F_CastTicker (void)
 	}
 		
 	if (sfx)
-	    S_StartSound (NULL, sfx);
+	    S_StartSound (doom, NULL, sfx);
     }
 	
     if (castframes == 12)
@@ -439,7 +439,7 @@ void F_CastTicker (void)
 // F_CastResponder
 //
 
-boolean F_CastResponder (event_t* ev)
+boolean F_CastResponder (struct doom_data_t_* doom, event_t* ev)
 {
     if (ev->type != ev_keydown)
 	return false;
@@ -454,7 +454,7 @@ boolean F_CastResponder (event_t* ev)
     castframes = 0;
     castattacking = false;
     if (mobjinfo[castorder[castnum].type].deathsound)
-	S_StartSound (NULL, mobjinfo[castorder[castnum].type].deathsound);
+	S_StartSound (doom, NULL, mobjinfo[castorder[castnum].type].deathsound);
 	
     return true;
 }
@@ -625,7 +625,7 @@ void F_BunnyScroll (struct doom_data_t_* doom)
 	stage = 6;
     if (stage > laststage)
     {
-	S_StartSound (NULL, sfx_pistol);
+	S_StartSound (doom, NULL, sfx_pistol);
 	laststage = stage;
     }
 	
@@ -639,13 +639,13 @@ static void F_ArtScreenDrawer(struct doom_data_t_* doom)
 {
     char *lumpname;
     
-    if (gameepisode == 3)
+    if (doom->gameepisode == 3)
     {
         F_BunnyScroll(doom);
     }
     else
     {
-        switch (gameepisode)
+        switch (doom->gameepisode)
         {
             case 1:
                 if (doom->gamemode == retail)

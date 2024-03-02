@@ -38,12 +38,7 @@ void D_PageDrawer (doom_data_t* doom);
 void D_AdvanceDemo (doom_data_t* doom);
 void D_DoAdvanceDemo (doom_data_t* doom);
 void D_StartTitle (doom_data_t* doom);
- 
-//
-// GLOBAL VARIABLES
-//
 
-extern  gameaction_t    gameaction;
 
 
 #endif
