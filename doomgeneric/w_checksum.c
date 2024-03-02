@@ -23,17 +23,14 @@
 #include "w_checksum.h"
 #include "w_wad.h"
 
-static wad_file_t **open_wadfiles = NULL;
-static int num_open_wadfiles = 0;
-
-static int GetFileNumber(wad_file_t *handle)
+static int GetFileNumber(doom_data_t* doom, wad_file_t *handle)
 {
     int i;
     int result;
 
-    for (i = 0; i < num_open_wadfiles; ++i)
+    for (i = 0; i < doom->num_open_wadfiles; ++i)
     {
-        if (open_wadfiles[i] == handle)
+        if (doom->open_wadfiles[i] == handle)
         {
             return i;
         }
@@ -42,29 +39,29 @@ static int GetFileNumber(wad_file_t *handle)
     // Not found in list.  This is a new file we haven't seen yet.
     // Allocate another slot for this file.
 
-    void *new_wadfiles = Z_Malloc(sizeof(wad_file_t *) * (num_open_wadfiles + 1), PU_STATIC, NULL);
-    if (open_wadfiles)
+    void *new_wadfiles = Z_Malloc(sizeof(wad_file_t *) * (doom->num_open_wadfiles + 1), PU_STATIC, NULL);
+    if (doom->open_wadfiles)
     {
-        d_memcpy(new_wadfiles, open_wadfiles, sizeof(wad_file_t *) * (num_open_wadfiles));
-        Z_Free(open_wadfiles);
+        d_memcpy(new_wadfiles, doom->open_wadfiles, sizeof(wad_file_t *) * (doom->num_open_wadfiles));
+        Z_Free(doom->open_wadfiles);
     }
 
-    open_wadfiles = new_wadfiles;
-    open_wadfiles[num_open_wadfiles] = handle;
+    doom->open_wadfiles = new_wadfiles;
+    doom->open_wadfiles[doom->num_open_wadfiles] = handle;
 
-    result = num_open_wadfiles;
-    ++num_open_wadfiles;
+    result = doom->num_open_wadfiles;
+    ++doom->num_open_wadfiles;
 
     return result;
 }
 
-static void ChecksumAddLump(sha1_context_t *sha1_context, lumpinfo_t *lump)
+static void ChecksumAddLump(doom_data_t* doom, sha1_context_t *sha1_context, lumpinfo_t *lump)
 {
     char buf[9];
 
     M_StringCopy(buf, lump->name, sizeof(buf));
     SHA1_UpdateString(sha1_context, buf);
-    SHA1_UpdateInt32(sha1_context, GetFileNumber(lump->wad_file));
+    SHA1_UpdateInt32(sha1_context, GetFileNumber(doom, lump->wad_file));
     SHA1_UpdateInt32(sha1_context, lump->position);
     SHA1_UpdateInt32(sha1_context, lump->size);
 }
@@ -76,14 +73,14 @@ void W_Checksum(struct doom_data_t_* doom, sha1_digest_t digest)
 
     SHA1_Init(&sha1_context);
 
-    num_open_wadfiles = 0;
+    doom->num_open_wadfiles = 0;
 
     // Go through each entry in the WAD directory, adding information
     // about each entry to the SHA1 hash.
 
     for (i = 0; i < doom->numlumps; ++i)
     {
-        ChecksumAddLump(&sha1_context, &doom->lumpinfo[i]);
+        ChecksumAddLump(doom, &sha1_context, &doom->lumpinfo[i]);
     }
 
     SHA1_Final(digest, &sha1_context);

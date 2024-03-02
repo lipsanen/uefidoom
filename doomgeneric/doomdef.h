@@ -81,6 +81,7 @@ struct loop_interface_t_;
 struct lumpinfo_s;
 struct wbplayerstruct_s;
 struct wbstartstruct_s;
+struct _wad_file_s;
 
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS 4
@@ -414,6 +415,9 @@ struct doom_data_t_
     int dofrags;
     int ng_state;
     int sp_state;
+
+    struct _wad_file_s **open_wadfiles;
+    int num_open_wadfiles;
 };
 
 typedef struct doom_data_t_ doom_data_t;

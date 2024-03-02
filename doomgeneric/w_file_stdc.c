@@ -27,7 +27,17 @@ typedef struct
     FILE *fstream;
 } stdc_wad_file_t;
 
-extern wad_file_class_t stdc_wad_file;
+static wad_file_t *W_StdC_OpenFile(const char *path);
+static void W_StdC_CloseFile(wad_file_t *wad);
+size_t W_StdC_Read(wad_file_t *wad, unsigned int offset,
+                   void *buffer, size_t buffer_len);
+
+const wad_file_class_t stdc_wad_file =
+{
+    W_StdC_OpenFile,
+    W_StdC_CloseFile,
+    W_StdC_Read,
+};
 
 static wad_file_t *W_StdC_OpenFile(const char *path)
 {
@@ -83,10 +93,3 @@ size_t W_StdC_Read(wad_file_t *wad, unsigned int offset,
 
     return result;
 }
-
-wad_file_class_t stdc_wad_file =
-    {
-        W_StdC_OpenFile,
-        W_StdC_CloseFile,
-        W_StdC_Read,
-};

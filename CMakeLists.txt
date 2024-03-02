@@ -75,10 +75,10 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/tables.c
     doomgeneric/utils.c
     doomgeneric/v_video.c
-    doomgeneric/w_checksum.c
-    doomgeneric/w_file.c
-    doomgeneric/w_file_stdc.c
-    doomgeneric/w_wad.c
+    doomgeneric/w_checksum.c # done
+    doomgeneric/w_file.c # done
+    doomgeneric/w_file_stdc.c # done
+    doomgeneric/w_wad.c # done
     doomgeneric/wi_stuff.c # done
     doomgeneric/z_zone.c
 )
