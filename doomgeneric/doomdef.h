@@ -1117,6 +1117,23 @@ struct doom_data_t_
     int message_counter;
     player_t *hustuff_plr;
     patch_t *hu_font[HU_FONTSIZE];
+    boolean always_off;
+    boolean chat_on;
+    char chat_dest[MAXPLAYERS];
+    boolean message_on;
+    boolean message_dontfuckwithme;
+    boolean message_nottobefuckedwith;
+    boolean headsupactive;
+
+    hu_textline_t w_title;
+    hu_itext_t w_chat;
+    hu_itext_t w_inputbuffer[MAXPLAYERS];
+    hu_stext_t w_message;
+
+    #define QUEUESIZE 128
+    char chatchars[QUEUESIZE];
+    int head;
+    int tail;
 };
 
 typedef struct doom_data_t_ doom_data_t;

@@ -292,7 +292,7 @@ void G_BuildTiccmd(doom_data_t *doom, ticcmd_t *cmd, int maketic)
     }
 
     // buttons
-    cmd->chatchar = HU_dequeueChatChar();
+    cmd->chatchar = HU_dequeueChatChar(doom);
 
     if (doom->gamekeydown[key_fire] || doom->mousebuttons[mousebfire] || doom->joybuttons[joybfire])
         cmd->buttons |= BT_ATTACK;

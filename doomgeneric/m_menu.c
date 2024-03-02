@@ -54,10 +54,6 @@
 
 #include "m_menu.h"
 
-extern boolean message_dontfuckwithme;
-
-extern boolean chat_on; // in heads-up code
-
 //
 // defaulted values
 //
@@ -961,7 +957,7 @@ void M_ChangeMessages(doom_data_t *doom, int choice)
     else
         doom->players[doom->consoleplayer].message = DEH_String(MSGON);
 
-    message_dontfuckwithme = true;
+    doom->message_dontfuckwithme = true;
 }
 
 //
@@ -1491,7 +1487,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
     {
         if (key == key_menu_decscreen) // Screen size down
         {
-            if (doom->automapactive || chat_on)
+            if (doom->automapactive || doom->chat_on)
                 return false;
             M_SizeDisplay(doom, 0);
             S_StartSound(doom, NULL, sfx_stnmov);
@@ -1499,7 +1495,7 @@ boolean M_Responder(doom_data_t *doom, event_t *ev)
         }
         else if (key == key_menu_incscreen) // Screen size up
         {
-            if (doom->automapactive || chat_on)
+            if (doom->automapactive || doom->chat_on)
                 return false;
             M_SizeDisplay(doom, 1);
             S_StartSound(doom, NULL, sfx_stnmov);

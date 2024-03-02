@@ -41,7 +41,7 @@ boolean HU_Responder(struct doom_data_t_* doom, event_t* ev);
 
 void HU_Ticker(struct doom_data_t_* doom);
 void HU_Drawer(struct doom_data_t_* doom);
-char HU_dequeueChatChar(void);
+char HU_dequeueChatChar(struct doom_data_t_* doom);
 void HU_Erase(struct doom_data_t_* doom);
 
 extern const char *chat_macros[10];
