@@ -404,6 +404,16 @@ struct doom_data_t_
 
     // Buffer storing the backdrop
     patch_t *background;
+
+    boolean snl_pointeron;
+
+    int dm_state;
+    int dm_frags[MAXPLAYERS][MAXPLAYERS];
+    int dm_totals[MAXPLAYERS];
+    int cnt_frags[MAXPLAYERS];
+    int dofrags;
+    int ng_state;
+    int sp_state;
 };
 
 typedef struct doom_data_t_ doom_data_t;

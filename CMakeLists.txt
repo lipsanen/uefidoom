@@ -79,7 +79,7 @@ FILE(GLOB_RECURSE CONVERTED_SOURCES
     doomgeneric/w_file.c
     doomgeneric/w_file_stdc.c
     doomgeneric/w_wad.c
-    doomgeneric/wi_stuff.c
+    doomgeneric/wi_stuff.c # done
     doomgeneric/z_zone.c
 )
 

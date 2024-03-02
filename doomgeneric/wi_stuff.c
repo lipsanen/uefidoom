@@ -78,7 +78,7 @@
 
 // NET GAME STUFF
 #define NG_STATSY 50
-#define NG_STATSX (32 + SHORT(doom->star->width) / 2 + 32 * !dofrags)
+#define NG_STATSX (32 + SHORT(doom->star->width) / 2 + 32 * !doom->dofrags)
 
 #define NG_SPACINGX 64
 
@@ -642,8 +642,6 @@ void WI_updateNoState(doom_data_t *doom)
 	}
 }
 
-static boolean snl_pointeron = false;
-
 void WI_initShowNextLoc(doom_data_t *doom)
 {
 	doom->state = ShowNextLoc;
@@ -660,7 +658,7 @@ void WI_updateShowNextLoc(doom_data_t *doom)
 	if (!--doom->cnt || doom->acceleratestage)
 		WI_initNoState(doom);
 	else
-		snl_pointeron = (doom->cnt & 31) < 20;
+		doom->snl_pointeron = (doom->cnt & 31) < 20;
 }
 
 void WI_drawShowNextLoc(doom_data_t *doom)
@@ -693,7 +691,7 @@ void WI_drawShowNextLoc(doom_data_t *doom)
 			WI_drawOnLnode(doom, 8, doom->splat);
 
 		// draw flashing ptr
-		if (snl_pointeron)
+		if (doom->snl_pointeron)
 			WI_drawOnLnode(doom, doom->wbs->next, doom->yah);
 	}
 
@@ -704,7 +702,7 @@ void WI_drawShowNextLoc(doom_data_t *doom)
 
 void WI_drawNoState(doom_data_t *doom)
 {
-	snl_pointeron = true;
+	doom->snl_pointeron = true;
 	WI_drawShowNextLoc(doom);
 }
 
@@ -729,10 +727,6 @@ int WI_fragSum(doom_data_t* doom, int playernum)
 	return frags;
 }
 
-static int dm_state;
-static int dm_frags[MAXPLAYERS][MAXPLAYERS];
-static int dm_totals[MAXPLAYERS];
-
 void WI_initDeathmatchStats(doom_data_t *doom)
 {
 
@@ -741,7 +735,7 @@ void WI_initDeathmatchStats(doom_data_t *doom)
 
 	doom->state = StatCount;
 	doom->acceleratestage = 0;
-	dm_state = 1;
+	doom->dm_state = 1;
 
 	doom->cnt_pause = TICRATE;
 
@@ -751,9 +745,9 @@ void WI_initDeathmatchStats(doom_data_t *doom)
 		{
 			for (j = 0; j < MAXPLAYERS; j++)
 				if (playeringame[j])
-					dm_frags[i][j] = 0;
+					doom->dm_frags[i][j] = 0;
 
-			dm_totals[i] = 0;
+			doom->dm_totals[i] = 0;
 		}
 	}
 
@@ -770,7 +764,7 @@ void WI_updateDeathmatchStats(doom_data_t *doom)
 
 	WI_updateAnimatedBack(doom);
 
-	if (doom->acceleratestage && dm_state != 4)
+	if (doom->acceleratestage && doom->dm_state != 4)
 	{
 		doom->acceleratestage = 0;
 
@@ -780,17 +774,17 @@ void WI_updateDeathmatchStats(doom_data_t *doom)
 			{
 				for (j = 0; j < MAXPLAYERS; j++)
 					if (playeringame[j])
-						dm_frags[i][j] = doom->plrs[i].frags[j];
+						doom->dm_frags[i][j] = doom->plrs[i].frags[j];
 
-				dm_totals[i] = WI_fragSum(doom, i);
+				doom->dm_totals[i] = WI_fragSum(doom, i);
 			}
 		}
 
 		S_StartSound(0, sfx_barexp);
-		dm_state = 4;
+		doom->dm_state = 4;
 	}
 
-	if (dm_state == 2)
+	if (doom->dm_state == 2)
 	{
 		if (!(doom->bcnt & 3))
 			S_StartSound(0, sfx_pistol);
@@ -803,38 +797,38 @@ void WI_updateDeathmatchStats(doom_data_t *doom)
 			{
 				for (j = 0; j < MAXPLAYERS; j++)
 				{
-					if (playeringame[j] && dm_frags[i][j] != doom->plrs[i].frags[j])
+					if (playeringame[j] && doom->dm_frags[i][j] != doom->plrs[i].frags[j])
 					{
 						if (doom->plrs[i].frags[j] < 0)
-							dm_frags[i][j]--;
+							doom->dm_frags[i][j]--;
 						else
-							dm_frags[i][j]++;
+							doom->dm_frags[i][j]++;
 
-						if (dm_frags[i][j] > 99)
-							dm_frags[i][j] = 99;
+						if (doom->dm_frags[i][j] > 99)
+							doom->dm_frags[i][j] = 99;
 
-						if (dm_frags[i][j] < -99)
-							dm_frags[i][j] = -99;
+						if (doom->dm_frags[i][j] < -99)
+							doom->dm_frags[i][j] = -99;
 
 						stillticking = true;
 					}
 				}
-				dm_totals[i] = WI_fragSum(doom, i);
+				doom->dm_totals[i] = WI_fragSum(doom, i);
 
-				if (dm_totals[i] > 99)
-					dm_totals[i] = 99;
+				if (doom->dm_totals[i] > 99)
+					doom->dm_totals[i] = 99;
 
-				if (dm_totals[i] < -99)
-					dm_totals[i] = -99;
+				if (doom->dm_totals[i] < -99)
+					doom->dm_totals[i] = -99;
 			}
 		}
 		if (!stillticking)
 		{
 			S_StartSound(0, sfx_barexp);
-			dm_state++;
+			doom->dm_state++;
 		}
 	}
-	else if (dm_state == 4)
+	else if (doom->dm_state == 4)
 	{
 		if (doom->acceleratestage)
 		{
@@ -846,11 +840,11 @@ void WI_updateDeathmatchStats(doom_data_t *doom)
 				WI_initShowNextLoc(doom);
 		}
 	}
-	else if (dm_state & 1)
+	else if (doom->dm_state & 1)
 	{
 		if (!--doom->cnt_pause)
 		{
-			dm_state++;
+			doom->dm_state++;
 			doom->cnt_pause = TICRATE;
 		}
 	}
@@ -930,19 +924,15 @@ void WI_drawDeathmatchStats(doom_data_t *doom)
 			for (j = 0; j < MAXPLAYERS; j++)
 			{
 				if (playeringame[j])
-					WI_drawNum(doom, x + w, y, dm_frags[i][j], 2);
+					WI_drawNum(doom, x + w, y, doom->dm_frags[i][j], 2);
 
 				x += DM_SPACINGX;
 			}
-			WI_drawNum(doom, DM_TOTALSX + w, y, dm_totals[i], 2);
+			WI_drawNum(doom, DM_TOTALSX + w, y, doom->dm_totals[i], 2);
 		}
 		y += WI_SPACINGY;
 	}
 }
-
-static int cnt_frags[MAXPLAYERS];
-static int dofrags;
-static int ng_state;
 
 void WI_initNetgameStats(doom_data_t *doom)
 {
@@ -951,7 +941,7 @@ void WI_initNetgameStats(doom_data_t *doom)
 
 	doom->state = StatCount;
 	doom->acceleratestage = 0;
-	ng_state = 1;
+	doom->ng_state = 1;
 
 	doom->cnt_pause = TICRATE;
 
@@ -960,12 +950,12 @@ void WI_initNetgameStats(doom_data_t *doom)
 		if (!playeringame[i])
 			continue;
 
-		doom->cnt_kills[i] = doom->cnt_items[i] = doom->cnt_secret[i] = cnt_frags[i] = 0;
+		doom->cnt_kills[i] = doom->cnt_items[i] = doom->cnt_secret[i] = doom->cnt_frags[i] = 0;
 
-		dofrags += WI_fragSum(doom, i);
+		doom->dofrags += WI_fragSum(doom, i);
 	}
 
-	dofrags = !!dofrags;
+	doom->dofrags = !!doom->dofrags;
 
 	WI_initAnimatedBack(doom);
 }
@@ -980,7 +970,7 @@ void WI_updateNetgameStats(doom_data_t *doom)
 
 	WI_updateAnimatedBack(doom);
 
-	if (doom->acceleratestage && ng_state != 10)
+	if (doom->acceleratestage && doom->ng_state != 10)
 	{
 		doom->acceleratestage = 0;
 
@@ -993,14 +983,14 @@ void WI_updateNetgameStats(doom_data_t *doom)
 			doom->cnt_items[i] = (doom->plrs[i].sitems * 100) / doom->wbs->maxitems;
 			doom->cnt_secret[i] = (doom->plrs[i].ssecret * 100) / doom->wbs->maxsecret;
 
-			if (dofrags)
-				cnt_frags[i] = WI_fragSum(doom, i);
+			if (doom->dofrags)
+				doom->cnt_frags[i] = WI_fragSum(doom, i);
 		}
 		S_StartSound(0, sfx_barexp);
-		ng_state = 10;
+		doom->ng_state = 10;
 	}
 
-	if (ng_state == 2)
+	if (doom->ng_state == 2)
 	{
 		if (!(doom->bcnt & 3))
 			S_StartSound(0, sfx_pistol);
@@ -1023,10 +1013,10 @@ void WI_updateNetgameStats(doom_data_t *doom)
 		if (!stillticking)
 		{
 			S_StartSound(0, sfx_barexp);
-			ng_state++;
+			doom->ng_state++;
 		}
 	}
-	else if (ng_state == 4)
+	else if (doom->ng_state == 4)
 	{
 		if (!(doom->bcnt & 3))
 			S_StartSound(0, sfx_pistol);
@@ -1047,10 +1037,10 @@ void WI_updateNetgameStats(doom_data_t *doom)
 		if (!stillticking)
 		{
 			S_StartSound(0, sfx_barexp);
-			ng_state++;
+			doom->ng_state++;
 		}
 	}
-	else if (ng_state == 6)
+	else if (doom->ng_state == 6)
 	{
 		if (!(doom->bcnt & 3))
 			S_StartSound(0, sfx_pistol);
@@ -1073,10 +1063,10 @@ void WI_updateNetgameStats(doom_data_t *doom)
 		if (!stillticking)
 		{
 			S_StartSound(0, sfx_barexp);
-			ng_state += 1 + 2 * !dofrags;
+			doom->ng_state += 1 + 2 * !doom->dofrags;
 		}
 	}
-	else if (ng_state == 8)
+	else if (doom->ng_state == 8)
 	{
 		if (!(doom->bcnt & 3))
 			S_StartSound(0, sfx_pistol);
@@ -1088,10 +1078,10 @@ void WI_updateNetgameStats(doom_data_t *doom)
 			if (!playeringame[i])
 				continue;
 
-			cnt_frags[i] += 1;
+			doom->cnt_frags[i] += 1;
 
-			if (cnt_frags[i] >= (fsum = WI_fragSum(doom, i)))
-				cnt_frags[i] = fsum;
+			if (doom->cnt_frags[i] >= (fsum = WI_fragSum(doom, i)))
+				doom->cnt_frags[i] = fsum;
 			else
 				stillticking = true;
 		}
@@ -1099,10 +1089,10 @@ void WI_updateNetgameStats(doom_data_t *doom)
 		if (!stillticking)
 		{
 			S_StartSound(0, sfx_pldeth);
-			ng_state++;
+			doom->ng_state++;
 		}
 	}
-	else if (ng_state == 10)
+	else if (doom->ng_state == 10)
 	{
 		if (doom->acceleratestage)
 		{
@@ -1113,11 +1103,11 @@ void WI_updateNetgameStats(doom_data_t *doom)
 				WI_initShowNextLoc(doom);
 		}
 	}
-	else if (ng_state & 1)
+	else if (doom->ng_state & 1)
 	{
 		if (!--doom->cnt_pause)
 		{
-			ng_state++;
+			doom->ng_state++;
 			doom->cnt_pause = TICRATE;
 		}
 	}
@@ -1147,7 +1137,7 @@ void WI_drawNetgameStats(doom_data_t *doom)
 	V_DrawPatch(NG_STATSX + 3 * NG_SPACINGX - SHORT(doom->secret->width),
 				NG_STATSY, doom->secret);
 
-	if (dofrags)
+	if (doom->dofrags)
 		V_DrawPatch(NG_STATSX + 4 * NG_SPACINGX - SHORT(doom->frags->width),
 					NG_STATSY, doom->frags);
 
@@ -1173,20 +1163,18 @@ void WI_drawNetgameStats(doom_data_t *doom)
 		WI_drawPercent(doom, x - pwidth, y + 10, doom->cnt_secret[i]);
 		x += NG_SPACINGX;
 
-		if (dofrags)
-			WI_drawNum(doom, x, y + 10, cnt_frags[i], -1);
+		if (doom->dofrags)
+			WI_drawNum(doom, x, y + 10, doom->cnt_frags[i], -1);
 
 		y += WI_SPACINGY;
 	}
 }
 
-static int sp_state;
-
 void WI_initStats(doom_data_t *doom)
 {
 	doom->state = StatCount;
 	doom->acceleratestage = 0;
-	sp_state = 1;
+	doom->sp_state = 1;
 	doom->cnt_kills[0] = doom->cnt_items[0] = doom->cnt_secret[0] = -1;
 	doom->cnt_time = doom->cnt_par = -1;
 	doom->cnt_pause = TICRATE;
@@ -1199,7 +1187,7 @@ void WI_updateStats(doom_data_t *doom)
 
 	WI_updateAnimatedBack(doom);
 
-	if (doom->acceleratestage && sp_state != 10)
+	if (doom->acceleratestage && doom->sp_state != 10)
 	{
 		doom->acceleratestage = 0;
 		doom->cnt_kills[0] = (doom->plrs[doom->me].skills * 100) / doom->wbs->maxkills;
@@ -1208,10 +1196,10 @@ void WI_updateStats(doom_data_t *doom)
 		doom->cnt_time = doom->plrs[doom->me].stime / TICRATE;
 		doom->cnt_par = doom->wbs->partime / TICRATE;
 		S_StartSound(0, sfx_barexp);
-		sp_state = 10;
+		doom->sp_state = 10;
 	}
 
-	if (sp_state == 2)
+	if (doom->sp_state == 2)
 	{
 		doom->cnt_kills[0] += 2;
 
@@ -1222,10 +1210,10 @@ void WI_updateStats(doom_data_t *doom)
 		{
 			doom->cnt_kills[0] = (doom->plrs[doom->me].skills * 100) / doom->wbs->maxkills;
 			S_StartSound(0, sfx_barexp);
-			sp_state++;
+			doom->sp_state++;
 		}
 	}
-	else if (sp_state == 4)
+	else if (doom->sp_state == 4)
 	{
 		doom->cnt_items[0] += 2;
 
@@ -1236,10 +1224,10 @@ void WI_updateStats(doom_data_t *doom)
 		{
 			doom->cnt_items[0] = (doom->plrs[doom->me].sitems * 100) / doom->wbs->maxitems;
 			S_StartSound(0, sfx_barexp);
-			sp_state++;
+			doom->sp_state++;
 		}
 	}
-	else if (sp_state == 6)
+	else if (doom->sp_state == 6)
 	{
 		doom->cnt_secret[0] += 2;
 
@@ -1250,11 +1238,11 @@ void WI_updateStats(doom_data_t *doom)
 		{
 			doom->cnt_secret[0] = (doom->plrs[doom->me].ssecret * 100) / doom->wbs->maxsecret;
 			S_StartSound(0, sfx_barexp);
-			sp_state++;
+			doom->sp_state++;
 		}
 	}
 
-	else if (sp_state == 8)
+	else if (doom->sp_state == 8)
 	{
 		if (!(doom->bcnt & 3))
 			S_StartSound(0, sfx_pistol);
@@ -1273,11 +1261,11 @@ void WI_updateStats(doom_data_t *doom)
 			if (doom->cnt_time >= doom->plrs[doom->me].stime / TICRATE)
 			{
 				S_StartSound(0, sfx_barexp);
-				sp_state++;
+				doom->sp_state++;
 			}
 		}
 	}
-	else if (sp_state == 10)
+	else if (doom->sp_state == 10)
 	{
 		if (doom->acceleratestage)
 		{
@@ -1289,11 +1277,11 @@ void WI_updateStats(doom_data_t *doom)
 				WI_initShowNextLoc(doom);
 		}
 	}
-	else if (sp_state & 1)
+	else if (doom->sp_state & 1)
 	{
 		if (!--doom->cnt_pause)
 		{
-			sp_state++;
+			doom->sp_state++;
 			doom->cnt_pause = TICRATE;
 		}
 	}
