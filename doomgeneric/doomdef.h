@@ -294,6 +294,8 @@ struct doom_data_t_ {
     // Hash table for fast lookups
 
     struct lumpinfo_s **lumphash;
+
+    uint32_t* DG_ScreenBuffer;
 };
 
 typedef struct doom_data_t_ doom_data_t;

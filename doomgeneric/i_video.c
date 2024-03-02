@@ -281,7 +281,7 @@ void I_UpdateNoBlit(void)
 // I_FinishUpdate
 //
 
-void I_FinishUpdate(void)
+void I_FinishUpdate(doom_data_t* doom)
 {
     int y;
     int x_offset, y_offset, x_offset_end;
@@ -298,9 +298,9 @@ void I_FinishUpdate(void)
 
     /* DRAW SCREEN */
     line_in = (unsigned char *)I_VideoBuffer;
-    line_out = (unsigned char *)DG_ScreenBuffer;
+    line_out = (unsigned char *)doom->DG_ScreenBuffer;
 
-    map_to_fb(DG_ScreenBuffer, I_VideoBuffer);
+    map_to_fb(doom->DG_ScreenBuffer, I_VideoBuffer);
     DG_DrawFrame();
 }
 

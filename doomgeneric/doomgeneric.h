@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-extern uint32_t* DG_ScreenBuffer;
 struct doom_data_t_;
 
 void doomgeneric_Res(uint32_t* width, uint32_t* height);

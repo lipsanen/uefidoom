@@ -117,7 +117,7 @@ static void Do_Wipe(doom_data_t *doom)
     done = wipe_ScreenWipe(wipe_Melt, 0, 0, SCREENWIDTH, SCREENHEIGHT, tics);
     I_UpdateNoBlit();
     M_Drawer(doom);       // menu is drawn even on top of wipes
-    I_FinishUpdate(); // page flip or blit buffer
+    I_FinishUpdate(doom); // page flip or blit buffer
 
     if (done)
     {
@@ -253,7 +253,7 @@ void D_Display(struct doom_data_t_ *doom)
     // normal update
     if (!doom->wipe)
     {
-        I_FinishUpdate(); // page flip or blit buffer
+        I_FinishUpdate(doom); // page flip or blit buffer
         return;
     }
 
@@ -994,11 +994,11 @@ static void D_Endoom(doom_data_t *doom)
     // exit(0);
 }
 
-static void Init_ScreenBuffer()
+static void Init_ScreenBuffer(doom_data_t* doom)
 {
     uint32_t width, height;
     doomgeneric_Res(&width, &height);
-    DG_ScreenBuffer = Z_Malloc(width * height * 4, PU_STATIC, NULL);
+    doom->DG_ScreenBuffer = Z_Malloc(width * height * 4, PU_STATIC, NULL);
 }
 
 //
@@ -1018,7 +1018,7 @@ void D_DoomMain(struct doom_data_t_ *doom)
 
     d_printf("Z_Init: Init zone memory allocation daemon. \n");
     Z_Init();
-    Init_ScreenBuffer();
+    Init_ScreenBuffer(doom);
 
 #ifdef FEATURE_MULTIPLAYER
     //!

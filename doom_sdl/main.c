@@ -161,7 +161,7 @@ void HandleMouse()
 
 void DG_DrawFrame()
 {
-  SDL_UpdateTexture(texture, NULL, DG_ScreenBuffer, WIDTH*sizeof(uint32_t));
+  SDL_UpdateTexture(texture, NULL, doom.DG_ScreenBuffer, WIDTH*sizeof(uint32_t));
 
   SDL_RenderClear(renderer);
   SDL_RenderCopy(renderer, texture, NULL, NULL);
@@ -208,6 +208,8 @@ int main(int argc, char **argv)
     doomgeneric_Tick(&doom);
   }
   
+  SDL_DestroyWindow(window);
+  SDL_DestroyTexture(texture);
 
   return 0;
 }

@@ -5,8 +5,6 @@
 #include "doomgeneric.h"
 #include "dlibc.h"
 
-uint32_t* DG_ScreenBuffer = 0;
-
 void D_DoomMain (struct doom_data_t_* doom);
 
 

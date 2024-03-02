@@ -37,6 +37,8 @@
 
 #define MAX_MOUSE_BUTTONS 8
 
+struct doom_data_t_;
+
 typedef struct
 {
     // Screen width and height
@@ -107,7 +109,7 @@ void I_SetPalette (byte* palette);
 int I_GetPaletteIndex(int r, int g, int b);
 
 void I_UpdateNoBlit (void);
-void I_FinishUpdate (void);
+void I_FinishUpdate (struct doom_data_t_* doom);
 
 void I_ReadScreen (byte* scr);
 
